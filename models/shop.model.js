@@ -19,7 +19,6 @@ const shopSchema = mongoose.Schema({
 
     discription: {
         type: String,
-        intl: true
     },
 
     image: {

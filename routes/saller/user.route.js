@@ -52,7 +52,7 @@ router.post("/signup/verify", async (req, res) => {
             }
 
             user.verified = true;
-            user.role = "admin";
+            user.role = "saller";
 
             const token = await generateToken({
                 _id: user._id,

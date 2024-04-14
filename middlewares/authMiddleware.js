@@ -5,8 +5,14 @@ exports.checkToken = (req, res, next) => {
  if(headerToken){
  	 req.token = headerToken;
    Jwt.verify(req.token, process.env.JWT_SECRET_KEY, (err, authData) => {
-     if(!err) return next();
-     else return res.status(403).json("token haqiqiy emas!");
+     if(!err) {
+      return next()
+     } 
+     else {
+       console.log("token haqiqiy emas!")
+      return res.status(403).json("token haqiqiy emas!");
+     } 
+     
    })
 
 

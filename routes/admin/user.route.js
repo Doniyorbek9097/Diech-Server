@@ -26,7 +26,7 @@ router.post("/signup", async (req, res) => {
 
         const txt = `${otpCode} - Tasdiqlash kodi.\nKodni hech kimga bermang.\nFiribgarlardan saqlaning.\nKompaniya OLCHA.UZ`
         // const respon = await sendSms(phone_number, txt);
-        return res.status(200).json(`OTP send successfully ${otpCode}`);
+        return res.status(200).json(otpCode);
 
     } catch (error) {
         console.log(error);
@@ -103,7 +103,7 @@ router.get("/user/:id", checkToken,  async (req, res) => {
 });
 
 
-router.get("/users", async (req, res) => {
+router.get("/users", checkToken, async (req, res) => {
     try {
         const users = await userModel.find();
         res.status(200).json(users)
