@@ -17,6 +17,7 @@ router.post("/signup", async (req, res) => {
         let user = await userModel.findOne({ phone_number });
         if (user) return res.json({
             message: `${phone_number} allaqachon ro'yxatdan o'tgan!`,
+            errPhone: true
         });
         const saltPassword = await bcrypt.genSalt(10);
         req.body.password = await bcrypt.hash(req.body.password, saltPassword);
@@ -30,7 +31,10 @@ router.post("/signup", async (req, res) => {
 
         const txt = `${otpCode} - Tasdiqlash kodi.\nKodni hech kimga bermang.\nFiribgarlardan saqlaning.\nKompaniya OLMA.UZ`
         // const respon = await sendSms(phone_number, txt);
-        return res.status(200).json(otpCode);
+        return res.json({
+            message:"Tasdiqlash kodi yubdik",
+            data: otpCode
+        });
 
     } catch (error) {
         console.log(error)
@@ -41,20 +45,25 @@ router.post("/signup", async (req, res) => {
 
 router.post("/signup/verify", async (req, res) => {
     try {
-        
-        const { phone_number, otp } = req.body;
+        const { phone_number, code } = req.body;
         const otpHoder = await otpModel.find({ phone_number: phone_number });
         if (otpHoder.length == 0) return res.json({
-            message: "You use an Expired OTP!",
+            message: "Tasdiqlash kodi xato yoki muddati tugagan!",
+            errCode: true
         });
         const lastOtpFind = otpHoder[otpHoder.length - 1];
 
-        const validUser = await bcrypt.compare(otp, lastOtpFind.otp);
+        const validUser = await bcrypt.compare(code, lastOtpFind.otp);
+
+        if(!validUser) return res.json({
+            message:"Tasdiqlash kodi xato yoki muddati tugagan!",
+            errCode: true
+        })
 
         if (lastOtpFind.phone_number === phone_number && validUser) {
             let user = await userModel.findOne({ phone_number: phone_number });
             if (!user) return res.json({
-                message: "Bunday foydalanuvcbi topilmadi"
+                message: "Bunday foydalanuvchi topilmadi"
             })
 
             user.verified = true;
@@ -71,7 +80,7 @@ router.post("/signup/verify", async (req, res) => {
 
             const deleteOtp = await otpModel.deleteMany({ phone_number: lastOtpFind.phone_number });
             return res.status(200).json({
-                message: "User Registration Successfully!",
+                message: "Muvaffaqiyatli roʻyxatdan oʻtdingiz!",
                 data: {
                     _id: user?._id,
                     firstname: user?.firstname,

@@ -26,6 +26,7 @@ const userSchema = new mongooose.Schema({
 
     gender: {
         type: String,
+        enum:['Erkak',"Ayol"]
     },
 
     birthday: {
