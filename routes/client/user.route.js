@@ -124,15 +124,6 @@ try {
 });
 
 
-router.delete("/user-delete/:id", async (req, res) => {
-    try {
-        const deleted = await userModel.findByIdAndDelete(req.params.id);
-        res.status(200).json(deleted);
-    } catch (error) {
-        console.log(error);
-        res.status(500).json(`Server xatosi: ${error.message}`)
-    }
-})
 
 // router.post("/register", async (req, res) => {
 //     try {

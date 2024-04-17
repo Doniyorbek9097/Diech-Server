@@ -7,11 +7,19 @@ const { generateToken } = require("../../utils/generateToken");
 router.post("/shop", async(req,res) => {
     try {
         req.body.slug = slugify(req.body.name);
+        const shop = await shopModel.findOne({slug: req.body.slug})
+        if(shop) return res.json({
+            message:"Bu Do'kon yaratilgan",
+            errShop: true
+        });
         const result = await new shopModel(req.body).save();
-        console.log(result);
-        res.status(200).json(result)
+        res.json({
+            message: "Muoffaqiyatli yaratildi",
+            data: result
+        })
     } catch (error) {
-        console.log(error)
+        console.log(error);
+        res.status(500).json("Serverda Xatolik")
     }
 });
 
@@ -51,12 +59,13 @@ router.put("/shop/:id", async(req,res) => {
 });
 
 
-router.delete("/shop/:id", async(req,res)=> {
+router.delete("/shop-delete/:id", async(req,res)=> {
     try {
-        const result = await shopModel.findByIdAndDelete(req.params.id);
-        res.json({result, message:"success deleted!"});
+        const data = await shopModel.findByIdAndDelete(req.params.id);
+        res.json({data, message:"success deleted!"});
     } catch (error) {
         console.log(error)
+        res.json("Serverda xatolik");
     }
 });
 

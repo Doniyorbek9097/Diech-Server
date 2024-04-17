@@ -4,7 +4,6 @@ const shopSchema = mongoose.Schema({
     name: {
         type: String,
         required: [true, "Do'kon nomi bo'lishi shart"],
-        unique: true
     },
 
     slug: {

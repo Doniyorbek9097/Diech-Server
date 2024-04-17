@@ -5,7 +5,7 @@ require("dotenv/config");
 require("./config/db");
 // require("./bot");
 const adminRoutes = require("./routes/admin");
-const sellerRoutes = require("./routes/saller");
+const sellerRoutes = require("./routes/seller");
 const clientRoutes = require("./routes/client");
 
 const mongoose = require("mongoose");

@@ -10,6 +10,12 @@ const userSchema = new mongooose.Schema({
         type:String,
     },
 
+    lastname: {
+        type:String,
+    },
+    
+    fathername:String,
+
     avatar: {
         type:String
     },
@@ -33,6 +39,9 @@ const userSchema = new mongooose.Schema({
     password: {
         type:String,
     },
+
+    token: String,
+
     email: {
         type: String,
         unique: true,
@@ -53,7 +62,7 @@ const userSchema = new mongooose.Schema({
     role: {
         type: String,
         default: "user",
-        enum: ["user", "saller", "admin"]
+        enum: ["user", "seller", "admin", "creator"]
     },
 
     address: {
@@ -73,21 +82,13 @@ const userSchema = new mongooose.Schema({
 
 
 userSchema.pre("save", async function(next) {
-    if(this.password) {
-        const salt = await bcrypt.genSalt(10);
-        this.password = await bcrypt.hash(this.password, salt)
-    }
-
-    if(this.firstname && this.lastname) {
-        this.username = `${this.firstname}`;
-    }
+    this.username = `${this.firstname || `User-${this.phone_number.slice(-4)}`}`;
 });
 
 
 userSchema.methods.comparePassword = async function(password) {
    return await bcrypt.compare(password, this.password)
 }
-
 
 
 userSchema.virtual("shops", {
@@ -104,10 +105,10 @@ userSchema.virtual("orders", {
 })
 
 
-// userSchema.index( 
-//     { created_at: 1 },
-//     { expireAfterSeconds: "1d", partialFilterExpression: { verified: false } }
-// )
+userSchema.index( 
+    { created_at: 1 },
+    { expireAfterSeconds: "1d", partialFilterExpression: { verified: false } }
+)
 
 
 

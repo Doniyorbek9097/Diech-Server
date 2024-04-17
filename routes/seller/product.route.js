@@ -71,9 +71,9 @@ router.get("/product-all", async (req, res) => {
 
 
 // one product by slug 
-router.get("/product/:slug", async (req, res) => {
+router.get("/product/:id", async (req, res) => {
     try {
-        let product = await productModel.findOne({ slug: req.params.slug })
+        let product = await productModel.findOne({ _id: req.params.id }).populate("shop").populate("owner")
         return res.status(200).json(product.toObject());
     } catch (error) {
         console.log(error);
