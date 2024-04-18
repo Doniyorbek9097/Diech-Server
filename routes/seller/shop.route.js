@@ -7,7 +7,6 @@ const { generateToken } = require("../../utils/generateToken");
 router.get("/shops/:user_id", async(req,res) => {
     try {
         const shops = await shopModel.find({owner: req.params.user_id})
-        console.log(shops)
         res.status(200).json(shops);
     } catch (error) {
         

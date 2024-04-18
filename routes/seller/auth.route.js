@@ -8,13 +8,13 @@ const sendEmail = require("../../utils/sendEmail");
 const { sendSms } = require("../../utils/sendSms");
 const { generateOTP } = require("../../utils/otpGenrater");
 const { generateToken } = require("../../utils/generateToken")
+const { checkToken } = require("../../middlewares/authMiddleware")
 
 
 
 router.post("/signup", async (req, res) => {
     try {
          const { phone_number } = req.body
-         console.log(req.body)
         let user = await userModel.findOne({ phone_number });
         if (user) return res.status(400).json(`${phone_number} allaqachon ro'yxatdan o'tgan!`);
         const saltPassword = await bcrypt.genSalt(10);
@@ -90,20 +90,27 @@ router.post("/signup/verify", async (req, res) => {
 
 router.post("/signin", async (req, res) => {
     try {
-        console.log(req.body)
         const user = await userModel.findOne({ phone_number: req.body.phone_number });
-        if (!user) return res.status(500).json("Yaroqsiz Telefon raqam");
+        if (!user) return res.json({
+            message: "Yaroqsiz Telefon raqam",
+            errPhone: true
+        });
         const validPassword = await bcrypt.compare(req.body.password, user.password);
-        if (!validPassword) return res.status(404).json("Yaroqsiz Parol");
-        if (user.role !== "seller") return res.status(404).json("Siz Admin emassiz!");
+        if (!validPassword) return res.json({
+            message: "Yaroqsiz Parol",
+            errPass: true
+        });
+        if (user.role !== "seller") return res.json({
+            message: "Siz Admin emassiz!"
+        });
         const token = await generateToken({
             _id: user._id,
             phone_number: user.phone_number,
             role: user.role,
         });
 
-        res.status(200).json({
-            user: {
+        res.json({
+            data: {
                 _id: user._id,
                 firstname: user.firstname,
                 lastname: user.lastname,
