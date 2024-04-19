@@ -5,14 +5,14 @@ const crypto = require("crypto");
 const bcrypt = require("bcrypt")
 const router = require("express").Router();
 const sendEmail = require("../../utils/sendEmail");
-const { checkToken } = require("../../middlewares/authMiddleware");
 const { sendSms } = require("../../utils/sendSms");
 const { generateOTP } = require("../../utils/otpGenrater");
 const { generateToken } = require("../../utils/generateToken")
+const { checkToken } = require("../../middlewares/authMiddleware")
 
 
 
-router.get("/user/:id", async (req, res) => {
+router.get("/user/:id", checkToken, async (req, res) => {
     try {
         const user = await userModel.findById(req.params.id)
             .populate({
@@ -22,7 +22,7 @@ router.get("/user/:id", async (req, res) => {
                 }
             })
 
-        !user ? res.send({
+        !user ? res.status(500).send({
             message: "Token xato"
         })
         :
@@ -38,7 +38,7 @@ router.get("/user/:id", async (req, res) => {
 });
 
 
-router.get("/users", async (req, res) => {
+router.get("/users", checkToken, async (req, res) => {
     try {
         const users = await userModel.find().populate("shops")
         res.status(200).json(users)
@@ -48,7 +48,7 @@ router.get("/users", async (req, res) => {
 });
 
 
-router.post("/user-add", async (req,res) => {
+router.post("/user-add", checkToken, async (req,res) => {
     try {
         let newUser = await new userModel(req.body);
         newUser.verified = true;
@@ -88,10 +88,9 @@ router.put("/user-update/:id", checkToken, async (req, res) => {
 
 
 
-router.delete("/user-delete/:id", async (req, res) => {
+router.delete("/user-delete/:id", checkToken, async (req, res) => {
     try {
         const deleted = await userModel.findByIdAndDelete(req.params.id);
-        console.log(deleted)
         res.status(200).json(deleted);
     } catch (error) {
         console.log(error);

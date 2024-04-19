@@ -7,9 +7,10 @@ const langReplace = require("../../utils/langReplace");
 const path = require("path")
 const fs = require("fs");
 const { Base64ToFile } = require("../../utils/base64ToFile");
+const { checkToken } = require("../../middlewares/authMiddleware")
 
 // create new Product 
-router.post("/product-add", async (req, res) => {
+router.post("/product-add", checkToken, async (req, res) => {
     const { images } = req.body;
     req.body.slug = slugify(req.body.name.uz);
     req.body.images = [];
@@ -57,7 +58,7 @@ router.post("/product-add", async (req, res) => {
 });
 
 // get all products 
-router.get("/product-all", async (req, res) => {
+router.get("/product-all", checkToken, async (req, res) => {
     try {
         let products = await productModel.find();
         return res.json(products);
@@ -70,7 +71,7 @@ router.get("/product-all", async (req, res) => {
 
 
 // one product by id 
-router.get("/product-one/:id", async (req, res) => {
+router.get("/product-one/:id", checkToken, async (req, res) => {
     try {
 
         let product = await productModel.findOne({ _id: req.params.id })
@@ -84,7 +85,7 @@ router.get("/product-one/:id", async (req, res) => {
 
 
 // update product 
-router.put("/product-edit/:id", async (req, res) => {
+router.put("/product-edit/:id", checkToken, async (req, res) => {
     const id = req.params.id;
     req.body.slug = slugify(req.body.name.uz);
     const { images } = req.body;
@@ -107,7 +108,7 @@ router.put("/product-edit/:id", async (req, res) => {
 });
 
 // product image delete 
-router.put("/product-image-delete", async (req, res) => {
+router.put("/product-image-delete", checkToken, async (req, res) => {
     const { product_id, image_path } = req.body;
     const deleted = await productModel.updateOne({_id: product_id}, {$pull: {images: image_path}});
     const imagePath = path.join(__dirname, `../../uploads/${path.basename(image_path)}`);
@@ -124,7 +125,7 @@ router.put("/product-image-delete", async (req, res) => {
 
 
 
-router.delete("/product-delete/:id", async (req, res) => {
+router.delete("/product-delete/:id", checkToken, async (req, res) => {
     try {
         const deleted = await productModel.findByIdAndDelete(req.params.id);
         const { images, colors } = deleted;

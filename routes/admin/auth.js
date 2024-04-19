@@ -9,16 +9,38 @@ const { sendSms } = require("../../utils/sendSms");
 const { generateOTP } = require("../../utils/otpGenrater");
 const { generateToken } = require("../../utils/generateToken")
 
+router.get("/auth/:id",  async (req, res) => {
+    try {
+        const user = await userModel.findById(req.params.id)
+        !user ? res.status(500).send({
+            message: "Token xato"
+        })
+        :
+        res.json({
+            message: "success",
+            data: user
+        })
+
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json("Serverda Xatolik " + error.message)
+    }
+});
 
 
 router.post("/signup", async (req, res) => {
     try {
-         const { phone_number } = req.body;
+         const { phone_number, email } = req.body;
         let user = await userModel.findOne({ phone_number });
         if (user) return res.json({
             message: `${phone_number} allaqachon ro'yxatdan o'tgan!`,
-            errPhone: true
         });
+
+        user = await userModel.findOne({ email });
+        if (user) return res.json({
+            message: `${email} allaqachon ro'yxatdan o'tgan!`,
+        });
+
         const saltPassword = await bcrypt.genSalt(10);
         req.body.password = await bcrypt.hash(req.body.password, saltPassword);
         user = await new userModel(req.body).save();
@@ -32,7 +54,7 @@ router.post("/signup", async (req, res) => {
         const txt = `${otpCode} - Tasdiqlash kodi.\nKodni hech kimga bermang.\nFiribgarlardan saqlaning.\nKompaniya OLMA.UZ`
         // const respon = await sendSms(phone_number, txt);
         return res.json({
-            message:"Tasdiqlash kodi yubdik",
+            message:"Tasdiqlash kodi yubdik "+ otpCode,
             data: otpCode
         });
 
@@ -46,10 +68,10 @@ router.post("/signup", async (req, res) => {
 router.post("/signup/verify", async (req, res) => {
     try {
         const { phone_number, code } = req.body;
+        console.log(req.body)
         const otpHoder = await otpModel.find({ phone_number: phone_number });
         if (otpHoder.length == 0) return res.json({
             message: "Tasdiqlash kodi xato yoki muddati tugagan!",
-            errCode: true
         });
         const lastOtpFind = otpHoder[otpHoder.length - 1];
 
@@ -57,7 +79,6 @@ router.post("/signup/verify", async (req, res) => {
 
         if(!validUser) return res.json({
             message:"Tasdiqlash kodi xato yoki muddati tugagan!",
-            errCode: true
         })
 
         if (lastOtpFind.phone_number === phone_number && validUser) {
@@ -111,7 +132,6 @@ router.post("/signin", async (req, res) => {
         if (!user) {
             return res.json({
                 message: "Telefon raqam xato topilmadi",
-                errPhone:true 
             });
         } 
         const validPassword = await bcrypt.compare(req.body.password, user.password);
@@ -119,7 +139,6 @@ router.post("/signin", async (req, res) => {
         if (!validPassword) {
             return res.json({
                 message:"Parolingiz xato",
-                errPass: true
             })
         }
 

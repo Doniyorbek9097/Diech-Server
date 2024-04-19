@@ -2,9 +2,9 @@ const router = require("express").Router();
 const slugify = require("slugify");
 const shopModel = require("../../models/shop.model");
 const { generateToken } = require("../../utils/generateToken");
+const { checkToken } = require("../../middlewares/authMiddleware")
 
-
-router.post("/shop", async(req,res) => {
+router.post("/shop", checkToken, async(req,res) => {
     try {
         req.body.slug = slugify(req.body.name);
         const shop = await shopModel.findOne({slug: req.body.slug})
@@ -24,7 +24,7 @@ router.post("/shop", async(req,res) => {
 });
 
 
-router.get("/shops", async(req,res) => {
+router.get("/shops", checkToken, async(req,res) => {
     try {
         const shops = await shopModel.find().populate("products").populate("owner")
         res.status(200).json(shops);
@@ -34,7 +34,7 @@ router.get("/shops", async(req,res) => {
 });
 
 
-router.get("/shop/:id", async(req,res) => {
+router.get("/shop/:id", checkToken, async(req,res) => {
     try {
         const result = await shopModel.findById(req.params.id)
         .populate({
@@ -48,7 +48,7 @@ router.get("/shop/:id", async(req,res) => {
 
 
 
-router.put("/shop/:id", async(req,res) => {
+router.put("/shop/:id", checkToken, async(req,res) => {
     try {
         req.body.slug = slugify(req.body.name);
         const result = await shopModel.findByIdAndUpdate(req.params.id, req.body);
@@ -59,7 +59,7 @@ router.put("/shop/:id", async(req,res) => {
 });
 
 
-router.delete("/shop-delete/:id", async(req,res)=> {
+router.delete("/shop-delete/:id", checkToken, async(req,res)=> {
     try {
         const data = await shopModel.findByIdAndDelete(req.params.id);
         res.json({data, message:"success deleted!"});
