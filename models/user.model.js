@@ -2,6 +2,11 @@ const mongooose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const bcrypt  = require("bcrypt");
 
+
+const addressSchema = mongooose.Schema({
+
+})
+
 const userSchema = new mongooose.Schema({
     firstname: {
         type:String,
@@ -17,7 +22,8 @@ const userSchema = new mongooose.Schema({
     fathername:String,
 
     avatar: {
-        type:String
+        type:String,
+        default:"https://ps.w.org/user-avatar-reloaded/assets/icon-256x256.png"
     },
 
     username: {
@@ -99,11 +105,19 @@ userSchema.virtual("shops", {
 });
 
 
-userSchema.virtual("orders", {
+userSchema.virtual("costumer-orders", {
     ref: "Order",
     localField: "_id",
     foreignField: "user"
 })
+
+
+userSchema.virtual("saller-orders", {
+    ref: "Order",
+    localField: "_id",
+    foreignField: "owner"
+})
+
 
 
 userSchema.index( 

@@ -97,6 +97,7 @@ router.get("/product-slug/:slug", async (req, res) => {
                 }
             })
         // .populate("shop");
+        
 
         return res.status(200).json(product);
     } catch (error) {

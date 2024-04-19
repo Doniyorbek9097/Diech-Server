@@ -148,6 +148,11 @@ const productSchema = Schema({
         type:[reviewSchema]
     },
 
+    views:{
+        type: [Schema.Types.ObjectId],
+        ref: "User"
+    },
+
     rating: {
         type: Number,
         required: true,

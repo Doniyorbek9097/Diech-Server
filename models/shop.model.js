@@ -1,5 +1,28 @@
 const mongoose = require("mongoose");
 
+const addressSchema = mongoose.Schema({
+    region: {
+        type: String,
+    },
+
+    city: {
+        type: String
+    },
+
+    district: {
+
+    },
+
+    street: {
+        type: String
+    },
+
+    house: {
+        type: String
+    }
+}) 
+
+
 const shopSchema = mongoose.Schema({
     name: {
         type: String,
@@ -40,8 +63,9 @@ const shopSchema = mongoose.Schema({
     isActive: {
         type: Boolean,
         default: false
-    }
+    },
 
+    address: [addressSchema]
 },
 
 {
@@ -57,7 +81,16 @@ shopSchema.virtual("products", {
     "ref": "Product",
     localField: "_id",
     foreignField: "shop"
+});
+
+
+shopSchema.virtual("orders", {
+    "ref": "Order",
+    localField: "_id",
+    foreignField: "shop"
 })
+
+
 
 
 

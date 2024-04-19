@@ -72,7 +72,7 @@ router.post("/user-add", checkToken, async (req,res) => {
 })
 
 
-router.put("/user-update/:id", checkToken, async (req, res) => {
+router.put("/user-update/:id",  async (req, res) => {
     try {
         req.body.username = req.body.firstname || req.body.username;
 
