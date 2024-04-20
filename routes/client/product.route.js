@@ -96,7 +96,8 @@ router.get("/product-slug/:slug", async (req, res) => {
                     path:'products'
                 }
             })
-        // .populate("shop");
+        .populate("owner", "username")
+        .populate("shop");
         
 
         return res.status(200).json(product);

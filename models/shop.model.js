@@ -93,7 +93,5 @@ shopSchema.virtual("orders", {
 
 
 
-
-
 module.exports = mongoose.model("Shop", shopSchema);
 

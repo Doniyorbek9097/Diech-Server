@@ -16,7 +16,9 @@ router.post("/signup", async (req, res) => {
     try {
          const { phone_number } = req.body
         let user = await userModel.findOne({ phone_number });
-        if (user) return res.status(400).json(`${phone_number} allaqachon ro'yxatdan o'tgan!`);
+        if (user) return res.json({
+            message: `${phone_number} allaqachon ro'yxatdan o'tgan!`
+        });
         const saltPassword = await bcrypt.genSalt(10);
         req.body.password = await bcrypt.hash(req.body.password, saltPassword);
         user = await new userModel(req.body).save();
@@ -29,7 +31,10 @@ router.post("/signup", async (req, res) => {
 
         const txt = `${otpCode} - Tasdiqlash kodi.\nKodni hech kimga bermang.\nFiribgarlardan saqlaning.\nKompaniya OLMA.UZ`
         // const respon = await sendSms(phone_number, txt);
-        return res.status(200).json(otpCode);
+        return res.status(200).json({
+            message: txt,
+            data: otpCode
+        });
 
     } catch (error) {
         console.log(error)
@@ -43,14 +48,18 @@ router.post("/signup/verify", async (req, res) => {
         
         const { phone_number, otp } = req.body;
         const otpHoder = await otpModel.find({ phone_number: phone_number });
-        if (otpHoder.length == 0) return res.status(400).json("You use an Expired OTP!");
+        if (otpHoder.length == 0) return res.json({
+            message: "Tasdiqlash kodi eskirgan!"
+        });
         const lastOtpFind = otpHoder[otpHoder.length - 1];
 
         const validUser = await bcrypt.compare(otp, lastOtpFind.otp);
 
         if (lastOtpFind.phone_number === phone_number && validUser) {
             let user = await userModel.findOne({ phone_number: phone_number });
-            if (!user) return res.status(404).json("user not found")
+            if (!user) return res.json({
+                message: "Foydalanuvchi topilmadi"
+            })
             user.verified = true;
             user.role = "admin";
             const documetCoout = await userModel.countDocuments();
@@ -65,8 +74,8 @@ router.post("/signup/verify", async (req, res) => {
 
             const deleteOtp = await otpModel.deleteMany({ phone_number: lastOtpFind.phone_number });
             return res.status(200).json({
-                message: "User Registration Successfully!",
-                user: {
+                message: "Muoffaqqiyatli ro'yxatdan o'tdingiz",
+                data: {
                     _id: user?._id,
                     firstname: user?.firstname,
                     username: user?.username,
@@ -78,7 +87,9 @@ router.post("/signup/verify", async (req, res) => {
             })
         }
 
-        return res.status(404).json("Verify code error")
+        return res.json({
+            message: "Tasdiqlash kodi xato"
+        })
 
     } catch (error) {
         console.log(error);
@@ -93,12 +104,10 @@ router.post("/signin", async (req, res) => {
         const user = await userModel.findOne({ phone_number: req.body.phone_number });
         if (!user) return res.json({
             message: "Yaroqsiz Telefon raqam",
-            errPhone: true
         });
         const validPassword = await bcrypt.compare(req.body.password, user.password);
         if (!validPassword) return res.json({
             message: "Yaroqsiz Parol",
-            errPass: true
         });
         if (user.role !== "seller") return res.json({
             message: "Siz Admin emassiz!"
@@ -118,7 +127,7 @@ router.post("/signin", async (req, res) => {
                 phone_number: user.phone_number
             },
             token,
-            message: "logged in successfully"
+            message: "Muoffaqqiyatli ro'yxatdan o'tdingiz"
         });
     } catch (error) {
         console.log(error)

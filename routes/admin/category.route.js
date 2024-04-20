@@ -138,40 +138,55 @@ router.get("/category-one/:id", async (req, res) => {
 
 // Edit Category 
 router.put("/category-edit/:id", async (req, res) => {
+    for (const banner of req.body.left_banner) {
+        banner.image.uz = await new Base64ToFile(req).bufferInput(banner.image.uz).save();
+        banner.image.ru = await new Base64ToFile(req).bufferInput(banner.image.ru).save();
+    }
+
+    for (const banner of req.body.top_banner) {
+        banner.image.uz = await new Base64ToFile(req).bufferInput(banner.image.uz).save();
+        banner.image.ru = await new Base64ToFile(req).bufferInput(banner.image.ru).save();
+    }
+
     try {
+
         const upadted = await categoryModel.findByIdAndUpdate(req.params.id, req.body);
         return res.status(200).json(upadted);
 
     } catch (error) {
-        if (error) {
-            if (image) {
-                const imagePath = path.join(__dirname, `../uploads/${path.basename(image)}`);
+
+        if(req.body.left_banner.length) {
+            for (const banner of req.body.left_banner) {
+                const bannerUzPath = path.join(__dirname, `../uploads/${path.basename(banner.image.uz)}`);
+                const bannerRuPath = path.join(__dirname, `../uploads/${path.basename(banner.image.ru)}`);
+                fs.unlink(bannerUzPath, (err) => err && console.log(err));
+                fs.unlink(bannerRuPath, (err) => err && console.log(err));
+            }
+        }
+
+
+        if(req.body.top_banner.length) {
+            for (const banner of req.body.top_banner) {
+                const bannerUzPath = path.join(__dirname, `../uploads/${path.basename(banner.image.uz)}`);
+                const bannerRuPath = path.join(__dirname, `../uploads/${path.basename(banner.image.ru)}`);
+                fs.unlink(bannerUzPath, (err) => err && console.log(err));
+                fs.unlink(bannerRuPath, (err) => err && console.log(err));
+            }
+        }
+
+
+            if (req.body.image) {
+                const imagePath = path.join(__dirname, `../uploads/${path.basename(req.body.image)}`);
                 fs.unlink(imagePath, (err) => err && console.log(err));
             }
 
-
-            for (const banner of left_banner) {
-                if (banner) {
-                    const bannerUzPath = path.join(__dirname, `../uploads/${path.basename(banner.image.uz)}`);
-                    const bannerRuPath = path.join(__dirname, `../uploads/${path.basename(banner.image.ru)}`);
-                    fs.unlink(bannerUzPath, (err) => err && console.log(err));
-                    fs.unlink(bannerRuPath, (err) => err && console.log(err));
-                }
+            if (req.body.icon) {
+                const imagePath = path.join(__dirname, `../uploads/${path.basename(req.body.icon)}`);
+                fs.unlink(imagePath, (err) => err && console.log(err));
             }
-
-            for (const banner of top_banner) {
-                if (banner) {
-                    const bannerUzPath = path.join(__dirname, `../uploads/${path.basename(banner.image.uz)}`);
-                    const bannerRuPath = path.join(__dirname, `../uploads/${path.basename(banner.image.ru)}`);
-                    fs.unlink(bannerUzPath, (err) => err && console.log(err));
-                    fs.unlink(bannerRuPath, (err) => err && console.log(err));
-                }
-            }
-
 
             return res.status(500).json("server ishlamayapti")
         }
-    }
 });
 
 

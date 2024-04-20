@@ -124,7 +124,6 @@ router.put("/product-image-delete", checkToken, async (req, res) => {
 })
 
 
-
 router.delete("/product-delete/:id", checkToken, async (req, res) => {
     try {
         const deleted = await productModel.findByIdAndDelete(req.params.id);
