@@ -10,16 +10,18 @@ const addressSchema = mongooose.Schema({
 const userSchema = new mongooose.Schema({
     firstname: {
         type:String,
+        default:""
     },
     lastname: {
         type:String,
+        default:""
     },
 
-    lastname: {
-        type:String,
-    },
     
-    fathername:String,
+    fathername: {
+        type:String,
+        default:""
+    },
 
     avatar: {
         type:String,
@@ -28,6 +30,7 @@ const userSchema = new mongooose.Schema({
 
     username: {
         type: String,
+        default:""
     },
 
     gender: {
@@ -37,6 +40,7 @@ const userSchema = new mongooose.Schema({
 
     birthday: {
         type:String,
+        default:""
     },
 
     phone_number: {
@@ -46,8 +50,6 @@ const userSchema = new mongooose.Schema({
     password: {
         type:String,
     },
-
-    token: String,
 
     email: {
         type: String,
