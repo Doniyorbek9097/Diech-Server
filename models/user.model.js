@@ -70,13 +70,25 @@ const userSchema = new mongooose.Schema({
 
     role: {
         type: String,
-        default: "user",
-        enum: ["user", "seller", "admin", "creator"]
+        enum: ["user", "seller", "admin", "creator"],
+        default: "user"
+
+    },
+
+    sellerRole: {
+        type:String,
+        enum:["director","manager","deliverer"],
+        default: "director"
     },
 
     address: {
         type: mongooose.Schema.Types.ObjectId,
         ref:"Address"
+    },
+
+    shop: {
+        type: mongooose.Schema.Types.ObjectId,
+        ref:"Shop"
     }
 },
 
@@ -98,13 +110,6 @@ userSchema.pre("save", async function(next) {
 userSchema.methods.comparePassword = async function(password) {
    return await bcrypt.compare(password, this.password)
 }
-
-
-userSchema.virtual("shops", {
-    "ref": "Shop",
-    localField: "_id",
-    foreignField: "owner"
-});
 
 
 userSchema.virtual("costumer-orders", {

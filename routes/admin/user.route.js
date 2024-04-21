@@ -16,7 +16,7 @@ router.get("/user/:id", checkToken, async (req, res) => {
     try {
         const user = await userModel.findById(req.params.id)
             .populate({
-                path: "shops",
+                path: "shop",
                 populate: {
                     path: 'products',
                 }
@@ -40,7 +40,7 @@ router.get("/user/:id", checkToken, async (req, res) => {
 
 router.get("/users", checkToken, async (req, res) => {
     try {
-        const users = await userModel.find().populate("shops")
+        const users = await userModel.find().populate("shop")
         res.status(200).json(users)
     } catch (error) {
         res.status(500).json(`Serverda xatosi: ${error.message}`)

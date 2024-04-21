@@ -53,13 +53,6 @@ const shopSchema = mongoose.Schema({
         default: "https://static.vecteezy.com/system/resources/previews/006/828/785/original/paper-art-shopping-online-on-smartphone-and-new-buy-sale-promotion-pink-backgroud-for-banner-market-ecommerce-women-concept-free-vector.jpg"
     },
 
-    owner: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        required: true
-    },
-
-
     isActive: {
         type: Boolean,
         default: false
@@ -75,6 +68,12 @@ const shopSchema = mongoose.Schema({
 
 );
 
+
+shopSchema.virtual("employees", {
+    "ref":"User",
+    localField:"_id",
+    foreignField:"shop"
+})
 
 
 shopSchema.virtual("products", {

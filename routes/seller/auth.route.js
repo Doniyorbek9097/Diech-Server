@@ -56,7 +56,14 @@ router.post("/signup/verify", async (req, res) => {
         const validUser = await bcrypt.compare(otp, lastOtpFind.otp);
 
         if (lastOtpFind.phone_number === phone_number && validUser) {
-            let user = await userModel.findOne({ phone_number: phone_number });
+            let user = await userModel.findOne({ phone_number: phone_number })
+            .populate({
+                path:"shop",
+                populate: {
+                    path:"products"
+                }
+            })
+            
             if (!user) return res.json({
                 message: "Foydalanuvchi topilmadi"
             })
@@ -101,7 +108,15 @@ router.post("/signup/verify", async (req, res) => {
 
 router.post("/signin", async (req, res) => {
     try {
-        const user = await userModel.findOne({ phone_number: req.body.phone_number });
+
+        const user = await userModel.findOne({ phone_number: req.body.phone_number })
+        .populate({
+            path:"shop",
+            populate: {
+                path:"products"
+            }
+        })
+
         if (!user) return res.json({
             message: "Yaroqsiz Telefon raqam",
         });
@@ -118,13 +133,16 @@ router.post("/signin", async (req, res) => {
             role: user.role,
         });
 
+        console.log(user)
+        
         res.json({
             data: {
                 _id: user._id,
-                firstname: user.firstname,
-                lastname: user.lastname,
-                email: user.email,
-                phone_number: user.phone_number
+                firstname: user?.firstname,
+                lastname: user?.lastname,
+                email: user?.email,
+                phone_number: user?.phone_number,
+                shop:user?.shop
             },
             token,
             message: "Muoffaqqiyatli ro'yxatdan o'tdingiz"

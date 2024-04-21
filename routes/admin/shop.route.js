@@ -26,7 +26,7 @@ router.post("/shop", checkToken, async(req,res) => {
 
 router.get("/shops", checkToken, async(req,res) => {
     try {
-        const shops = await shopModel.find().populate("products").populate("owner")
+        const shops = await shopModel.find().populate("employees").populate("products")
         res.status(200).json(shops);
     } catch (error) {
         
@@ -36,7 +36,7 @@ router.get("/shops", checkToken, async(req,res) => {
 
 router.get("/shop/:id", checkToken, async(req,res) => {
     try {
-        const result = await shopModel.findById(req.params.id)
+        const result = await shopModel.findById(req.params.id).populate("employees").populate("products")
         .populate({
             path:"products",
         })
