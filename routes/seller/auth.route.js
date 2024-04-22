@@ -118,14 +118,14 @@ router.post("/signin", async (req, res) => {
         })
 
         if (!user) return res.json({
-            message: "Yaroqsiz Telefon raqam",
+            message: "Telefon raqam yoki parol xato",
         });
         const validPassword = await bcrypt.compare(req.body.password, user.password);
         if (!validPassword) return res.json({
-            message: "Yaroqsiz Parol",
+            message: "Telefon raqam yoki parol xato",
         });
         if (user.role !== "seller") return res.json({
-            message: "Siz Admin emassiz!"
+            message: "Telefon raqam yoki parol xato"
         });
         const token = await generateToken({
             _id: user._id,
@@ -133,8 +133,6 @@ router.post("/signin", async (req, res) => {
             role: user.role,
         });
 
-        console.log(user)
-        
         res.json({
             data: {
                 _id: user._id,

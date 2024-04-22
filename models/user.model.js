@@ -78,7 +78,6 @@ const userSchema = new mongooose.Schema({
     sellerRole: {
         type:String,
         enum:["director","manager","deliverer"],
-        default: "director"
     },
 
     address: {

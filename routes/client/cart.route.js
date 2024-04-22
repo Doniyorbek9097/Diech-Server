@@ -6,7 +6,7 @@ const { checkToken } = require('../../middlewares/authMiddleware');
 
 router.post("/add-cart", async (req, res) => {
     try {
-        const { products: { product, quantity }, user: userId, cart_id: cartId } = req.body;
+        const { products: { product, quantity }, cart_id: cartId } = req.body;
 
         let cart = await cartModel.findOne({ "_id": cartId });
         // cart not found 
@@ -14,7 +14,7 @@ router.post("/add-cart", async (req, res) => {
             const data = await cartModel(req.body).save();
             return res.status(201).json(data);
         }
-        cart.user = userId;
+        
         const cartProduct = cart.products.findIndex(item => item.product.toString() === product.toString());
         if (cartProduct === -1) {
             cart.products.push(req.body.products);
@@ -43,7 +43,6 @@ router.get("/cart/:id",  async (req, res) => {
 
         const lang = req.headers['lang'];
         let cart = await cartModel.findOne({_id:req.params.id})
-            .populate("user")
             .populate("products.product");
 
         if (cart) {

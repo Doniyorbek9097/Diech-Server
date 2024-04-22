@@ -25,8 +25,10 @@ router.post("/signup", async (req, res) => {
 
         const txt = `${otpCode} - Tasdiqlash kodi.\nKodni hech kimga bermang.\nFiribgarlardan saqlaning.\nKompaniya OLCHA.UZ`
         // const respon = await sendSms(phone_number, txt);
-        console.log(otpCode);
-        return res.status(200).json("OTP send successfully "+otpCode);
+        return res.json({
+            message: `Tasdiqlash kodi ${phone_number} ga yuborildi`,
+            data:otpCode
+        });
 
     } catch (error) {
         console.log(error);
@@ -36,12 +38,15 @@ router.post("/signup", async (req, res) => {
 });
 
 
+
 router.post("/signup/verify", async (req, res) => {
     try {
         let { phone_number, otp } = req.body;
         const otpHoder = await otpModel.find({ phone_number: phone_number });
         
-        if (otpHoder.length == 0) return res.status(400).json("You use an Expired OTP!");
+        if (otpHoder.length == 0) return res.json({
+            message: "You use an Expired OTP!"
+        });
         const lastOtpFind = otpHoder[otpHoder.length - 1];
 
         const validUser = await bcrypt.compare(otp, lastOtpFind.otp);
@@ -65,16 +70,17 @@ router.post("/signup/verify", async (req, res) => {
             const result = await user.save();
 
             const deleteOtp = await otpModel.deleteMany({ phone_number: lastOtpFind.phone_number });
-            return res.status(200).json({
-                message: "User Registration Successfully!",
+            return res.json({
+                message: "Success",
                 token: token,
-                user: result
+                data: result
             })
         }
 
 
-        return res.status(404).json("Verify code error")
-
+        return res.json({
+            message: "Kod Xato"
+        })
 
     } catch (error) {
         console.log(error);
@@ -83,15 +89,19 @@ router.post("/signup/verify", async (req, res) => {
 })
 
 
-router.get("/user/:id", checkToken,  async (req, res) => {
+router.get("/user/:id",  async (req, res) => {
     try {
         const user = await userModel.findById(req.params.id);
-
         if (user) {
-            return res.status(200).json(user);
+            return res.json({
+                message:"Success",
+                data: user
+            });
         }
 
-        return res.send("Token xato");
+        return res.send({
+            message: "Token xato"
+        });
 
 
     } catch (error) {
@@ -101,22 +111,17 @@ router.get("/user/:id", checkToken,  async (req, res) => {
 });
 
 
-router.get("/users", async (req, res) => {
-    try {
-        const users = await userModel.find();
-        res.status(200).json(users)
-    } catch (error) {
-        res.status(500).json(`Serverda xatosi: ${error.message}`)
-    }
-});
-
 
 router.put("/user-update/:id", checkToken, async(req, res) => {
 try {
     req.body.username = req.body.firstname || req.body.username;
 
     const updated = await userModel.updateOne({_id: req.params.id}, req.body);
-    res.send("success updated")
+    console.log(updated)
+    res.send({
+        message: "success updated",
+        data: updated
+    })
 } catch (error) {
     console.log(error);
     res.status(500).send("Serverda Xatolik")
