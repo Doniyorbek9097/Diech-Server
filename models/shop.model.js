@@ -19,6 +19,11 @@ const addressSchema = mongoose.Schema({
 
     house: {
         type: String
+    },
+
+    location: {
+        latitude: String,
+        longitude: String
     }
 }) 
 
@@ -58,7 +63,7 @@ const shopSchema = mongoose.Schema({
         default: false
     },
 
-    address: [addressSchema]
+    address: addressSchema
 },
 
 {

@@ -6,6 +6,7 @@ const orderSchema = new Schema({
         ref:"Shop",
         required: true
     },
+
     owner: {
         type: Schema.Types.ObjectId,
         ref: "User",
@@ -13,20 +14,40 @@ const orderSchema = new Schema({
 
     },
 
+    address: {
+        region: String,
+        distirct: String,
+        street: String,
+        house: String,
+        house_floor: String,
+        location: {
+            latitude: String,
+            longitude: String
+        }
+    },
+
+    delivery_method: {
+        type: String,
+        enum:['online','offline']
+    },
+
+    delivery_time: {
+        type: String,
+    },
+
+    comment: String,
+    totalAmount: Number,
+
+    status: {
+        type:String,
+        enum:["new","progress","completed","canceled"],
+        default:"new"
+    },
+
     customerInfo: {
         type: Schema.Types.ObjectId,
         ref: "User",
         required: true
-    },
-
-    delivery: {
-        type: String,
-    },
-
-    totalAmount: Number,
-    status: {
-        type:String,
-        enum:["new","progress","completed","canceled"]
     },
 
     products: [

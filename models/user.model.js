@@ -70,9 +70,8 @@ const userSchema = new mongooose.Schema({
 
     role: {
         type: String,
-        enum: ["user", "seller", "admin", "creator"],
+        enum: ["user","deliverer", "seller", "admin", "creator"],
         default: "user"
-
     },
 
     sellerRole: {
