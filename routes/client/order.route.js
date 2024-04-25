@@ -7,8 +7,9 @@ const bcrypt = require("bcrypt");
 // const bot = require("../../bot");
 
 
-router.post('/order', async (req, res) => {
+router.post('/order-add', async (req, res) => {
     try {
+        console.log(req.body)
         const newOrder = new orderModel(req.body).save();
 
         const { username, phone_number, products } = req.body;

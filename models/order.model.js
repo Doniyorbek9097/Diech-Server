@@ -45,9 +45,10 @@ const orderSchema = new Schema({
     },
 
     customerInfo: {
-        type: Schema.Types.ObjectId,
-        ref: "User",
-        required: true
+        firstname: String,
+        lastname: String,
+        username: String,
+        phone_number: String
     },
 
     products: [
