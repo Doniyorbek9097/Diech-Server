@@ -30,8 +30,6 @@ router.get("/auth/:id",  async (req, res) => {
 
 router.post("/signup", async (req, res) => {
     try {
-        console.log(req.body)
-
          const { phone_number, email } = req.body;
         let user = await userModel.findOne({ phone_number });
         if (user) return res.json({

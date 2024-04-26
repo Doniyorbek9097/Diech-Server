@@ -9,27 +9,10 @@ const bcrypt = require("bcrypt");
 
 router.post('/order-add', async (req, res) => {
     try {
-        console.log(req.body)
-        const newOrder = new orderModel(req.body).save();
+        const { customerInfo, products } = req.body;
+        const newOrder = await new orderModel(req.body).save();
 
-        const { username, phone_number, products } = req.body;
-        const otpCode = generateOTP(4);
-        const otp = new otpModel({ phone_number: phone_number, otp: otpCode });
-
-        const salt = await bcrypt.genSalt(10);
-        otp.otp = await bcrypt.hash(otp.otp, salt);
-        const otpResult = await otp.save();
-
-        // const txt = `${otpCode} - Tasdiqlash kodi.\nKodni hech kimga bermang.\nFiribgarlardan saqlaning.\nKompaniya OLCHA.UZ`
-        // sendSms(phone_number, txt)
-        // .then((response) => {
-        //     console.log("result "+ response);
-        // })
-        // .catch((error) => {
-        //     console.log("error "+ error)
-        // });
-
-        let text = `👤 <b>Buyurtmachi</b>: ${username}\n<b>☎️ Telefon raqami</b>: ${phone_number}\n<b>🛍️ Barcha Mahsulotlar 👇👇👇</b>\n`;
+        let text = `👤 <b>Buyurtmachi</b>: ${customerInfo?.firstname}\n<b>☎️ Telefon raqami</b>: ${customerInfo?.phone_number}\n<b>🛍️ Barcha Mahsulotlar 👇👇👇</b>\n`;
 
             for (const item of products) {
                 text += `-----------------\n${item.product.name} - ${item.quantity} ta\n`
@@ -39,8 +22,10 @@ router.post('/order-add', async (req, res) => {
             //     parse_mode:"HTML"
             // });
 
-            return res.status(200).json(newOrder);
-
+            return res.json({
+                data: newOrder,
+                message: "success"
+            });
     } catch (error) {
         console.log(error);
         res.status(500).json(error.message);

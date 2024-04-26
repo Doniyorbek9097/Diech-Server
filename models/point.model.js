@@ -5,10 +5,10 @@ const pointSchema = Schema({
         type: String,
     },
 
-    // location: {
-    //     latitude: Number,
-    //     longitude: Number
-    // } 
+    location: {
+        latitude: Number,
+        longitude: Number
+    } 
 }, 
 { 
     timestamps:true,

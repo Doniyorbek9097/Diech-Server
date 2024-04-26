@@ -37,7 +37,7 @@ router.post('/order', async (req, res) => {
 
 router.get('/order-all', async(req, res) => {
     try {
-        const orders = await orderModel.find();
+        const orders = await orderModel.find().populate("products.product")
         res.json({
             message:" success",
             data: orders
@@ -49,5 +49,53 @@ router.get('/order-all', async(req, res) => {
     }
 })
 
+
+
+router.get("/order/:id", async (req, res) => {
+    try {
+        let order = await orderModel.findById(req.params.id)
+        .populate({
+            path:"products.product",
+        })
+        .populate("products.product.shop")
+        order.status = "progress"
+        order = await order.save()
+        res.json({
+            data: order,
+            message: "success"
+        })
+    } catch (error) {
+        console.log(error)
+        res.status(500).json(error.message)
+    }
+})
+
+
+router.put("/order-update", async (req, res) => {
+    try {
+        const updated = await orderModel.findByIdAndUpdate(req.params.id);
+        res.json({
+            data: updated,
+            message: "success updated"
+        })
+    } catch (error) {
+        console.log(error.message)
+        res.status(500).json(error.message)
+    }
+})
+
+
+router.delete("/order-delete", async (req, res) => {
+    try {
+        const deleted = await orderModel.findByIdAndDelete(req.params.id)
+        res.json({
+            data: deleted,
+            message: "Success deleted"
+        })
+    } catch (error) {
+        console.log(error)
+        res.status(500).json(error.message)
+    }
+})
 
 module.exports = router;

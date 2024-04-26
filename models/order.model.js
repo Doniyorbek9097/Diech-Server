@@ -1,18 +1,18 @@
 const { Schema, model } = require("mongoose");
 
 const orderSchema = new Schema({
-    shop: {
-        type: Schema.Types.ObjectId,
-        ref:"Shop",
-        required: true
-    },
+    // shop: {
+    //     type: Schema.Types.ObjectId,
+    //     ref:"Shop",
+    //     required: true
+    // },
 
-    owner: {
-        type: Schema.Types.ObjectId,
-        ref: "User",
-        required: true
+    // owner: {
+    //     type: Schema.Types.ObjectId,
+    //     ref: "User",
+    //     required: true
 
-    },
+    // },
 
     address: {
         region: String,
@@ -20,23 +20,30 @@ const orderSchema = new Schema({
         street: String,
         house: String,
         house_floor: String,
-        location: {
-            latitude: String,
-            longitude: String
-        }
     },
 
-    delivery_method: {
-        type: String,
-        enum:['online','offline']
+    delivery: {
+        method: {
+            type: String,
+            enum:['online','offline']
+        },
+
+        time: {
+            type: String,
+            default: Date.now()
+        },
+
+        price: {
+            type: String,
+            default: 0
+        },
+
+        comment: {
+            type: String
+        },
     },
 
-    delivery_time: {
-        type: String,
-    },
 
-    comment: String,
-    totalAmount: Number,
 
     status: {
         type:String,
@@ -77,7 +84,14 @@ const orderSchema = new Schema({
             },
 
         }
-    ]
+    ],
+
+    location: {
+        latitude: String,
+        longitude: String
+    },
+
+    totalAmount: Number,
 
 }, { timestamps: true });
 

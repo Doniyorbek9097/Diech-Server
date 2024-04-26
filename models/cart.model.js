@@ -9,6 +9,11 @@ const cartSchema = mongoose.Schema({
                 required:true
             },
 
+            shop: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Shop"
+            },
+
             color: {
                 type: String,
             },
