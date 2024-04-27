@@ -24,7 +24,7 @@ app.use("/", (req, res, next) => {
 
 adminRoutes.forEach(route => app.use("/api/admin/", route));
 clientRoutes.forEach(route => app.use("/api/client/", route));
-sellerRoutes.forEach(route => app.use("/api/saller/", route));
+sellerRoutes.forEach(route => app.use("/api/seller/", route));
 
 
 
