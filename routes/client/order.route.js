@@ -1,4 +1,5 @@
 const orderModel = require("../../models/order.model");
+const cartModel = require("../../models/cart.model")
 const otpModel = require("../../models/otp.model");
 const router = require("express").Router();
 const { sendSms } = require("../../utils/sendSms");
@@ -9,9 +10,9 @@ const bcrypt = require("bcrypt");
 
 router.post('/order-add', async (req, res) => {
     try {
-        const { customerInfo, products } = req.body;
+        const { customerInfo, products, cart_id } = req.body;
         const newOrder = await new orderModel(req.body).save();
-
+        await cartModel.findByIdAndDelete(cart_id);
         let text = `👤 <b>Buyurtmachi</b>: ${customerInfo?.firstname}\n<b>☎️ Telefon raqami</b>: ${customerInfo?.phone_number}\n<b>🛍️ Barcha Mahsulotlar 👇👇👇</b>\n`;
 
             for (const item of products) {

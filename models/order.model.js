@@ -13,10 +13,12 @@ const orderSchema = new Schema({
     //     required: true
 
     // },
+    
 
     address: {
         region: String,
         distirct: String,
+        mfy: String,
         street: String,
         house: String,
         house_floor: String,
@@ -47,7 +49,7 @@ const orderSchema = new Schema({
 
     status: {
         type:String,
-        enum:["new","progress","completed","canceled"],
+        enum:["new","accepted","progress","shipping","canceled","sent"],
         default:"new"
     },
 

@@ -55,10 +55,12 @@ router.get("/order/:id", async (req, res) => {
     try {
         let order = await orderModel.findById(req.params.id)
         .populate({
-            path:"products.product",
+            path: "products.product",
+            populate: {
+                path: "shop"
+            }
         })
-        .populate("products.product.shop")
-        order.status = "progress"
+        
         order = await order.save()
         res.json({
             data: order,
@@ -71,12 +73,12 @@ router.get("/order/:id", async (req, res) => {
 })
 
 
-router.put("/order-update", async (req, res) => {
+router.put("/order-update/:id", async (req, res) => {
     try {
-        const updated = await orderModel.findByIdAndUpdate(req.params.id);
+        const updated = await orderModel.findByIdAndUpdate(req.params.id, req.body);
         res.json({
             data: updated,
-            message: "success updated"
+            message: `success updated`
         })
     } catch (error) {
         console.log(error.message)
@@ -85,7 +87,7 @@ router.put("/order-update", async (req, res) => {
 })
 
 
-router.delete("/order-delete", async (req, res) => {
+router.delete("/order-delete/:id", async (req, res) => {
     try {
         const deleted = await orderModel.findByIdAndDelete(req.params.id)
         res.json({

@@ -26,7 +26,11 @@ router.post("/shop", checkToken, async(req,res) => {
 
 router.get("/shops", checkToken, async(req,res) => {
     try {
-        const shops = await shopModel.find().populate("employees").populate("products")
+        const shops = await shopModel.find()
+        .populate("employees")
+        .populate("products")
+        .populate("point")
+
         res.status(200).json(shops);
     } catch (error) {
         
@@ -36,7 +40,9 @@ router.get("/shops", checkToken, async(req,res) => {
 
 router.get("/shop/:id", checkToken, async(req,res) => {
     try {
-        const result = await shopModel.findById(req.params.id).populate("employees").populate("products")
+        const result = await shopModel.findById(req.params.id)
+        .populate("employees")
+        .populate("products")
         .populate({
             path:"products",
         })
@@ -48,13 +54,17 @@ router.get("/shop/:id", checkToken, async(req,res) => {
 
 
 
-router.put("/shop/:id", checkToken, async(req,res) => {
+router.put("/shop-update/:id", checkToken, async(req,res) => {
     try {
         req.body.slug = slugify(req.body.name);
         const result = await shopModel.findByIdAndUpdate(req.params.id, req.body);
-        res.json({result, message:"success updated!"})
+        res.json({
+            data:result, 
+            message:"success updated!"
+        })
     } catch (error) {
         console.log(error)
+        res.status(500).json(error.message)
     }
 });
 

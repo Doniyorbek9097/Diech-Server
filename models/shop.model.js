@@ -34,6 +34,12 @@ const shopSchema = mongoose.Schema({
         required: [true, "Do'kon nomi bo'lishi shart"],
     },
 
+    point: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref:"Point",
+        required: [true, "Do'kon Point bo'lishi shart"],
+    },
+
     slug: {
         type: String,
         required: true

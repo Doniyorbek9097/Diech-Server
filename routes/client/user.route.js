@@ -115,8 +115,8 @@ router.get("/user/:id",  async (req, res) => {
 router.put("/user-update/:id", checkToken, async(req, res) => {
 try {
     req.body.username = req.body.firstname || req.body.username;
-
-    const updated = await userModel.updateOne({_id: req.params.id}, req.body);
+    console.log(req.body)
+    const updated = await userModel.findByIdAndUpdate(req.params.id, req.body);
     console.log(updated)
     res.send({
         message: "success updated",
