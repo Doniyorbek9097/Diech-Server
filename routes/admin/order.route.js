@@ -60,6 +60,13 @@ router.get("/order/:id", async (req, res) => {
                 path: "shop"
             }
         })
+
+        .populate({
+            path: "products.product",
+            populate: {
+                path: "owner"
+            }
+        })
         
         order = await order.save()
         res.json({
