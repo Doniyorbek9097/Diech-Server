@@ -85,13 +85,7 @@ const productSchema = Schema({
         default:0
     },
 
-    colors: [
-        {
-           name: String,
-           code: String,
-           images: Array
-        }
-    ],
+    colors: ["red", "blue", "grey"],
 
     size: {
         type: String,
