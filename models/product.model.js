@@ -155,8 +155,13 @@ const productSchema = Schema({
      
     discount: {
         type: Number
+    },
+
+    type: {
+        type: String,
+        enum:["product"],
+        default:"product"
     }
-    
 }, 
 
 { 

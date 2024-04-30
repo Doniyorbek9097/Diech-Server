@@ -70,6 +70,12 @@ const categorySchema = new Schema({
     createdBy: {
         type: Schema.Types.ObjectId,
         ref: "User"
+    },
+
+    type: {
+        type:String,
+        enum:["category"],
+        default:"category"
     }
 },
     {

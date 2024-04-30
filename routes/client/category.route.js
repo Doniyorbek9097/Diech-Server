@@ -97,7 +97,7 @@ router.get("/categories", async (req, res) => {
 router.get("/category-name", async (req, res) => {
     try {
         let search = req.query.search || "";
-        let categories = await categoryModel.find({slug:{ $regex: search, $options: "i" } },)
+        let categories = await categoryModel.find()
             .populate({
                 path: "children",
                 populate: {
@@ -137,10 +137,10 @@ router.get("/category-name", async (req, res) => {
             })
         // .populate("brendId")
 
-        const productsLenth = categories.map(category => category.parentProducts.length + category.subProducts.length + category.childProducts.length);
+        const products = categories.flatMap(category =>  [category , ...category.parentProducts, ...category.subProducts, ...category.childProducts] );
 
         return res.status(200).json({
-            categories
+            categories: products
         });
 
     } catch (err) {
