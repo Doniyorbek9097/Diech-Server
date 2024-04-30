@@ -91,6 +91,68 @@ router.get("/categories", async (req, res) => {
 
 
 
+
+
+// Get all category
+router.get("/category-name", async (req, res) => {
+    try {
+        let search = req.query.search || "";
+        let categories = await categoryModel.find({slug:{ $regex: search, $options: "i" } },)
+            .populate({
+                path: "children",
+                populate: {
+                    path: "children"
+                }
+            })
+            .populate({
+                path: "parent",
+                populate: {
+                    path: "parent"
+                }
+            })
+
+            .populate({
+                path: "parentProducts",
+                match: {
+                    $or: [
+                        { slug: { $regex: search, $options: "i" } },
+                    ]
+                }
+            })
+            .populate({
+                path: "subProducts",
+                match: {
+                    $or: [
+                        { slug: { $regex: search, $options: "i" } },
+                    ]
+                },
+            })
+            .populate({
+                path: "childProducts",
+                match: {
+                    $or: [
+                        { slug: { $regex: search, $options: "i" } },
+                    ]
+                }
+            })
+        // .populate("brendId")
+
+        const productsLenth = categories.map(category => category.parentProducts.length + category.subProducts.length + category.childProducts.length);
+
+        return res.status(200).json({
+            categories
+        });
+
+    } catch (err) {
+        if (err) {
+            console.log(err)
+            res.status(500).json("server ishlamayapti")
+        }
+    }
+});
+
+
+
 // Get by slug name 
 router.get("/category-slug/:slug", async (req, res) => {
     try {
