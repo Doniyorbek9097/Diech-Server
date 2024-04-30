@@ -23,7 +23,7 @@ router.get("/categories", async (req, res) => {
         let search = req.query.search || "";
 
 
-        let categories = await categoryModel.find({ parent: undefined })
+        let categories = await categoryModel.find({ parent: undefined, slug:{ $regex: search, $options: "i" } },)
             .populate({
                 path: "children",
                 populate: {
