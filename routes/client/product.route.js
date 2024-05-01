@@ -13,21 +13,6 @@ const { Base64ToFile } = require("../../utils/base64ToFile");
 router.get("/products", async (req, res) => {
     try {
         let products = await productModel.find()
-        .populate("parentCategory")
-        .populate({
-            path:"subCategory",
-            populate: "subProducts"
-        })
-        .populate({
-            path: "childCategory",
-            populate: "childProducts"
-        })
-        .populate({
-            path:"brend",
-            populate: {
-                path:'products'
-            }
-        })
         
         return res.json(products);
     } catch (error) {

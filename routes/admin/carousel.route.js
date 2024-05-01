@@ -5,9 +5,10 @@ const fs = require("fs");
 const mongoose = require("mongoose");
 const langReplace = require("../../utils/langReplace");
 const { Base64ToFile } = require("../../utils/base64ToFile");
+const { upload } = require("../../middlewares/upload")
 const router = require("express").Router();
 
-router.post("/carousel", async(req, res)=> {
+router.post("/carousel", upload.any(), async(req, res)=> {
     const { image, slug } = req.body;
     req.body.slug = slugify(slug);
     image && (req.body.image.uz = await new Base64ToFile(req).bufferInput(req.body.image.uz).save());

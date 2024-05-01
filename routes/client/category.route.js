@@ -18,12 +18,15 @@ const fs = require("fs");
 router.get("/categories", async (req, res) => {
     try {
 
-        let page = parseInt(req.query.page) - 1 || 0;
-        let limit = parseInt(req.query.limit) || 8;
-        let search = req.query.search || "";
+        let page = parseInt(req.query?.page) - 1 || 0;
+        let limit = parseInt(req.query?.limit) || 8;
+        let search = req.query?.search || "";
+        const colorFilter = req.query.color || '';
+        const sizeFilter = req.query.size || '';
+        const ratingFilter = parseInt(req.query.rating) || 0;
 
 
-        let categories = await categoryModel.find({ parent: undefined, slug:{ $regex: search, $options: "i" } },)
+        let categories = await categoryModel.find({ parent: undefined })
             .populate({
                 path: "children",
                 populate: {
@@ -72,12 +75,38 @@ router.get("/categories", async (req, res) => {
             })
         // .populate("brendId")
 
-        const productsLenth = categories.map(category => category.parentProducts.length + category.subProducts.length + category.childProducts.length);
+
+        const CategoryProducts = categories.flatMap(category => [...category.parentProducts, ...category.subProducts, ... category.childProducts]);
+        
+        const matchFilters = {_id: {$in: CategoryProducts}, slug:{ $regex: search, $options: "i" } };
+        colorFilter && (matchFilters.colors = { $in: colorFilter.split(',') });
+        sizeFilter && (matchFilters.sizes = { $in: sizeFilter.split(',') });
+        ratingFilter && (matchFilters.rating = { $gte: ratingFilter });
+        const products = await productModel.find(matchFilters);
 
         return res.status(200).json({
-            totalPage: Math.ceil(productsLenth / limit),
+            totalPage: Math.ceil(products.length / limit),
             page: page + 1,
             limit,
+            categories,
+            products,
+        });
+
+    } catch (err) {
+            console.log(err)
+            res.status(500).json("server ishlamayapti")
+    }
+});
+
+
+
+router.get("/category-all", async (req, res) => {
+    try {
+        let search = req.query.search || "";
+        let categories = await categoryModel.find({ slug:{ $regex: search, $options: "i" } },)
+        .limit(3)
+            
+        return res.status(200).json({
             categories
         });
 
@@ -90,66 +119,6 @@ router.get("/categories", async (req, res) => {
 });
 
 
-
-
-
-// Get all category
-router.get("/category-name", async (req, res) => {
-    try {
-        let search = req.query.search || "";
-        let categories = await categoryModel.find()
-            .populate({
-                path: "children",
-                populate: {
-                    path: "children"
-                }
-            })
-            .populate({
-                path: "parent",
-                populate: {
-                    path: "parent"
-                }
-            })
-
-            .populate({
-                path: "parentProducts",
-                match: {
-                    $or: [
-                        { slug: { $regex: search, $options: "i" } },
-                    ]
-                }
-            })
-            .populate({
-                path: "subProducts",
-                match: {
-                    $or: [
-                        { slug: { $regex: search, $options: "i" } },
-                    ]
-                },
-            })
-            .populate({
-                path: "childProducts",
-                match: {
-                    $or: [
-                        { slug: { $regex: search, $options: "i" } },
-                    ]
-                }
-            })
-        // .populate("brendId")
-
-        const products = categories.flatMap(category =>  [category , ...category.parentProducts, ...category.subProducts, ...category.childProducts] );
-
-        return res.status(200).json({
-            categories: products
-        });
-
-    } catch (err) {
-        if (err) {
-            console.log(err)
-            res.status(500).json("server ishlamayapti")
-        }
-    }
-});
 
 
 
