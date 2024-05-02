@@ -108,7 +108,7 @@ userSchema.methods.comparePassword = async function(password) {
 }
 
 
-userSchema.virtual("costumer-orders", {
+userSchema.virtual("orders", {
     ref: "Order",
     localField: "_id",
     foreignField: "user"
@@ -118,7 +118,7 @@ userSchema.virtual("costumer-orders", {
 userSchema.virtual("saller-orders", {
     ref: "Order",
     localField: "_id",
-    foreignField: "owner"
+    foreignField: "seller"
 })
 
 

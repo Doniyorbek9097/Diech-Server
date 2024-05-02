@@ -3,7 +3,6 @@ const slugify = require("slugify");
 const path = require("path");
 const fs = require("fs");
 const mongoose = require("mongoose");
-const langReplace = require("../../utils/langReplace");
 const { Base64ToFile } = require("../../utils/base64ToFile");
 const { upload } = require("../../middlewares/upload")
 const router = require("express").Router();
@@ -16,7 +15,10 @@ router.post("/carousel", upload.any(), async(req, res)=> {
 
     try {        
         const result = await new carouselModel(req.body).save();
-        return res.status(200).json(result);
+        return res.json({
+            data: result,
+            message:"Success"
+        });
 
     } catch (error) {
         console.log(error);
@@ -35,6 +37,9 @@ router.post("/carousel", upload.any(), async(req, res)=> {
                 )
             }
 
+
+            res.status(500).json(error.message);
+
         }
 });
 
@@ -42,7 +47,10 @@ router.post("/carousel", upload.any(), async(req, res)=> {
 router.get("/carousel", async(req,res) => {
     try {       
         let result = await carouselModel.find();
-       return res.status(200).json(result);
+       return res.json({
+         data: result,
+         message:"Success"
+       });
 
     } catch (error) {
         console.log(error);
@@ -54,9 +62,17 @@ router.get("/carousel", async(req,res) => {
 router.delete("/carousel/:id", async(req,res) => {
     try {
         
-        if(!mongoose.isValidObjectId(req.params.id)) return res.status(404).send("Carousel topilmadi");
+        if(!mongoose.isValidObjectId(req.params.id)) 
+        return res.send({
+            message: "Carousel topilmadi"
+        });
+        
         const result = await carouselModel.findByIdAndDelete(req.params.id);
-        if(!result) return res.status(404).send("Carousel Topilmadi");
+
+        if(!result) 
+        return res.status.send({
+            message: "Carousel Topilmadi"
+        });
 
         const { image } = result;
 
@@ -75,7 +91,10 @@ router.delete("/carousel/:id", async(req,res) => {
         }
 
 
-        res.status(200).json(result);
+        res.json({
+            data: result,
+            message:"Success"
+        });
 
     } catch (error) {
         console.log(error)

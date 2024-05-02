@@ -91,7 +91,13 @@ router.post("/signup/verify", async (req, res) => {
 
 router.get("/user/:id",  async (req, res) => {
     try {
-        const user = await userModel.findById(req.params.id);
+        const user = await userModel.findById(req.params.id)
+        .populate({
+            path:"orders",
+            populate: {
+                path:"products.product"
+            }
+        })
         if (user) {
             return res.json({
                 message:"Success",

@@ -7,13 +7,18 @@ const orderSchema = new Schema({
     //     required: true
     // },
 
-    // owner: {
+    // seller: {
     //     type: Schema.Types.ObjectId,
     //     ref: "User",
     //     required: true
 
     // },
     
+    user: {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+        required: true
+    },
 
     address: {
         region: String,
