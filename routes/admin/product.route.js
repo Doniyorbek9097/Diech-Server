@@ -129,16 +129,16 @@ router.delete("/product-delete/:id", checkToken, async (req, res) => {
         const deleted = await productModel.findByIdAndDelete(req.params.id);
         const { images, colors } = deleted;
 
-        if (colors.length > 0) {
-            for (const color of colors) {
-                for (const image of color.images) {
-                    fs.unlink(
-                        path.join(__dirname, `../uploads/${path.basename(image)}`),
-                        (err) => err && console.log(err)
-                    )
-                }
-            }
-        }
+        // if (colors.length > 0) {
+        //     for (const color of colors) {
+        //         for (const image of color.images) {
+        //             fs.unlink(
+        //                 path.join(__dirname, `../uploads/${path.basename(image)}`),
+        //                 (err) => err && console.log(err)
+        //             )
+        //         }
+        //     }
+        // }
 
         if (images.length > 0) {
             for (const image of images) {
