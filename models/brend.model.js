@@ -8,6 +8,7 @@ const brendSchema = mongoose.Schema({
 
     slug: {
         type: String,
+        lowercase: true,
         default:""
     },
 

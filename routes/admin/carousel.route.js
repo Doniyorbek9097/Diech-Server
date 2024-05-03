@@ -61,16 +61,16 @@ router.get("/carousel", async(req,res) => {
 
 router.delete("/carousel/:id", async(req,res) => {
     try {
-        
+        console.log(req.params.id)
         if(!mongoose.isValidObjectId(req.params.id)) 
-        return res.send({
+        return res.json({
             message: "Carousel topilmadi"
         });
         
         const result = await carouselModel.findByIdAndDelete(req.params.id);
 
         if(!result) 
-        return res.status.send({
+        return res.json({
             message: "Carousel Topilmadi"
         });
 

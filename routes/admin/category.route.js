@@ -15,7 +15,9 @@ router.post("/category-add", async (req, res) => {
     try {
 
         if (!req.body.name || (!req.body.name.uz && !req.body.name.ru))
-            return res.status(404).send("category name not found");
+            return res.send({
+                message: "category name not found"
+            });
         req.body.slug = slugify(req.body.name.uz)
 
         const CategoryInstance = new categoryModel(req.body);
@@ -27,9 +29,13 @@ router.post("/category-add", async (req, res) => {
         }
 
         const newCategory = await CategoryInstance.save();
-        return res.status(201).json(newCategory)
+        return res.json({
+            data: newCategory,
+            message: "Success"
+        })
 
     } catch (error) {
+        console.log(error)
         return res.status(500).json("server ishlamayapti")
     }
 });
@@ -49,52 +55,52 @@ router.get("/category-all", async (req, res) => {
 
 
         let categories = await categoryModel.find({ parent: undefined })
-        .populate({
-            path: "children",
-            populate: {
-                path: "children"
-            }
-        })
-        .populate({
-            path: "parent",
-            populate: {
-                path: "parent"
-            }
-        })
+            .populate({
+                path: "children",
+                populate: {
+                    path: "children"
+                }
+            })
+            .populate({
+                path: "parent",
+                populate: {
+                    path: "parent"
+                }
+            })
 
-        .populate({
-            path: "parentProducts",
-            match : {
-                $or: [
-                        { slug: { $regex: search, $options: "i" }},
+            .populate({
+                path: "parentProducts",
+                match: {
+                    $or: [
+                        { slug: { $regex: search, $options: "i" } },
                     ]
-            },
-            limit: limit,
-            sort: { createdAt: -1 },
-            skip: page * limit
-        })
-        .populate({
-            path: "subProducts",
-            match : {
-                $or: [
-                        { slug: { $regex: search, $options: "i" }},
+                },
+                limit: limit,
+                sort: { createdAt: -1 },
+                skip: page * limit
+            })
+            .populate({
+                path: "subProducts",
+                match: {
+                    $or: [
+                        { slug: { $regex: search, $options: "i" } },
                     ]
-            },
-            limit: limit,
-            sort: { createdAt: -1 },
-            skip: page
-        })
-        .populate({
-            path: "childProducts",
-            match : {
-                $or: [
-                        { slug: { $regex: search, $options: "i" }},
+                },
+                limit: limit,
+                sort: { createdAt: -1 },
+                skip: page
+            })
+            .populate({
+                path: "childProducts",
+                match: {
+                    $or: [
+                        { slug: { $regex: search, $options: "i" } },
                     ]
-            },
-            limit: limit,
-            sort: { createdAt: -1 },
-            skip: page
-        })
+                },
+                limit: limit,
+                sort: { createdAt: -1 },
+                skip: page
+            })
         // .populate("brendId")
 
 
@@ -138,15 +144,18 @@ router.get("/category-one/:id", async (req, res) => {
 
 // Edit Category 
 router.put("/category-edit/:id", async (req, res) => {
-    for (const banner of req.body.left_banner) {
+    if (req.body.left_banner) {
+        const banner = { image: {}, slug: "" };
         banner.image.uz = await new Base64ToFile(req).bufferInput(banner.image.uz).save();
         banner.image.ru = await new Base64ToFile(req).bufferInput(banner.image.ru).save();
     }
 
-    for (const banner of req.body.top_banner) {
+    if (req.body.top_banner) {
+        const banner = { image: {}, slug: "" };
         banner.image.uz = await new Base64ToFile(req).bufferInput(banner.image.uz).save();
         banner.image.ru = await new Base64ToFile(req).bufferInput(banner.image.ru).save();
     }
+
 
     try {
 
@@ -155,38 +164,37 @@ router.put("/category-edit/:id", async (req, res) => {
 
     } catch (error) {
 
-        if(req.body.left_banner.length) {
-            for (const banner of req.body.left_banner) {
-                const bannerUzPath = path.join(__dirname, `../uploads/${path.basename(banner.image.uz)}`);
-                const bannerRuPath = path.join(__dirname, `../uploads/${path.basename(banner.image.ru)}`);
-                fs.unlink(bannerUzPath, (err) => err && console.log(err));
-                fs.unlink(bannerRuPath, (err) => err && console.log(err));
-            }
+        if (req.body.left_banner) {
+            const { image } = req.body.left_banner;
+            const bannerUzPath = path.join(__dirname, `../uploads/${path.basename(image.uz)}`);
+            const bannerRuPath = path.join(__dirname, `../uploads/${path.basename(image.ru)}`);
+            fs.unlink(bannerUzPath, (err) => err && console.log(err));
+            fs.unlink(bannerRuPath, (err) => err && console.log(err));
         }
 
 
-        if(req.body.top_banner.length) {
-            for (const banner of req.body.top_banner) {
-                const bannerUzPath = path.join(__dirname, `../uploads/${path.basename(banner.image.uz)}`);
-                const bannerRuPath = path.join(__dirname, `../uploads/${path.basename(banner.image.ru)}`);
-                fs.unlink(bannerUzPath, (err) => err && console.log(err));
-                fs.unlink(bannerRuPath, (err) => err && console.log(err));
-            }
+        if (req.body.top_banner) {
+            const { image } = req.body.left_banner;
+            const bannerUzPath = path.join(__dirname, `../uploads/${path.basename(image.uz)}`);
+            const bannerRuPath = path.join(__dirname, `../uploads/${path.basename(image.ru)}`);
+            fs.unlink(bannerUzPath, (err) => err && console.log(err));
+            fs.unlink(bannerRuPath, (err) => err && console.log(err));
         }
 
 
-            if (req.body.image) {
-                const imagePath = path.join(__dirname, `../uploads/${path.basename(req.body.image)}`);
-                fs.unlink(imagePath, (err) => err && console.log(err));
-            }
 
-            if (req.body.icon) {
-                const imagePath = path.join(__dirname, `../uploads/${path.basename(req.body.icon)}`);
-                fs.unlink(imagePath, (err) => err && console.log(err));
-            }
-
-            return res.status(500).json("server ishlamayapti")
+        if (req.body.image) {
+            const imagePath = path.join(__dirname, `../uploads/${path.basename(req.body.image)}`);
+            fs.unlink(imagePath, (err) => err && console.log(err));
         }
+
+        if (req.body.icon) {
+            const imagePath = path.join(__dirname, `../uploads/${path.basename(req.body.icon)}`);
+            fs.unlink(imagePath, (err) => err && console.log(err));
+        }
+
+        return res.status(500).json("server ishlamayapti")
+    }
 });
 
 
@@ -203,28 +211,33 @@ router.delete("/category-delete/:id", async (req, res) => {
         allCategoies.push(parentDeleted, subDeleted, childDeleted);
 
         for (const cate of allCategoies) {
-            if (cate && cate.image) {
+            if (cate?.left_banner) {
+                const { image } = cate.left_banner;
+                const bannerUzPath = path.join(__dirname, `../uploads/${path.basename(image.uz)}`);
+                const bannerRuPath = path.join(__dirname, `../uploads/${path.basename(image.ru)}`);
+                fs.unlink(bannerUzPath, (err) => err && console.log(err));
+                fs.unlink(bannerRuPath, (err) => err && console.log(err));
+            }
+
+
+            if (cate?.top_banner) {
+                const { image } = cate.left_banner;
+                const bannerUzPath = path.join(__dirname, `../uploads/${path.basename(image.uz)}`);
+                const bannerRuPath = path.join(__dirname, `../uploads/${path.basename(image.ru)}`);
+                fs.unlink(bannerUzPath, (err) => err && console.log(err));
+                fs.unlink(bannerRuPath, (err) => err && console.log(err));
+            }
+
+
+
+            if (cate?.image) {
                 const imagePath = path.join(__dirname, `../uploads/${path.basename(cate.image)}`);
                 fs.unlink(imagePath, (err) => err && console.log(err));
             }
 
-
-            if (cate && cate.left_banner?.length) {
-                for (const banner of cate.left_banner) {
-                    const bannerUzPath = path.join(__dirname, `../uploads/${path.basename(banner.image.uz)}`);
-                    const bannerRuPath = path.join(__dirname, `../uploads/${path.basename(banner.image.ru)}`);
-                    fs.unlink(bannerUzPath, (err) => err && console.log(err));
-                    fs.unlink(bannerRuPath, (err) => err && console.log(err));
-                }
-            }
-
-            if (cate && cate.top_banner?.length) {
-                for (const banner of cate.top_banner) {
-                    const bannerUzPath = path.join(__dirname, `../uploads/${path.basename(banner.image.uz)}`);
-                    const bannerRuPath = path.join(__dirname, `../uploads/${path.basename(banner.image.ru)}`);
-                    fs.unlink(bannerUzPath, (err) => err && console.log(err));
-                    fs.unlink(bannerRuPath, (err) => err && console.log(err));
-                }
+            if (req.body?.icon) {
+                const imagePath = path.join(__dirname, `../uploads/${path.basename(req.body.icon)}`);
+                fs.unlink(imagePath, (err) => err && console.log(err));
             }
 
         }
@@ -240,9 +253,9 @@ router.delete("/category-delete/:id", async (req, res) => {
 
 
 
-router.delete("/delete-left-banner", async(req, res) => {
+router.delete("/delete-left-banner", async (req, res) => {
     const { category_id, banner_id } = req.body;
-    const deletedBanner = await categoryModel.updateOne({_id:category_id}, {$pull:{left_banner: {_id: banner_id}}});
+    const deletedBanner = await categoryModel.updateOne({ _id: category_id }, { $pull: { left_banner: { _id: banner_id } } });
 
 })
 

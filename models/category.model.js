@@ -1,37 +1,5 @@
 const { Schema, model, models } = require("mongoose");
 
-const leftBannerSchema = Schema({
-    image: {
-        type: String,
-        intl: true,
-    },
-    slug: {
-        type: String
-    }
-},
-{
-    toJSON: { virtuals: true}
-}
-);
-
-
-const topBannerSchema = Schema({
-    image: {
-        type: String,
-        intl: true,
-    },
-    slug: {
-        type: String
-    }
-},
-
-{
-    toJSON: { virtuals: true}
-}
-
-);
-
-
 
 const categorySchema = new Schema({
     name: {
@@ -46,8 +14,25 @@ const categorySchema = new Schema({
     icon: String,
     image: String,
 
-    left_banner: [leftBannerSchema],
-    top_banner: [topBannerSchema],
+    left_banner: {
+        image: {
+            type: String,
+            intl: true,
+        },
+        slug: {
+            type: String
+        }
+    },
+    
+    top_banner: {
+        image: {
+            type: String,
+            intl: true,
+        },
+        slug: {
+            type: String
+        }
+    },
 
     brendId: {
         type: Schema.Types.ObjectId,

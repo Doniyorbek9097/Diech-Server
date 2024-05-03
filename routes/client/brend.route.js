@@ -23,7 +23,7 @@ router.post("/brend", async(req, res) => {
     req.body.image.uz = await new Base64ToFile(req).bufferInput(req.body.image.uz).save();
     req.body.image.ru = await new Base64ToFile(req).bufferInput(req.body.image.ru).save();
     req.body.logo = await new Base64ToFile(req).bufferInput(req.body.logo).save();
-    req.body.slug = slugify(req.body.name);
+    req.body.slug = slugify(req.body?.name);
 
     try {
         const newBrend = await new brendModel(req.body).save();

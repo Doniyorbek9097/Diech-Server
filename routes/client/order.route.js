@@ -36,7 +36,9 @@ router.post('/order-add', async (req, res) => {
 
 router.get("/orders", async (req, res) => {
     try {
-        const orders = await orderModel.find().populate("products.product")
+        const orders = await orderModel.find()
+        .populate("products.product")
+        .sort({ createdAt: -1 })
         res.status(200).json(orders)
     } catch (error) {
         console.log(error);
