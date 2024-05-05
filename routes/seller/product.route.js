@@ -1,7 +1,6 @@
 const router = require("express").Router();
 const { productModel } = require("../../models/product.model");
-const { categoryModel } = require("../../models/category.model");
-
+const cartModel = require("../../models/cart.model");
 const slugify = require("slugify");
 const path = require("path")
 const fs = require("fs");
@@ -110,6 +109,7 @@ router.put("/product/:id", async (req, res) => {
 router.delete("/product/:id", async (req, res) => {
     try {
         const deleted = await productModel.findByIdAndDelete(req.params.id);
+        await cartModel.deleteMany({'products.product': deleted._id})
         const { images, colors } = deleted;
 
         if (colors.length > 0) {

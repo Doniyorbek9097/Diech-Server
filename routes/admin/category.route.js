@@ -6,12 +6,14 @@ const langReplace = require("../../utils/langReplace");
 const nestedCategories = require("../../utils/nestedCategories");
 const { Base64ToFile } = require("../../utils/base64ToFile");
 const { isEqual } = require("../../utils/isEqual");
+const { checkToken } = require("../../middlewares/authMiddleware")
+
 const path = require("path");
 const fs = require("fs");
 
 
 // Create new Category 
-router.post("/category-add", async (req, res) => {
+router.post("/category-add", checkToken, async (req, res) => {
     try {
 
         if (!req.body.name || (!req.body.name.uz && !req.body.name.ru))
@@ -43,7 +45,7 @@ router.post("/category-add", async (req, res) => {
 
 
 // Get all category
-router.get("/category-all", async (req, res) => {
+router.get("/category-all", checkToken, async (req, res) => {
     try {
 
         let page = parseInt(req.query.page) - 1 || 0;
@@ -124,7 +126,7 @@ router.get("/category-all", async (req, res) => {
 
 
 // Get byId Category 
-router.get("/category-one/:id", async (req, res) => {
+router.get("/category-one/:id", checkToken, async (req, res) => {
     try {
         if (!mongoose.isValidObjectId(req.params.id)) {
             return res.status(404).send("Category Id haqiqiy emas");
@@ -143,7 +145,7 @@ router.get("/category-one/:id", async (req, res) => {
 
 
 // Edit Category 
-router.put("/category-edit/:id", async (req, res) => {
+router.put("/category-edit/:id", checkToken, async (req, res) => {
     if (req.body.left_banner) {
         const banner = { image: {}, slug: "" };
         banner.image.uz = await new Base64ToFile(req).bufferInput(banner.image.uz).save();
@@ -199,7 +201,7 @@ router.put("/category-edit/:id", async (req, res) => {
 
 
 // Delete Category 
-router.delete("/category-delete/:id", async (req, res) => {
+router.delete("/category-delete/:id", checkToken, async (req, res) => {
     try {
         const allCategoies = [];
         let parentDeleted = await categoryModel.findByIdAndDelete(req.params.id);
@@ -253,7 +255,7 @@ router.delete("/category-delete/:id", async (req, res) => {
 
 
 
-router.delete("/delete-left-banner", async (req, res) => {
+router.delete("/delete-left-banner", checkToken, async (req, res) => {
     const { category_id, banner_id } = req.body;
     const deletedBanner = await categoryModel.updateOne({ _id: category_id }, { $pull: { left_banner: { _id: banner_id } } });
 

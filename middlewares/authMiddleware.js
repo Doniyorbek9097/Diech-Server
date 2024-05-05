@@ -1,7 +1,8 @@
 const Jwt = require("jsonwebtoken")
 
 exports.checkToken = (req, res, next) => {
- const headerToken =  req.headers.token;
+let headerToken =  req.headers.token;
+headerToken = { "undefined": undefined, "null": null }[headerToken] || headerToken;
  if(headerToken){
  	 req.token = headerToken;
    Jwt.verify(req.token, process.env.JWT_SECRET_KEY, (err, authData) => {

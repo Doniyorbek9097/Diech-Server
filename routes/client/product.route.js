@@ -12,11 +12,37 @@ const { Base64ToFile } = require("../../utils/base64ToFile");
 // get all products 
 router.get("/products", async (req, res) => {
     try {
-        let products = await productModel.find()
+
+        const page = parseInt(req.query?.page) - 1 || 0;
+        const limit = parseInt(req.query.limit) || 10;
+        const search = req.query.search || "";
+        const ratingFilter = req.query.rating;
+        const soldFilter = req.query.sold;
+
+        const matchSorted = {};
+        matchSorted.sold = soldFilter;
+        matchSorted.rating = ratingFilter;
+
+
+        let products = await productModel.find({slug:{ $regex: search, $options: "i" } })
+        .sort(matchSorted)
+        .limit(1)
+        .skip(page * limit)
+        // .populate({
+        //   path:"shop",
+        //   populate: "point"
+        // })
         
-        return res.json(products);
+        console.log(products)
+
+        return res.json({
+          data: products,
+          message: "success"
+        });
+
     } catch (error) {
         console.log(error)
+        res.status(500).json(error.message)
     }
 });
 
@@ -83,7 +109,11 @@ router.get("/product-slug/:slug", async (req, res) => {
             })
         .populate("owner", "username")
         .populate("shop");
+        let user_id = req.headers['user'];
+        user_id =  (user_id === "null") ? null : (user_id === "undefined") ? undefined : str;
         
+        user_id && !product.views.includes(user_id) && (product.views.push(user_id), product.viewsCount++);
+        await product.save()
 
         return res.status(200).json(product);
     } catch (error) {

@@ -95,9 +95,13 @@ router.get("/user/:id",  async (req, res) => {
         .populate({
             path:"orders",
             populate: {
-                path:"products.product"
+                path:"products.product",
+                populate: {
+                    path:"shop"
+                }
             }
         })
+        
         if (user) {
             return res.json({
                 message:"Success",
@@ -121,7 +125,6 @@ router.get("/user/:id",  async (req, res) => {
 router.put("/user-update/:id", checkToken, async(req, res) => {
 try {
     req.body.username = req.body.firstname || req.body.username;
-    console.log(req.body)
     const updated = await userModel.findByIdAndUpdate(req.params.id, req.body);
     console.log(updated)
     res.send({

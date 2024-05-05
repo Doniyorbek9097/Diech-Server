@@ -1,4 +1,6 @@
+const http = require("http");
 const express = require("express");
+const { Server } = require('socket.io');
 const cors = require("cors");
 var bodyParser = require('body-parser');
 require("dotenv/config");
@@ -10,7 +12,13 @@ const clientRoutes = require("./routes/client");
 
 const mongoose = require("mongoose");
 const app = express();
-
+const server = http.createServer(app);
+const io = new Server(server, {
+    cors: {
+        origin:"*",
+        methods: "*"
+    }
+})
 
 app.use(cors());
 app.use(bodyParser.json({limit: '100mb'}));
@@ -26,12 +34,23 @@ adminRoutes.forEach(route => app.use("/api/admin/", route));
 clientRoutes.forEach(route => app.use("/api/client/", route));
 sellerRoutes.forEach(route => app.use("/api/seller/", route));
 
-
-
+// Socket.io bilan ishlash
+// io.on('connection', (socket) => {
+//     // console.log('Foydalanuvchi bog\'landi '+ socket.id);
+//     socket.emit("user", "salom client 223311")
+//     socket.on("user:show", (data) => {
+//         console.log(data)
+//     })
+//     socket.on('disconnect', () => {
+//         console.log('Foydalanuvchi ayirildi');
+//     });
+// });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`server is runinng on port ${PORT}`))
+server.listen(PORT, () => console.log(`server is runinng on port ${PORT}`))
 
 
-
+module.exports = {
+    io
+}
 

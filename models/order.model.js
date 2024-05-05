@@ -13,7 +13,7 @@ const orderSchema = new Schema({
     //     required: true
 
     // },
-    
+
     user: {
         type: Schema.Types.ObjectId,
         ref: "User",
@@ -32,7 +32,7 @@ const orderSchema = new Schema({
     delivery: {
         method: {
             type: String,
-            enum:['online','offline']
+            enum: ['online', 'offline']
         },
 
         time: {
@@ -53,9 +53,9 @@ const orderSchema = new Schema({
 
 
     status: {
-        type:String,
-        enum:["new","accepted","progress","shipping","canceled","sent"],
-        default:"new"
+        type: String,
+        enum: ["new", "accepted", "progress", "shipping", "canceled", "sent"],
+        default: "new"
     },
 
     customerInfo: {
@@ -70,7 +70,6 @@ const orderSchema = new Schema({
             product: {
                 type: Schema.Types.ObjectId,
                 ref: "Product",
-                required: true
             },
 
             color: {
@@ -89,6 +88,12 @@ const orderSchema = new Schema({
                 type: Number,
                 required: true
             },
+
+            status: {
+                type: String,
+                enum: ["notSold","soldOut", "returned"],
+                default:'notSold'
+            }
 
         }
     ],

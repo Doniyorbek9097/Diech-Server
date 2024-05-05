@@ -34,14 +34,21 @@ router.post('/order-add', async (req, res) => {
 });
 
 
-router.get("/orders", async (req, res) => {
+router.get("/product-statistic", async (req, res) => {
     try {
+        const sort = req.query.sort || "";
         const orders = await orderModel.find()
         .populate("products.product")
+        .select("products -_id")
         .sort({ createdAt: -1 })
-        res.status(200).json(orders)
+
+        res.json({
+            data: orders.flatMap(order => order.products.filter(item => item.status == sort)),
+            message: "success"
+        })
     } catch (error) {
         console.log(error);
+        res.status(500).json(error.message)
     }
 })
 

@@ -21,6 +21,8 @@ router.get("/auth/:id",  async (req, res) => {
             data: user
         })
 
+    
+
     } catch (error) {
         console.log(error);
         return res.status(500).json("Serverda Xatolik " + error.message)

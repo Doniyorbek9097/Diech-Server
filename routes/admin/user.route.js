@@ -11,7 +11,6 @@ const { generateToken } = require("../../utils/generateToken")
 const { checkToken } = require("../../middlewares/authMiddleware")
 
 
-
 router.get("/user/:id", checkToken, async (req, res) => {
     try {
         const user = await userModel.findById(req.params.id)
@@ -30,6 +29,7 @@ router.get("/user/:id", checkToken, async (req, res) => {
             message: "success",
             data: user
         })
+       
 
     } catch (error) {
         console.log(error);

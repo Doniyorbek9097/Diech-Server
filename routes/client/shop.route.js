@@ -16,12 +16,21 @@ router.post("/shop", async(req,res) => {
 
 router.get("/shops", async(req,res) => {
     try {
-        const shops = await shopModel.find().populate("products").populate("owner")
-        res.status(200).json(shops);
+        const shops = await shopModel.find()
+        .populate("employees")
+        .populate("products")
+        .populate("point")
+
+        res.json({
+            data: shops,
+            message: "success"
+        });
     } catch (error) {
-        
+        console.log(error)
+        res.status(500).json(error.message)
     }
 });
+
 
 
 router.get("/shop/:id", async(req,res) => {

@@ -80,11 +80,7 @@ const productSchema = Schema({
         default: false
     },
 
-    sold: {
-        type:Number,
-        default:0
-    },
-
+  
     colors: ["red", "blue", "grey"],
 
     size: {
@@ -147,6 +143,36 @@ const productSchema = Schema({
         ref: "User"
     },
 
+    viewsCount: {
+        type: Number,
+        default: 0
+    },
+
+    soldOut: {
+        orders: {
+            type: Array,
+            default: []
+        },
+
+        count: {
+            type: Number,
+            default: 0
+        }
+    },
+
+
+    returned: {
+        orders: {
+            type: Array,
+            default: []
+        },
+
+        count: {
+            type: Number,
+            default: 0
+        }
+    },
+
     rating: {
         type: Number,
         required: true,
@@ -157,6 +183,7 @@ const productSchema = Schema({
         type: Number
     },
 
+    
     type: {
         type: String,
         enum:["product"],
