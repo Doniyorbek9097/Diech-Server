@@ -11,7 +11,6 @@ const { checkToken } = require("../../middlewares/authMiddleware")
 const path = require("path");
 const fs = require("fs");
 
-
 // Create new Category 
 router.post("/category-add", checkToken, async (req, res) => {
     try {
