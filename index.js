@@ -30,8 +30,6 @@ app.use("/", (req, res, next) => {
     return next();
 })
 
-// const userSocketRoute = require("./routes/admin/socket.route");
-// app.use('/', userSocketRoute(io))
 adminRoutes.forEach(route => app.use("/api/admin/", route));
 clientRoutes.forEach(route => app.use("/api/client/", route));
 sellerRoutes.forEach(route => app.use("/api/seller/", route));

@@ -33,8 +33,6 @@ router.get("/products", async (req, res) => {
         //   populate: "point"
         // })
         
-        console.log(products)
-
         return res.json({
           data: products,
           message: "success"
