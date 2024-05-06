@@ -5,13 +5,14 @@ const cors = require("cors");
 var bodyParser = require('body-parser');
 require("dotenv/config");
 require("./config/db");
-// require("./bot");
+require("./bot");
 const adminRoutes = require("./routes/admin");
 const sellerRoutes = require("./routes/seller");
 const clientRoutes = require("./routes/client");
 
 const mongoose = require("mongoose");
 const app = express();
+
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {

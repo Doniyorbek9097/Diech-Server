@@ -5,23 +5,45 @@ const router = require("express").Router();
 const { sendSms } = require("../../utils/sendSms");
 const { generateOTP } = require("../../utils/otpGenrater");
 const bcrypt = require("bcrypt");
-// const bot = require("../../bot");
+const bot = require("../../bot");
 
 
 router.post('/order-add', async (req, res) => {
     try {
-        const { customerInfo, products, cart_id } = req.body;
+        const { customerInfo, products, user, address, location, delivery, totalAmount, cart_id } = req.body;
         const newOrder = await new orderModel(req.body).save();
         await cartModel.findByIdAndDelete(cart_id);
-        let text = `👤 <b>Buyurtmachi</b>: ${customerInfo?.firstname}\n<b>☎️ Telefon raqami</b>: ${customerInfo?.phone_number}\n<b>🛍️ Barcha Mahsulotlar 👇👇👇</b>\n`;
+        let text = `👤 <b>Buyurtmachi</b>: ${customerInfo?.firstname}
+        👤 <b>Viloyat:</b>: ${address?.region}
+        👤 <b>Tuman:</b>: ${address?.distirct}
+        👤 <b>MFY:</b>: ${address?.mfy}
+        👤 <b>Ko'cha:</b>: ${address?.street}
+        👤 <b>Uy raqami:</b>: ${address?.house}
+        👤 <b>Uy qavvati:</b>: ${address?.house}
+        <b>☎️ Telefon raqami</b>: ${customerInfo?.phone_number}
+
+        👤 <b>Yetkazib berish usuli:</b>: ${delivery?.method}
+        👤 <b>Yetkazib berish sanasi</b>: ${delivery?.time}
+        👤 <b>Kuyuer uchun izoh</b>: ${delivery?.comment}
+        👤 <b>Yetkazib berish narxi</b>: ${delivery?.price}
+        👤 <b>Jam mahsulot narxi</b>: ${totalAmount}
+
+        
+        <b>🛍️ Barcha Mahsulotlar 👇👇👇</b>
+        `;
 
             for (const item of products) {
                 text += `-----------------\n${item.product.name} - ${item.quantity} ta\n`
             }
 
-            // bot.telegram.sendMessage("918510894", text, {
-            //     parse_mode:"HTML"
-            // });
+            bot.telegram.sendMessage("918510894", text, {
+                parse_mode:"HTML",
+                reply_markup: {
+                    inline_keyboard: [
+                        [{text:"Joylashuv manzili", callback_data:`${JSON.stringify(location)}`}]
+                    ]
+                }
+            });
 
             return res.json({
                 data: newOrder,
