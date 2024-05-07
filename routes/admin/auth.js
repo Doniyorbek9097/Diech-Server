@@ -90,8 +90,10 @@ router.post("/signup/verify", async (req, res) => {
 
             user.verified = true;
             user.role = "admin";
-            const documetCoout = await userModel.countDocuments();
-            if(documetCoout == 1) user.role = "creator";
+            user.username = `user-${user._id}`;
+
+            // const documetCoout = await userModel.countDocuments();
+            // if(documetCoout == 1) user.role = "creator";
             
             const token = await generateToken({
                 _id: user._id,
@@ -155,12 +157,13 @@ router.post("/signin", async (req, res) => {
         });
 
         res.status(200).json({
-            message: "logged in successfully",
+            message: "Muofaqqiyatli kirish",
             token,
             data:{
                 _id: user._id,
                 firstname: user.firstname,
                 lastname: user.lastname,
+                userame: user.username,
                 email: user.email,
                 phone_number: user.phone_number
             },

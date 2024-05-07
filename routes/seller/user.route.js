@@ -50,9 +50,17 @@ router.get("/user/:id", checkToken,  async (req, res) => {
 
 router.post("/user-add", checkToken, async (req,res) => {
     try {
+
+        let user = await userModel.findOne({username: req.body?.username});
+        if(user) return res.json({message: "bunday username mavjud boshqa username kiriting"});
+
+        user = await userModel.findOne({phone_number: req.body?.phone_number});
+        if(user) return res.json({message: "bunday telefon raqam mavjud boshqa raqam kiriting"});
+
+
         let newUser = await new userModel(req.body);
         newUser.verified = true;
-        newUser.username = `${newUser.firstname || `User-${newUser.phone_number.slice(-4)}`}`
+        newUser.username = `user-${newUser._id}`;
         const saltPassword = await bcrypt.genSalt(10);
         newUser.password = await bcrypt.hash(newUser.password, saltPassword)
         newUser.token = await generateToken({
@@ -76,7 +84,12 @@ router.post("/user-add", checkToken, async (req,res) => {
 
 router.put("/user-update/:id", checkToken, async(req, res) => {
     try {
-        req.body.username = req.body.firstname || req.body.username;
+
+        let user = await userModel.findOne({username: req.body?.username});
+        if(user) return res.json({message: "bunday username mavjud boshqa username kiriting"});
+
+        user = await userModel.findOne({phone_number: req.body?.phone_number});
+        if(user) return res.json({message: "bunday telefon raqam mavjud boshqa raqam kiriting"});
     
         const updated = await userModel.updateOne({_id: req.params.id}, req.body);
         res.send("success updated")

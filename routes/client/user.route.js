@@ -57,7 +57,7 @@ router.post("/signup/verify", async (req, res) => {
                 user = new userModel({
                     otp,
                     phone_number,
-                    username: `User-${phone_number.slice(-4)}`
+                    username: `user-${user._id}`
                 });
             }
 
@@ -124,7 +124,10 @@ router.get("/user/:id",  async (req, res) => {
 
 router.put("/user-update/:id", checkToken, async(req, res) => {
 try {
-    req.body.username = req.body.firstname || req.body.username;
+    const user = await userModel.findOne({username:req.body.username});
+    if(user) return res.json({
+        message: "Bunday username foydalanuvchisi mavjud iltimos boshqa username kiriting"
+    })
     const updated = await userModel.findByIdAndUpdate(req.params.id, req.body);
     console.log(updated)
     res.send({

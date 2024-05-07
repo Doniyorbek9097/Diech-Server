@@ -7,7 +7,19 @@ const addressSchema = mongooose.Schema({
 
 })
 
+const telegamSchema = mongooose.Schema({
+    id: String,
+    username:String,
+    fisrt_name:String,
+    last_name: String,
+    is_bot: Boolean,
+    language_code:String
+
+})
+
+
 const userSchema = new mongooose.Schema({
+    telegramAccount: telegamSchema,
     firstname: {
         type:String,
         default:""
@@ -95,12 +107,6 @@ const userSchema = new mongooose.Schema({
 
 );
 
-
-
-
-userSchema.pre("save", async function(next) {
-    this.username = `${this.firstname || `User-${this.phone_number.slice(-4)}`}`;
-});
 
 
 userSchema.methods.comparePassword = async function(password) {

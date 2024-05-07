@@ -1,8 +1,15 @@
-const { Telegraf } = require("telegraf");
+const { Telegraf, session } = require("telegraf");
+const { checkToken } = require("../middlewares/authBotMiddleware")
 
-const bot = new Telegraf("6916398917:AAEh3Z0Wdqj-KHyF2vWHBkvZJ_NznTRrmoc");
+const stage = require("./scenes");
 
-bot.start((ctx) => ctx.reply("salom"));
+const bot = new Telegraf(process.env.BOT_TOKEN);
+
+bot.use(session());
+bot.use(stage.middleware())
+// bot.use(checkToken)
+
+bot.hears("/help", (ctx) => ctx.scene.enter("startScene"));
 
 
 bot.launch();
