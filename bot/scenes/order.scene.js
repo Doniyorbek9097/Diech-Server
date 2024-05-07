@@ -52,15 +52,16 @@ const orderScene = new WizardScene("orderScene",
 
             const buttons = [
                 Markup.button.callback(`Joylashuv manzili`, `${JSON.stringify(location)}`),
-                Markup.button.callback(`${status == 'new' && '✔️'} Mahsulot tasdiqlandi`, `new`),
-                Markup.button.callback(`${status == 'progress' && '✔️'} Mahsulot tayyorlanmoqda`, `progress`),
-                Markup.button.callback(`${status == 'shipping' && '✔️'} Mahsulot yuborildi`, `shipping`),
-                Markup.button.callback(`${status == 'canceled' && '✔️'} Mahsulot bekor qilindi`, `canceled`),
-                Markup.button.callback(`${status == 'sent' && '✔️'} Mahsulot yetkazildi`, `sent`),
+                Markup.button.callback(`${status == 'new' ? '✔️':''} Mahsulot tasdiqlandi`, `new`),
+                Markup.button.callback(`${status == 'progress' ? '✔️':''} Mahsulot tayyorlanmoqda`, `progress`),
+                Markup.button.callback(`${status == 'shipping' ? '✔️':''} Mahsulot yuborildi`, `shipping`),
+                Markup.button.callback(`${status == 'canceled' ? '✔️':''} Mahsulot bekor qilindi`, `canceled`),
+                Markup.button.callback(`${status == 'sent' ? '✔️':''} Mahsulot yetkazildi`, `sent`),
                 Markup.button.callback(`Orqaga`, `back`),
             ]
 
             await ctx.replyWithHTML(text, Markup.inlineKeyboard(buttons, { columns: 2 }));
+            await ctx.deleteMessage();
 
         } catch (error) {
             console.log(error)
@@ -90,7 +91,8 @@ orderScene.on("callback_query", async (ctx, next) => {
 
     const order = await orderModel.findByIdAndUpdate(orderData._id, { status: query });
 
-    const { customerInfo, products, user, address, status, location, delivery, totalAmount, cart_id } = order;
+    let { customerInfo, products, user, address, status, location, delivery, totalAmount, cart_id } = orderData;
+    status = query;
     let text = `
 <b>Buyurtmachi</b>: ${customerInfo?.firstname}
 <b>Viloyat:</b>: ${address?.region}
@@ -113,23 +115,24 @@ orderScene.on("callback_query", async (ctx, next) => {
         text += `-----------------\n${item.product.name} - ${parseInt(item.quantity)} x ${parseInt(item.product.sale_price)} = ${parseInt(item.product.sale_price) * parseInt(item.quantity)} so'm\n`
     }
 
+
     const buttons = [
         Markup.button.callback(`Joylashuv manzili`, `${JSON.stringify(location)}`),
-        Markup.button.callback(`${status == query && '✔️'} Mahsulot tasdiqlandi`, `new`),
-        Markup.button.callback(`${status == query && '✔️'} Mahsulot tayyorlanmoqda`, `progress`),
-        Markup.button.callback(`${status == query && '✔️'} Mahsulot yuborildi`, `shipping`),
-        Markup.button.callback(`${status == query && '✔️'} Mahsulot bekor qilindi`, `canceled`),
-        Markup.button.callback(`${status == query && '✔️'} Mahsulot yetkazildi`, `sent`),
+        Markup.button.callback(`${status == 'new' ? '✔️':''} Mahsulot tasdiqlandi`, `new`),
+        Markup.button.callback(`${status == 'progress' ? '✔️':''} Mahsulot tayyorlanmoqda`, `progress`),
+        Markup.button.callback(`${status == 'shipping' ? '✔️':''} Mahsulot yuborildi`, `shipping`),
+        Markup.button.callback(`${status == 'canceled' ? '✔️':''} Mahsulot bekor qilindi`, `canceled`),
+        Markup.button.callback(`${status == 'sent' ? '✔️':''} Mahsulot yetkazildi`, `sent`),
         Markup.button.callback(`Orqaga`, `back`),
     ]
 
 
-    ctx.editMessageText(text, {
-        parse_mode: "HTML",
-        ...Markup.inlineKeyboard([
-            buttons
-        ],{columns:2})
-    })
+
+    await ctx.replyWithHTML(text, {
+        ...Markup.inlineKeyboard([...buttons.chunk(2)])
+    });
+
+    await ctx.deleteMessage();
 })
 
 

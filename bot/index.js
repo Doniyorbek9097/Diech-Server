@@ -1,4 +1,5 @@
 const { Telegraf, session } = require("telegraf");
+require('./methods')
 const { checkToken } = require("../middlewares/authBotMiddleware")
 
 const stage = require("./scenes");
@@ -9,7 +10,7 @@ bot.use(session());
 bot.use(stage.middleware())
 // bot.use(checkToken)
 
-bot.hears("/help", (ctx) => ctx.scene.enter("startScene"));
+bot.hears("/start", (ctx) => ctx.scene.enter("startScene"));
 
 
 bot.launch();
