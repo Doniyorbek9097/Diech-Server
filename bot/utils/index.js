@@ -51,7 +51,7 @@ exports.findOneOrder = async (order_id) => {
 
         
         products.forEach((item, i) => {
-            text += `\n-----------------\n🏪Do'kon: ${item?.product?.shop?.name}\n 🛍️${item?.product?.name} - ${parseInt(item.quantity)} x ${parseInt(item?.product?.sale_price)} = ${parseInt(item?.product?.sale_price) * parseInt(item.quantity)} so'm\n`;
+            text += `\n-----------------\n🏪Do'kon: ${item?.product?.shop?.name}\n🛍️${item?.product?.name}\n${parseInt(item.quantity)} x ${parseInt(item?.product?.sale_price)} = ${parseInt(item?.product?.sale_price) * parseInt(item.quantity)} so'm`;
             buttons.push(
                 [Markup.button.url(`🛍️${item.product.name}`, `${process.env.CLIENT_URL}/product/view/${item?.product?.slug}`)],
                 [Markup.button.callback(`${item.status == 'notSold' ? '🟡' : ''} Sotilmagan`, `notSold ${i}`),
