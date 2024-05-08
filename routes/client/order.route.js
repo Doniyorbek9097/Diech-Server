@@ -17,7 +17,7 @@ router.post('/order-add', async (req, res) => {
         const deliverer = await userModel.find({role:"deliverer"});
         deliverer.forEach(user => {
         let text = `<i>${customerInfo.username} <b>${products.length}</b> ta mahsulotga buyurtma berdi!</i>`
-        bot.telegram.sendMessage(user?.telegram?.id, text, { parse_mode: "HTML" }).catch(err => console.log(err?.message))
+        bot.telegram.sendMessage(user?.telegramAccount?.id, text, { parse_mode: "HTML" }).catch(err => console.log(err?.message))
 
         });
 
