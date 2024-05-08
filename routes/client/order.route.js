@@ -11,7 +11,7 @@ const { Markup } = require("telegraf")
 
 router.post('/order-add', async (req, res) => {
     try {
-        const { customerInfo, products, user, address, status, location, delivery, totalAmount, cart_id } = req.body;
+        const { customerInfo, products, cart_id } = req.body;
         const newOrder = await new orderModel(req.body).save();
         await cartModel.findByIdAndDelete(cart_id);
         const deliverer = await userModel.find({role:"deliverer"});
