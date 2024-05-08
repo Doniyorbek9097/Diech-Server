@@ -9,9 +9,4 @@ const stage = new Stage([
 ])
 
 
-// stage.use((ctx, next) => {
-//  ctx?.message?.text == "/start" ? bot.start(ctx => ctx.scene.enter("startScene")) : next()
-// })
-
-
 module.exports = stage;

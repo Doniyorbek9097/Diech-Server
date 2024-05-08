@@ -6,10 +6,11 @@ module.exports.chunk = Array.prototype.chunk = function(chunkSize) {
   };  
   
 
-  module.exports.isJSON = isJSON = (data) => {
+  module.exports.isObject = (data) => {
     try {
-     return JSON.parse(data);
-    } catch (error) {
-      console.log(error.message);
-    }
+      const parsedData = JSON.parse(data);
+      return typeof parsedData === 'object';
+  } catch (error) {
+      return false;
+  }
  }

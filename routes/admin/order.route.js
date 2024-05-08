@@ -100,7 +100,6 @@ router.get("/order/:id", checkToken, async (req, res) => {
                 }
             })
 
-        order = await order.save()
         res.json({
             data: order,
             message: "success"
