@@ -16,7 +16,7 @@ router.post('/order-add', async (req, res) => {
         await cartModel.findByIdAndDelete(cart_id);
         const deliverer = await userModel.find({role:"deliverer"});
         deliverer.forEach(user => {
-        let text = `${customerInfo.username} ${products.length} ta mahsulotga buyurtma berdi!`
+        let text = `<i>${customerInfo.username} <b>${products.length}</b> ta mahsulotga buyurtma berdi!</i>`
         bot.telegram.sendMessage(user?.telegram?.id, text, { parse_mode: "HTML" })
 
         });
