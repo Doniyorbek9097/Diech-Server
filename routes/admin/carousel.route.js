@@ -4,10 +4,9 @@ const path = require("path");
 const fs = require("fs");
 const mongoose = require("mongoose");
 const { Base64ToFile } = require("../../utils/base64ToFile");
-const { upload } = require("../../middlewares/upload")
 const router = require("express").Router();
 
-router.post("/carousel", upload.any(), async(req, res)=> {
+router.post("/carousel", async(req, res)=> {
     const { image, slug } = req.body;
     req.body.slug = slugify(slug);
     image && (req.body.image.uz = await new Base64ToFile(req).bufferInput(req.body.image.uz).save());
@@ -25,14 +24,14 @@ router.post("/carousel", upload.any(), async(req, res)=> {
          const { image } = req.body;
             if(image && image.uz) {
                 fs.unlink(
-                    path.join(__dirname, `../uploads/${path.basename(image.uz)}`),
+                    path.join(__dirname, `../../uploads/${path.basename(image.uz)}`),
                     (err) => err && console.log(err)
                 )
             }
 
             if(image && image.ru) {
                 fs.unlink(
-                    path.join(__dirname, `../uploads/${path.basename(image.uz)}`),
+                    path.join(__dirname, `../../uploads/${path.basename(image.uz)}`),
                     (err) => err && console.log(err)
                 )
             }
@@ -74,18 +73,18 @@ router.delete("/carousel/:id", async(req,res) => {
             message: "Carousel Topilmadi"
         });
 
-        const { image } = result;
+        const { image } = result.toObject();
 
         if(image && image.uz) {
             fs.unlink(
-                path.join(__dirname, `../uploads/${path.basename(image.uz)}`),
+                path.join(__dirname, `../../uploads/${path.basename(image.uz)}`),
                 (err) => err && console.log(err)
             )
         }
 
         if(image && image.ru) {
             fs.unlink(
-                path.join(__dirname, `../uploads/${path.basename(image.ru)}`),
+                path.join(__dirname, `../../uploads/${path.basename(image.ru)}`),
                 (err) => err && console.log(err)
             )
         }

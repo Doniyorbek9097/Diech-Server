@@ -5,7 +5,7 @@ const router = require("express").Router();
 const { sendSms } = require("../../utils/sendSms");
 const { generateOTP } = require("../../utils/otpGenrater");
 const bcrypt = require("bcrypt");
-const bot = require("../../bot");
+// const bot = require("../../bot");
 const userModel = require("../../models/user.model")
 const { Markup } = require("telegraf")
 
@@ -17,7 +17,7 @@ router.post('/order-add', async (req, res) => {
         const deliverer = await userModel.find({role:"deliverer"});
         deliverer.forEach(user => {
         let text = `<i>${customerInfo.username} <b>${products.length}</b> ta mahsulotga buyurtma berdi!</i>`
-        bot.telegram.sendMessage(user?.telegramAccount?.id, text, { parse_mode: "HTML" }).catch(err => console.log(err?.message))
+        // bot.telegram.sendMessage(user?.telegramAccount?.id, text, { parse_mode: "HTML" }).catch(err => console.log(err?.message))
 
         });
 

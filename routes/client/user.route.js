@@ -53,11 +53,11 @@ router.post("/signup/verify", async (req, res) => {
 
         if (lastOtpFind.phone_number === phone_number && validUser) {
             let user = await userModel.findOne({ phone_number: phone_number });
+            console.log(user)
             if (!user) {
                 user = new userModel({
                     otp,
                     phone_number,
-                    username: `user-${user._id}`
                 });
             }
 

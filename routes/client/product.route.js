@@ -20,13 +20,13 @@ router.get("/products", async (req, res) => {
         const soldFilter = req.query.sold;
 
         const matchSorted = {};
-        matchSorted.sold = soldFilter;
+        matchSorted.soldOut = soldFilter;
         matchSorted.rating = ratingFilter;
 
 
         let products = await productModel.find({slug:{ $regex: search, $options: "i" } })
         .sort(matchSorted)
-        .limit(1)
+        .limit(limit)
         .skip(page * limit)
         // .populate({
         //   path:"shop",
@@ -90,6 +90,7 @@ router.get("/product-slug/:slug", async (req, res) => {
         let color = req.query.color || "";
 
         let product = await productModel.findOne({ slug: req.params.slug })
+            .populate("colors.color")
             .populate("parentCategory")
             .populate({
                 path:"subCategory",
@@ -106,9 +107,12 @@ router.get("/product-slug/:slug", async (req, res) => {
                 }
             })
         .populate("owner", "username")
-        .populate("shop");
+        .populate("shop")
+        .sort({"colors.color.name": color})
+
+
         let user_id = req.headers['user'];
-        user_id =  (user_id === "null") ? null : (user_id === "undefined") ? undefined : str;
+        user_id =  (user_id === "null") ? null : (user_id === "undefined") ? undefined : user_id;
         
         user_id && !product.views.includes(user_id) && (product.views.push(user_id), product.viewsCount++);
         await product.save()

@@ -1,35 +1,43 @@
 const colorModel = require("../../models/color.model");
-const langReplace = require("../../utils/langReplace");
-
 const router = require("express").Router();
 
 
-router.post("/add-color", async(req, res)=> {
+router.post("/color-add", async(req, res)=> {
     try {
         const newColor = await new colorModel(req.body).save();
-        return res.status(201).json(newColor);
+        return res.json({
+            message:"Success",
+            data: newColor
+        });
     } catch (error) {
         console.log(error);
+        res.status(500).json(error.message)
     }
 });
 
 
-router.get("/colors", async(req, res) => {
+router.get("/color-all", async(req, res) => {
     try {
         const colors = await colorModel.find();
-        return res.status(200).json(colors)
+        return res.json({
+            message: "Success",
+            data: colors
+        })
     } catch (error) {
         console.log(error);
+        res.status(500).json(error.message)
     }
 });
 
 
-router.delete("/delete-color/:id", async(req, res) => {
+router.delete("/color-delete/:id", async(req, res) => {
     try {
         const deleteColor = await colorModel.findByIdAndDelete(req.params.id);
-        return res.status(200).json(deleteColor)
+        return res.json(deleteColor)
     } catch (error) {
         console.log(error);
+        res.status(500).json(error.message)
+
     }
 })
 

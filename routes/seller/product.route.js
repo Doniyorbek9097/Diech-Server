@@ -1,16 +1,17 @@
 const router = require("express").Router();
 const { productModel } = require("../../models/product.model");
-const cartModel = require("../../models/cart.model");
+const cartModel = require("../../models/cart.model")
 const slugify = require("slugify");
+const langReplace = require("../../utils/langReplace");
 const path = require("path")
 const fs = require("fs");
 const { Base64ToFile } = require("../../utils/base64ToFile");
+const { checkToken } = require("../../middlewares/authMiddleware")
 
 // create new Product 
-router.post("/product-add", async (req, res) => {
+router.post("/product-add", checkToken, async (req, res) => {
     const { images } = req.body;
     req.body.slug = slugify(req.body.name.uz);
-    req.body.owner = req.headers['user_id'];
     req.body.images = [];
 
     for (const image of images) {
@@ -45,7 +46,7 @@ router.post("/product-add", async (req, res) => {
         if (images?.length > 0) {
             for (const image of images) {
                 fs.unlink(
-                    path.join(__dirname, `../uploads/${path.basename(image)}`),
+                    path.join(__dirname, `../../uploads/${path.basename(image)}`),
                     (err) => err && console.log(err)
                 )
             }
@@ -56,10 +57,9 @@ router.post("/product-add", async (req, res) => {
 });
 
 // get all products 
-router.get("/product-all", async (req, res) => {
+router.get("/product-all", checkToken, async (req, res) => {
     try {
-        const user_id = req.headers['user_id'];
-        let products = await productModel.find({owner: user_id});
+        let products = await productModel.find();
         return res.json(products);
     } catch (error) {
         console.log(error)
@@ -69,10 +69,11 @@ router.get("/product-all", async (req, res) => {
 
 
 
-// one product by slug 
-router.get("/product/:id", async (req, res) => {
+// one product by id 
+router.get("/product-one/:id", checkToken, async (req, res) => {
     try {
-        let product = await productModel.findOne({ _id: req.params.id }).populate("shop").populate("owner")
+
+        let product = await productModel.findOne({ _id: req.params.id })
         return res.status(200).json(product.toObject());
     } catch (error) {
         console.log(error);
@@ -83,10 +84,9 @@ router.get("/product/:id", async (req, res) => {
 
 
 // update product 
-router.put("/product/:id", async (req, res) => {
-    const id = req.params.id;
+router.put("/product-edit/:id", checkToken, async (req, res) => {
     req.body.slug = slugify(req.body.name.uz);
-    const { images } = req.body;
+    const { images, deletedImages } = req.body;
     req.body.images = [];
 
     for (const image of images) {
@@ -94,45 +94,56 @@ router.put("/product/:id", async (req, res) => {
         req.body.images.push(data);
     }
 
-    req.body.discount = parseInt(((req.body.orginal_price - req.body.sale_price) / req.body.orginal_price) * 100);
-
     try {
+        req.body.discount = parseInt(((req.body.orginal_price - req.body.sale_price) / req.body.orginal_price) * 100);
+
         const updated = await productModel.findByIdAndUpdate(req.params.id, req.body);
+        if(deletedImages.length > 0) {
+            deletedImages.forEach(element => {
+            const imagePath = path.join(__dirname, `../../uploads/${path.basename(element)}`);
+                fs.unlink(imagePath, (err) => err && console.log(err))
+            });
+        }
+
+        await updated.save();
         res.status(200).json(updated);
+
+        
     } catch (error) {
+        for (const image of req.body.images) {
+            const imagePath = path.join(__dirname, `../../uploads/${path.basename(image)}`);
+            fs.unlink(imagePath, (err) => err && console.log(err))
+        }
+
         console.log(error);
         res.status(500).send("Server Xatosi: "+ error);
+        
     }
 });
 
 
-router.delete("/product/:id", async (req, res) => {
+
+router.delete("/product-delete/:id", checkToken, async (req, res) => {
     try {
         const deleted = await productModel.findByIdAndDelete(req.params.id);
         await cartModel.deleteMany({'products.product': deleted._id})
         const { images, colors } = deleted;
 
-        if (colors.length > 0) {
-            for (const color of colors) {
-                for (const image of color.images) {
-                    fs.unlink(
-                        path.join(__dirname, `../uploads/${path.basename(image)}`),
-                        (err) => err && console.log(err)
-                    )
-                }
-            }
-        }
+        // if (colors.length > 0) {
+        //     for (const color of colors) {
+        //         for (const image of color.images) {
+        //             fs.unlink(
+        //                 path.join(__dirname, `../uploads/${path.basename(image)}`),
+        //                 (err) => err && console.log(err)
+        //             )
+        //         }
+        //     }
+        // }
 
-        if (images.length > 0) {
-            for (const image of images) {
-                fs.unlink(
-                    path.join(__dirname, `../uploads/${path.basename(image)}`),
-                    (err) => err && console.log(err)
-                )
-            }
-        }
-
-
+        (images.length > 0) && images.forEach(item => {
+            const imagePath = path.join(__dirname, `../../uploads/${path.basename(item)}`);
+            fs.unlink(imagePath, (err) => err && console.log(err))
+        }) 
 
         return res.status(200).json({ result: deleted });
 
@@ -141,26 +152,6 @@ router.delete("/product/:id", async (req, res) => {
         return res.status(500).json("Serverda Xatolik")
     }
 });
-
-
-
-// product image delete 
-router.put("/product-image-delete", async (req, res) => {
-    const { product_id, image_path } = req.body;
-    const deleted = await productModel.updateOne({_id: product_id}, {$pull: {images: image_path}});
-    const imagePath = path.join(__dirname, `../../uploads/${path.basename(image_path)}`);
-  
-    if(fs.existsSync(imagePath)) {
-        fs.unlink(
-            imagePath,
-            (err) => err && console.log(err)
-        )
-    }
-
-    return res.status(200).send("success")
-})
-
-
 
 
 module.exports = router;

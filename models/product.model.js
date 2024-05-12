@@ -16,6 +16,31 @@ const reviewSchema = Schema(
     }
   )
 
+  const colorSchema = Schema({
+    color: {
+        type: Schema.Types.ObjectId,
+        ref:"Color"
+    },
+    price:Number,
+    quantity: Number,
+    images: {
+        type:Array,
+        default: []
+    }
+})
+
+
+const sizeSchema = Schema({
+    size: String,
+    price: Number,
+    quantity: Number
+})
+
+const memorySchema = Schema({
+    memory: String,
+    price: Number,
+    quantity: Number,
+})
 
 const propertiesSchema = Schema({
     key: {
@@ -81,13 +106,21 @@ const productSchema = Schema({
     },
 
   
-    colors: ["red", "blue", "grey"],
+    colors: {
+        type: [colorSchema],
+        default: []
+    },
 
-    size: {
-        type: String,
+    sizes: {
+        type:[sizeSchema],
+        default: []
+    },
+
+    memories: {
+        type:[memorySchema],
+        default: []
     },
    
-    
     images: {
         type:Array,
         default:[]

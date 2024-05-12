@@ -1,16 +1,19 @@
-const mongooose = require("mongoose");
+const { Schema, model } = require("mongoose");
 
-const colorSchema = mongooose.Schema({
+const colorSchema = Schema({
     name: {
         type: String,
-        intl: true
+        intl: true,
     },
+    code:String,
+},
 
-    image: {
-        type:Array,
-        default:[]
-    }
-});
+{
+    timestamps: true,
+    toJSON: { virtuals: true }
+}
+
+)
 
 
-module.exports = mongooose.model("Color", colorSchema);
+module.exports = model("Color", colorSchema);

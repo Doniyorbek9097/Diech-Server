@@ -108,7 +108,6 @@ router.post("/signup/verify", async (req, res) => {
 
 router.post("/signin", async (req, res) => {
     try {
-
         const user = await userModel.findOne({ phone_number: req.body.phone_number })
         .populate({
             path:"shop",

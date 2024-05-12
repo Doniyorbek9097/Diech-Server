@@ -28,7 +28,7 @@ exports.findOneOrder = async (order_id) => {
 <i>🚩MFY:</i> <b>${address?.mfy}</b>
 <i>🚩Ko'cha:</i> <b>${address?.street}</b>
 <i>🏡Uy raqami:</i> <b>${address?.house}</b>
-<i>🏬Uy qavvati:</i> <b>${address?.house}</b>
+<i>🏬Uy qavvati:</i> <b>${address?.house_floor}</b>
 <i>🤳Telefon raqami:</i> <b>${customerInfo?.phone_number}</b>
 
 <i>🚛Yetkazib berish usuli:</i> <b>${delivery?.method}</b>

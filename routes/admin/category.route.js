@@ -145,39 +145,40 @@ router.get("/category-one/:id", checkToken, async (req, res) => {
 
 // Edit Category 
 router.put("/category-edit/:id", checkToken, async (req, res) => {
-    if (req.body.left_banner) {
-        const banner = { image: {}, slug: "" };
-        banner.image.uz = await new Base64ToFile(req).bufferInput(banner.image.uz).save();
-        banner.image.ru = await new Base64ToFile(req).bufferInput(banner.image.ru).save();
+    if (req.body?.left_banner) {
+        const { image } = req.body.left_banner;
+        req.body.left_banner.image.uz = await new Base64ToFile(req).bufferInput(image.uz).save();
+        req.body.left_banner.image.ru = await new Base64ToFile(req).bufferInput(image.ru).save();
     }
 
-    if (req.body.top_banner) {
-        const banner = { image: {}, slug: "" };
-        banner.image.uz = await new Base64ToFile(req).bufferInput(banner.image.uz).save();
-        banner.image.ru = await new Base64ToFile(req).bufferInput(banner.image.ru).save();
+    if (req.body?.top_banner) {
+        const {image} = req.body.top_banner;
+        req.body.top_banner.image.uz = await new Base64ToFile(req).bufferInput(image.uz).save();
+        req.body.top_banner.image.ru = await new Base64ToFile(req).bufferInput(image.ru).save();
     }
 
 
     try {
 
         const upadted = await categoryModel.findByIdAndUpdate(req.params.id, req.body);
+
         return res.status(200).json(upadted);
 
     } catch (error) {
 
-        if (req.body.left_banner) {
+        if (req.body?.left_banner) {
             const { image } = req.body.left_banner;
-            const bannerUzPath = path.join(__dirname, `../uploads/${path.basename(image.uz)}`);
-            const bannerRuPath = path.join(__dirname, `../uploads/${path.basename(image.ru)}`);
+            const bannerUzPath = path.join(__dirname, `../../uploads/${path.basename(image.uz)}`);
+            const bannerRuPath = path.join(__dirname, `../../uploads/${path.basename(image.ru)}`);
             fs.unlink(bannerUzPath, (err) => err && console.log(err));
             fs.unlink(bannerRuPath, (err) => err && console.log(err));
         }
 
 
-        if (req.body.top_banner) {
+        if (req.body?.top_banner) {
             const { image } = req.body.left_banner;
-            const bannerUzPath = path.join(__dirname, `../uploads/${path.basename(image.uz)}`);
-            const bannerRuPath = path.join(__dirname, `../uploads/${path.basename(image.ru)}`);
+            const bannerUzPath = path.join(__dirname, `../../uploads/${path.basename(image.uz)}`);
+            const bannerRuPath = path.join(__dirname, `../../uploads/${path.basename(image.ru)}`);
             fs.unlink(bannerUzPath, (err) => err && console.log(err));
             fs.unlink(bannerRuPath, (err) => err && console.log(err));
         }
@@ -185,12 +186,12 @@ router.put("/category-edit/:id", checkToken, async (req, res) => {
 
 
         if (req.body.image) {
-            const imagePath = path.join(__dirname, `../uploads/${path.basename(req.body.image)}`);
+            const imagePath = path.join(__dirname, `../../uploads/${path.basename(req.body.image)}`);
             fs.unlink(imagePath, (err) => err && console.log(err));
         }
 
         if (req.body.icon) {
-            const imagePath = path.join(__dirname, `../uploads/${path.basename(req.body.icon)}`);
+            const imagePath = path.join(__dirname, `../../uploads/${path.basename(req.body.icon)}`);
             fs.unlink(imagePath, (err) => err && console.log(err));
         }
 
@@ -214,8 +215,8 @@ router.delete("/category-delete/:id", checkToken, async (req, res) => {
         for (const cate of allCategoies) {
             if (cate?.left_banner) {
                 const { image } = cate.left_banner;
-                const bannerUzPath = path.join(__dirname, `../uploads/${path.basename(image.uz)}`);
-                const bannerRuPath = path.join(__dirname, `../uploads/${path.basename(image.ru)}`);
+                const bannerUzPath = path.join(__dirname, `../../uploads/${path.basename(image.uz)}`);
+                const bannerRuPath = path.join(__dirname, `../../uploads/${path.basename(image.ru)}`);
                 fs.unlink(bannerUzPath, (err) => err && console.log(err));
                 fs.unlink(bannerRuPath, (err) => err && console.log(err));
             }
@@ -223,8 +224,8 @@ router.delete("/category-delete/:id", checkToken, async (req, res) => {
 
             if (cate?.top_banner) {
                 const { image } = cate.left_banner;
-                const bannerUzPath = path.join(__dirname, `../uploads/${path.basename(image.uz)}`);
-                const bannerRuPath = path.join(__dirname, `../uploads/${path.basename(image.ru)}`);
+                const bannerUzPath = path.join(__dirname, `../../uploads/${path.basename(image.uz)}`);
+                const bannerRuPath = path.join(__dirname, `../../uploads/${path.basename(image.ru)}`);
                 fs.unlink(bannerUzPath, (err) => err && console.log(err));
                 fs.unlink(bannerRuPath, (err) => err && console.log(err));
             }
@@ -232,12 +233,12 @@ router.delete("/category-delete/:id", checkToken, async (req, res) => {
 
 
             if (cate?.image) {
-                const imagePath = path.join(__dirname, `../uploads/${path.basename(cate.image)}`);
+                const imagePath = path.join(__dirname, `../../uploads/${path.basename(cate.image)}`);
                 fs.unlink(imagePath, (err) => err && console.log(err));
             }
 
             if (req.body?.icon) {
-                const imagePath = path.join(__dirname, `../uploads/${path.basename(req.body.icon)}`);
+                const imagePath = path.join(__dirname, `../../uploads/${path.basename(req.body.icon)}`);
                 fs.unlink(imagePath, (err) => err && console.log(err));
             }
 

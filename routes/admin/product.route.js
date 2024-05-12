@@ -46,7 +46,7 @@ router.post("/product-add", checkToken, async (req, res) => {
         if (images?.length > 0) {
             for (const image of images) {
                 fs.unlink(
-                    path.join(__dirname, `../uploads/${path.basename(image)}`),
+                    path.join(__dirname, `../../uploads/${path.basename(image)}`),
                     (err) => err && console.log(err)
                 )
             }
@@ -72,7 +72,6 @@ router.get("/product-all", checkToken, async (req, res) => {
 // one product by id 
 router.get("/product-one/:id", checkToken, async (req, res) => {
     try {
-
         let product = await productModel.findOne({ _id: req.params.id })
         return res.status(200).json(product.toObject());
     } catch (error) {
@@ -85,9 +84,8 @@ router.get("/product-one/:id", checkToken, async (req, res) => {
 
 // update product 
 router.put("/product-edit/:id", checkToken, async (req, res) => {
-    const id = req.params.id;
     req.body.slug = slugify(req.body.name.uz);
-    const { images } = req.body;
+    const { images, deletedImages } = req.body;
     req.body.images = [];
 
     for (const image of images) {
@@ -95,32 +93,33 @@ router.put("/product-edit/:id", checkToken, async (req, res) => {
         req.body.images.push(data);
     }
 
-    req.body.discount = parseInt(((req.body.orginal_price - req.body.sale_price) / req.body.orginal_price) * 100);
-
     try {
+        req.body.discount = parseInt(((req.body.orginal_price - req.body.sale_price) / req.body.orginal_price) * 100);
+
         const updated = await productModel.findByIdAndUpdate(req.params.id, req.body);
+        if(deletedImages.length > 0) {
+            deletedImages.forEach(element => {
+            const imagePath = path.join(__dirname, `../../uploads/${path.basename(element)}`);
+                fs.unlink(imagePath, (err) => err && console.log(err))
+            });
+        }
+
+        await updated.save();
         res.status(200).json(updated);
+
+        
     } catch (error) {
+        for (const image of req.body.images) {
+            const imagePath = path.join(__dirname, `../../uploads/${path.basename(image)}`);
+            fs.unlink(imagePath, (err) => err && console.log(err))
+        }
+
         console.log(error);
         res.status(500).send("Server Xatosi: "+ error);
+        
     }
 });
 
-// product image delete 
-router.put("/product-image-delete", checkToken, async (req, res) => {
-    const { product_id, image_path } = req.body;
-    const deleted = await productModel.updateOne({_id: product_id}, {$pull: {images: image_path}});
-    const imagePath = path.join(__dirname, `../../uploads/${path.basename(image_path)}`);
-  
-    if(fs.existsSync(imagePath)) {
-        fs.unlink(
-            imagePath,
-            (err) => err && console.log(err)
-        )
-    }
-
-    return res.status(200).send("success")
-})
 
 
 router.delete("/product-delete/:id", checkToken, async (req, res) => {
@@ -140,16 +139,10 @@ router.delete("/product-delete/:id", checkToken, async (req, res) => {
         //     }
         // }
 
-        if (images.length > 0) {
-            for (const image of images) {
-                fs.unlink(
-                    path.join(__dirname, `../uploads/${path.basename(image)}`),
-                    (err) => err && console.log(err)
-                )
-            }
-        }
-
-
+        (images.length > 0) && images.forEach(item => {
+            const imagePath = path.join(__dirname, `../../uploads/${path.basename(item)}`);
+            fs.unlink(imagePath, (err) => err && console.log(err))
+        }) 
 
         return res.status(200).json({ result: deleted });
 
