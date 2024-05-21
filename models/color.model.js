@@ -5,7 +5,7 @@ const colorSchema = Schema({
         type: String,
         intl: true,
     },
-    code:String,
+    code:String
 },
 
 {

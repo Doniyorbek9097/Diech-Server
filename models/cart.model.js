@@ -1,31 +1,22 @@
-const mongoose = require("mongoose");
+const { Schema, model } = require("mongoose");
 
-const cartSchema = mongoose.Schema({
+const cartSchema = Schema({
     products: [
         {
            product: {
-                type: mongoose.Schema.Types.ObjectId,
+                type: Schema.Types.ObjectId,
                 ref: "Product",
                 required:true
             },
 
             shop: {
-                type: mongoose.Schema.Types.ObjectId,
+                type: Schema.Types.ObjectId,
                 ref: "Shop"
             },
 
-            color: {
-                type: String,
-            },
-
-            size: {
-                type: String,
-            },
-
-            memory: {
-                type: String,
-            },
-
+            attributes: Schema.Types.Mixed,
+            orginal_price:Number,
+            sale_price: Number,
             quantity: {
                 type:Number,
                 required:true
@@ -42,4 +33,4 @@ const cartSchema = mongoose.Schema({
 
 },{timestamps:true});
 
-module.exports = mongoose.model("Cart", cartSchema);
+module.exports = model("Cart", cartSchema);

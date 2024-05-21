@@ -1,46 +1,22 @@
-const {Schema, model } = require("mongoose");
+const { Schema, model } = require("mongoose");
 
 const reviewSchema = Schema(
     {
-      name: { type: String, required: true },
-      rating: { type: Number, required: true },
-      comment: { type: String, required: true },
-      user: {
-       type: Schema.Types.ObjectId,
-       ref: 'User',
-       required: true,
+        name: { type: String, required: true },
+        rating: { type: Number, required: true },
+        comment: { type: String, required: true },
+        user: {
+            type: Schema.Types.ObjectId,
+            ref: 'User',
+            required: true,
         },
-     },
-    {
-      timestamps: true,
-    }
-  )
-
-  const colorSchema = Schema({
-    color: {
-        type: Schema.Types.ObjectId,
-        ref:"Color"
     },
-    price:Number,
-    quantity: Number,
-    images: {
-        type:Array,
-        default: []
+    {
+        timestamps: true,
     }
-})
+)
 
 
-const sizeSchema = Schema({
-    size: String,
-    price: Number,
-    quantity: Number
-})
-
-const memorySchema = Schema({
-    memory: String,
-    price: Number,
-    quantity: Number,
-})
 
 const propertiesSchema = Schema({
     key: {
@@ -53,11 +29,30 @@ const propertiesSchema = Schema({
     }
 },
 
-{
-    toJSON: { virtuals: true}
-}
+    {
+        toJSON: { virtuals: true }
+    }
 
 );
+
+
+
+const optionSchema = Schema({
+    name: {
+        type:String,
+    },
+
+    type: {
+        type:String,
+    },
+
+    values:[String]
+    
+})
+
+const productOptionModel = model("ProductOption", optionSchema);
+
+
 
 
 
@@ -68,8 +63,8 @@ const productSchema = Schema({
     },
 
     slug: {
-        type:String,
-        required:true
+        type: String,
+        required: true
     },
 
     discription: {
@@ -77,78 +72,39 @@ const productSchema = Schema({
         intl: true
     },
 
+    images: [],
+    quantity: { type: Number, min: 1 },
+    orginal_price: { type: Number, min: 0 },
+    sale_price: { type: Number, min: 0 },
+
     properteis: [propertiesSchema],
-
-    countInStock: {
-        type: Number,
-        min: 1    
-    },
-
-    orginal_price: {
-        type:Number,
-        required:true
-    },
-
-    sale_price: {
-        type: Number,
-        required: true
-    },
-
-
-    quantity: {
-        type:Number,
-        default:0
-    },
 
     active: {
         type: Boolean,
         default: false
     },
 
-  
-    colors: {
-        type: [colorSchema],
-        default: []
-    },
-
-    sizes: {
-        type:[sizeSchema],
-        default: []
-    },
-
-    memories: {
-        type:[memorySchema],
-        default: []
-    },
-   
-    images: {
-        type:Array,
-        default:[]
-    },
-    
-    
-
     parentCategory: {
         type: Schema.Types.ObjectId,
-        ref:"Category",
-        required:true
+        ref: "Category",
+        // required:true
     },
 
     subCategory: {
         type: Schema.Types.ObjectId,
-        ref:"Category",
-        required:true
+        ref: "Category",
+        // required:true
     },
 
     childCategory: {
         type: Schema.Types.ObjectId,
-        ref:"Category",
-        required:true
+        ref: "Category",
+        // required:true
     },
 
     country: {
-        type:String,
-        default:""
+        type: String,
+        default: ""
     },
 
     brend: {
@@ -163,15 +119,15 @@ const productSchema = Schema({
 
     owner: {
         type: Schema.Types.ObjectId,
-        ref:"User"
+        ref: "User"
 
     },
 
     reviews: {
-        type:[reviewSchema]
+        type: [reviewSchema]
     },
 
-    views:{
+    views: {
         type: [Schema.Types.ObjectId],
         ref: "User"
     },
@@ -210,34 +166,60 @@ const productSchema = Schema({
         type: Number,
         required: true,
         default: 0,
-      },
-     
+    },
+
     discount: {
         type: Number
     },
 
-    
+    attributes: [],
+    variants:[{
+        name:String,
+        orginal_price:Number,
+        sale_price: Number,
+        quantity:Number,
+        sku:String
+    }],
+
     type: {
         type: String,
-        enum:["product"],
-        default:"product"
+        enum: ["product"],
+        default: "product"
     }
-}, 
+},
 
-{ 
-  timestamps:true,
-  toJSON: { virtuals: true }
-}
+    {
+        timestamps: true,
+        toJSON: { virtuals: true }
+    }
 
 );
 
 
-productSchema.pre("save", async function(next) {
-    this.discount = parseInt(((this.orginal_price - this.sale_price) / this.orginal_price) * 100); 
+productSchema.pre("save", async function (next) {
+    this.discount = parseInt(((this.orginal_price - this.sale_price) / this.orginal_price) * 100);
+//       const product = this;
+
+//   product.variants.forEach(variant => {
+//     variant.options.forEach(option => {
+//       if (!option.sku) {
+//         // Variant nomi va option nomini birlashtirib sku yaratish
+//         option.sku = `${variant.name}-${option.name}`.replace(/\s+/g, '-').toUpperCase();
+//           if(option.options.length) {
+//              option.options.forEach(option2 => {
+//                 option2.sku = `${option.name}-${option2.name}`.replace(/\s+/g, '-').toUpperCase();
+//              });
+//           }
+//       }
+//     });
+//   });
+
+  next();
 })
 
 
-const productModel = model("Product", productSchema); 
+const productModel = model("Product", productSchema);
 module.exports = {
+    productOptionModel,
     productModel,
 }

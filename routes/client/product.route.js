@@ -86,11 +86,10 @@ router.get("/products", async (req, res) => {
 // one product by slug
 router.get("/product-slug/:slug", async (req, res) => {
     try {
-
-        let color = req.query.color || "";
+        let skuQuery = req.query?.sku || "";
+        skuQuery = skuQuery.slice(0, skuQuery.length -1).split(",").join("-")
 
         let product = await productModel.findOne({ slug: req.params.slug })
-            .populate("colors.color")
             .populate("parentCategory")
             .populate({
                 path:"subCategory",
@@ -108,7 +107,6 @@ router.get("/product-slug/:slug", async (req, res) => {
             })
         .populate("owner", "username")
         .populate("shop")
-        .sort({"colors.color.name": color})
 
 
         let user_id = req.headers['user'];
@@ -117,7 +115,13 @@ router.get("/product-slug/:slug", async (req, res) => {
         user_id && !product.views.includes(user_id) && (product.views.push(user_id), product.viewsCount++);
         await product.save()
 
-        return res.status(200).json(product);
+        const variant = product.variants.find((item, index) =>{
+           if(item.sku.toLowerCase() == skuQuery.toLowerCase()) {
+             return item
+           }
+        })
+        
+        return res.status(200).json({product, variant:variant ? variant:product.variants[0] });
     } catch (error) {
         console.log(error);
         return res.status(500).send("Server Ishlamayapti");

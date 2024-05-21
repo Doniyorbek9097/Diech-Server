@@ -6,43 +6,31 @@ const langReplace = require("../../utils/langReplace");
 const path = require("path")
 const fs = require("fs");
 const { Base64ToFile } = require("../../utils/base64ToFile");
-const { checkToken } = require("../../middlewares/authMiddleware")
+const { checkToken } = require("../../middlewares/authMiddleware");
+const { nestedVariant } = require("../../utils/nestedVariant");
+const { removeDuplicates } = require("../../utils/removeDuplicates");
 
 // create new Product 
 router.post("/product-add", checkToken, async (req, res) => {
+    console.log(req.body)
     const { images } = req.body;
     req.body.slug = slugify(req.body.name.uz);
     req.body.images = [];
 
-    for (const image of images) {
-        const data = await new Base64ToFile(req).bufferInput(image).save();
-        req.body.images.push(data);
+    if(images?.length) {
+        for (const image of images) {
+            const data = await new Base64ToFile(req).bufferInput(image).save();
+            req.body.images.push(data);
+        }
     }
 
-
-    // for (const color of req.body.colors) {
-    //         color.images =  await new Base64ToFile(req).bufferInput(color.images).save();
-    //     }
-
     try {
-
         const newProduct = await new productModel(req.body).save();
         return res.status(200).json(newProduct);
 
     } catch (error) {
         console.log(error);
         const { images } = req.body;
-        // if(colors?.length > 0) {
-        //     for (const color of colors) {
-        //         for (const image of color.images) {
-        //             fs.unlink(
-        //                 path.join(__dirname, `../uploads/${path.basename(image)}`),
-        //                 (err) => err && console.log(err)    
-        //             )
-        //         }
-        //     }
-        // }
-
         if (images?.length > 0) {
             for (const image of images) {
                 fs.unlink(
@@ -73,6 +61,7 @@ router.get("/product-all", checkToken, async (req, res) => {
 router.get("/product-one/:id", checkToken, async (req, res) => {
     try {
         let product = await productModel.findOne({ _id: req.params.id })
+
         return res.status(200).json(product.toObject());
     } catch (error) {
         console.log(error);
@@ -84,18 +73,18 @@ router.get("/product-one/:id", checkToken, async (req, res) => {
 
 // update product 
 router.put("/product-edit/:id", checkToken, async (req, res) => {
-    req.body.slug = slugify(req.body.name.uz);
     const { images, deletedImages } = req.body;
     req.body.images = [];
-
-    for (const image of images) {
-        const data = await new Base64ToFile(req).bufferInput(image).save();
-        req.body.images.push(data);
+    if(images.length) {
+        for (const image of images) {
+            const data = await new Base64ToFile(req).bufferInput(image).save();
+            req.body.images.push(data);
+        }   
     }
+   
 
     try {
         req.body.discount = parseInt(((req.body.orginal_price - req.body.sale_price) / req.body.orginal_price) * 100);
-
         const updated = await productModel.findByIdAndUpdate(req.params.id, req.body);
         if(deletedImages.length > 0) {
             deletedImages.forEach(element => {
@@ -104,9 +93,7 @@ router.put("/product-edit/:id", checkToken, async (req, res) => {
             });
         }
 
-        await updated.save();
-        res.status(200).json(updated);
-
+        res.json(updated);
         
     } catch (error) {
         for (const image of req.body.images) {
