@@ -144,12 +144,14 @@ router.post("/add-review/:id", async (req, res) => {
         }
         product.reviews.unshift(review);
     
-        const averageRating =
-                product.reviews.reduce((acc, item) => item.rating + acc, 0) /
-                product.reviews.length;
-        product.rating = Math.round(averageRating);
+        const totalRating = product.reviews.reduce((acc, item) => item.rating + acc, 0);
+        product.rating = (totalRating / product.reviews.length).toFixed(1);
+
+        // Ensure the rating is within the 0-5 range
+        product.rating = Math.min(Math.max(product.rating, 0), 5);
+        
        const newProduct = await product.save();
-       
+
         res.status(201).json(newProduct.reviews.shift())
 
       } else {
