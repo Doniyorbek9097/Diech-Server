@@ -135,7 +135,7 @@ router.post("/add-review/:id", async (req, res) => {
         if (alreadyReviewed) {
           return res.status(400).send('Product already reviewed')
         }
-        
+
         const review = {
           name: user.username || user?.phone_number,
           rating: Number(rating),
@@ -148,7 +148,8 @@ router.post("/add-review/:id", async (req, res) => {
         product.rating =
           product.reviews.reduce((acc, item) => item.rating + acc, 0) /
           product.reviews.length;
-    
+        
+        product.rating = product.rating.split(".")[0] + product.rating.split(".")[0] ? product.rating.split(".")[0] : ""; 
        const newProduct = await product.save();
         res.status(201).json(newProduct.reviews.shift())
 
