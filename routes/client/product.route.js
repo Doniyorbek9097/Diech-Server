@@ -135,9 +135,9 @@ router.post("/add-review/:id", async (req, res) => {
         if (alreadyReviewed) {
           return res.status(400).send('Product already reviewed')
         }
-    
+        
         const review = {
-          name: user.username,
+          name: user.username || user?.phone_number,
           rating: Number(rating),
           comment,
           user: user._id,

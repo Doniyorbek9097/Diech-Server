@@ -178,6 +178,7 @@ const productSchema = Schema({
         orginal_price:Number,
         sale_price: Number,
         quantity:Number,
+        discount:Number,
         sku:String
     }],
 
