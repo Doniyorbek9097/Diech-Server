@@ -6,31 +6,26 @@ const { checkToken } = require('../../middlewares/authMiddleware');
 
 router.post("/add-cart", async (req, res) => {
     try {
-        const { products: { product, quantity }, cart_id } = req.body;
-        let cart = await cartModel.findOne({ "_id": cart_id });
+        const { productData: { product, quantity }, cart_id } = req.body;
+        let cart = await cartModel.findOne({ "_id": cart_id }).populate("productData.product")
 
         // cart not found 
         if (!cart) {
             const data = await cartModel(req.body).save();
-            return res.status(201).json(data);
-        }
-
-        const productIndex = cart.products.findIndex(item => item.product.toString() === product.toString());
-        if (productIndex === -1) {
-            cart.products.push(req.body.products);
-        } else {
-            cart.products = cart.products.map(item => {
-                if (item.product.toString() === product.toString()) {
-                    item.quantity = quantity;
-                }
-
-                return item;
+            return res.status(201).json({
+                message:"success created",
+                data
             });
         }
 
+        const foundProduct = cart.productData.find(item => item.product._id.toString() === product?._id);
+        foundProduct ? (foundProduct.quantity = quantity) : cart.productData.push(req.body.productData);
 
         const data = await cart.save();
-        return res.status(200).json(data);
+        return res.json({
+            message: "success updated",
+            data
+        });
 
     } catch (error) {
         console.log(error)
@@ -41,7 +36,7 @@ router.post("/add-cart", async (req, res) => {
 router.get("/cart/:id", async (req, res) => {
     try {
         let cart = await cartModel.findOne({ _id: req.params.id })
-            .populate("products.product")
+            .populate("productData.product")
         res.status(200).json(cart);
     } catch (error) {
         console.log(error);
@@ -56,8 +51,8 @@ router.delete("/cart-delete/:id/:product_id", async (req, res) => {
     try {
         if (mongoose.isValidObjectId(req.params.id)) {
             const cart = await cartModel.findById(req.params.id);
-            const productIndex = cart.products.findIndex(item => item.product._id.toString() === req.params.product_id.toString());
-            cart.products.splice(productIndex, 1);
+            const productIndex = cart.productData.findIndex(item => item.product._id === req.params.product_id);
+            cart.productData.splice(productIndex, 1);
             const SavedCart = await cart.save();
             return res.status(200).json(SavedCart)
         }
