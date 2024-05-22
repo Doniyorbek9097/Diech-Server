@@ -142,15 +142,14 @@ router.post("/add-review/:id", async (req, res) => {
           comment,
           user: user._id,
         }
-    
         product.reviews.unshift(review);
     
-        product.rating =
-          product.reviews.reduce((acc, item) => item.rating + acc, 0) /
-          product.reviews.length;
-        
-        product.rating = product.rating.split(".")[0] + product.rating.split(".")[0] ? product.rating.split(".")[0] : ""; 
+        const averageRating =
+                product.reviews.reduce((acc, item) => item.rating + acc, 0) /
+                product.reviews.length;
+        product.rating = Math.round(averageRating);
        const newProduct = await product.save();
+       
         res.status(201).json(newProduct.reviews.shift())
 
       } else {
