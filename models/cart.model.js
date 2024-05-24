@@ -14,6 +14,7 @@ const cartSchema = Schema({
                 ref: "Shop"
             },
 
+            selected_variant: Schema.Types.Mixed,
             attributes: Schema.Types.Mixed,
             orginal_price:Number,
             sale_price: Number,
