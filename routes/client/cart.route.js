@@ -3,23 +3,43 @@ const router = require("express").Router();
 const mongoose = require("mongoose")
 const langReplace = require("../../utils/langReplace");
 const { checkToken } = require('../../middlewares/authMiddleware');
+const { isEqual } = require("../../utils/isEqual");
 
 router.post("/add-cart", async (req, res) => {
     try {
-        const { productData: { product, quantity }, cart_id } = req.body;
+        const { productData: { product, quantity, attributes }, cart_id } = req.body;
         let cart = await cartModel.findOne({ "_id": cart_id }).populate("productData.product")
 
         // cart not found 
         if (!cart) {
             const data = await cartModel(req.body).save();
             return res.status(201).json({
-                message:"success created",
+                message: "success created",
                 data
             });
         }
 
-        const foundProduct = cart.productData.find(item => item.product._id.toString() === product?._id);
+        const foundProducts = cart.productData.filter(item => item.product._id.toString() === product?._id);
+       
+        if (!foundProducts.length) {
+            cart.productData.push(req.body.productData);
+            const data = await cart.save();
+            return res.json({
+                message: "success updated",
+                data
+            });
+        }
+
+        const foundProduct = foundProducts.find(foundProduct => {
+            if (foundProduct.attributes && attributes) {
+                if (isEqual(foundProduct.attributes, attributes)) {
+                    return foundProduct;
+                }
+            }
+        })
+
         foundProduct ? (foundProduct.quantity = quantity) : cart.productData.push(req.body.productData);
+        
 
         const data = await cart.save();
         return res.json({

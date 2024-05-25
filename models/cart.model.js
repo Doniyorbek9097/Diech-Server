@@ -18,6 +18,7 @@ const cartSchema = Schema({
             attributes: Schema.Types.Mixed,
             orginal_price:Number,
             sale_price: Number,
+            discount:Number,
             quantity: {
                 type:Number,
                 required:true
