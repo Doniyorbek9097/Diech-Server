@@ -72,22 +72,12 @@ const orderSchema = new Schema({
                 ref: "Product",
             },
 
-            color: {
-                type: String,
-            },
-
-            size: {
-                type: String,
-            },
-
-            memory: {
-                type: String,
-            },
-
-            quantity: {
-                type: Number,
-                required: true
-            },
+            attributes: Schema.Types.Mixed,
+            selected_variant:Schema.Types.Mixed,
+            orginal_price:Number,
+            sale_price:Number,
+            discount:Number,
+            quantity:Number,
 
             status: {
                 type: String,

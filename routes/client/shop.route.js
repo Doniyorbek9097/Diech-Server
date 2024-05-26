@@ -33,12 +33,17 @@ router.get("/shops", async(req,res) => {
 
 
 
-router.get("/shop/:id", async(req,res) => {
+router.get("/shop/:slug", async(req,res) => {
     try {
-        const result = await shopModel.findById(req.params.id);
-        res.json({result})
+        const result = await shopModel.findOne({slug:req.params.slug})
+        .populate("products")
+        res.json({
+            data: result,
+            message:"success"
+        })
     } catch (error) {
         console.log(error);
+        res.status(500).json(error.message)
     }
 });
 

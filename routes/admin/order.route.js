@@ -11,75 +11,41 @@ const { checkToken } = require("../../middlewares/authMiddleware");
 
 router.get('/order-all', checkToken, async (req, res) => {
     try {
-        const orders = await orderModel.find().populate("products.product")
-        res.json({
-            message: " success",
-            data: orders
-        })
-        
-        orders.forEach(order => {
-            order.products.forEach(async (item) => {
+        const orders = await orderModel.find().populate("products.product");
+        res.json({ message: "success", data: orders });
+
+        const updateProduct = async (product, orderId, item, increment) => {
+            const index = product[increment.array].indexOf(orderId);
+            if (index !== -1) product[increment.array].splice(index, 1);
+            if (!product[increment.opposite].includes(orderId)) {
+                product[increment.opposite].push(orderId);
+                product.quantity += increment.change * item.quantity;
+            }
+            await product.save();
+        };
+
+        for (const order of orders) {
+            for (const item of order.products) {
                 const product = await productModel.findById(item.product?._id);
-                
-                if (!product) return;
+                if (!product) continue;
 
-                switch (item.status) {
-                    case "soldOut":
-                        if (product.returned.orders.includes(order._id)) {
-                            const index = product?.returned.orders.indexOf(order._id);
-                            product.returned.orders.splice(index, 1);
-                            product.returned.count -= item.quantity;
+                const incrementMap = {
+                    soldOut: { array: 'returned', opposite: 'soldOut', change: -1 },
+                    returned: { array: 'soldOut', opposite: 'returned', change: 1 },
+                    notSold: { array: 'soldOut', opposite: 'soldOut', change: 1 },
+                };
 
-                        }
-                        if (!product.soldOut.orders.includes(order._id)) {
-                            product.soldOut.orders.push(order._id)
-                            product.soldOut.count += item.quantity;
-                            product.countInStock -= item.quantity;
-                        }
-                        break;
-
-                    case "returned":
-                        if (product.soldOut.orders.includes(order._id)) {
-                            const index = product?.soldOut.orders.indexOf(order._id);
-                            product.soldOut.orders.splice(index, 1);
-                            product.soldOut.count -= item.quantity;
-                            product.countInStock += item.quantity;
-                        }
-
-                        if (!product.returned.orders.includes(order._id)) {
-                            product.returned.orders.push(order._id)
-                            product.returned.count += item.quantity;
-                        }
-                        break;
-
-                    case "notSold":
-                        if (product.returned.orders.includes(order._id)) {
-                            const index = product?.returned.orders.indexOf(order._id);
-                            product.returned.orders.splice(index, 1);
-                            product.returned.count -= item.quantity;
-
-                        }
-                        if (product.soldOut.orders.includes(order._id)) {
-                            const index = product?.soldOut.orders.indexOf(order._id);
-                            product.soldOut.orders.splice(index, 1);
-                            product.soldOut.count -= item.quantity;
-                            product.countInStock += item.quantity;
-                        }
-
-
+                if (incrementMap[item.status]) {
+                    await updateProduct(product, order._id, item, incrementMap[item.status]);
                 }
-
-                await product?.save()
-            })
-        })
-
-       
-
+            }
+        }
     } catch (error) {
-        console.log(error)
-        res.status(500).json(error.message)
+        console.error(error);
+        res.status(500).json({ message: error.message });
     }
-})
+});
+
 
 
 

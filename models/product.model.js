@@ -138,28 +138,14 @@ const productSchema = Schema({
     },
 
     soldOut: {
-        orders: {
-            type: Array,
-            default: []
-        },
-
-        count: {
-            type: Number,
-            default: 0
-        }
+        type:Array,
+        default: []   
     },
 
 
     returned: {
-        orders: {
-            type: Array,
-            default: []
-        },
-
-        count: {
-            type: Number,
-            default: 0
-        }
+        type:Array,
+        default: [] 
     },
 
     rating: {

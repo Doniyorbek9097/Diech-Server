@@ -8,50 +8,31 @@ const { isEqual } = require("../../utils/isEqual");
 router.post("/add-cart", async (req, res) => {
     try {
         const { productData: { product, quantity, attributes }, cart_id } = req.body;
-        let cart = await cartModel.findOne({ "_id": cart_id }).populate("productData.product")
+        let cart = await cartModel.findOne({ "_id": cart_id }).populate("productData.product");
 
-        // cart not found 
+        // Savatcha topilmasa, yangi savatcha yaratish
         if (!cart) {
-            const data = await cartModel(req.body).save();
-            return res.status(201).json({
-                message: "success created",
-                data
-            });
+            const data = await new cartModel(req.body).save();
+            return res.status(201).json({ message: "success created", data });
         }
 
-        const foundProducts = cart.productData.filter(item => item.product._id.toString() === product?._id);
-       
-        if (!foundProducts.length) {
-            cart.productData.push(req.body.productData);
-            const data = await cart.save();
-            return res.json({
-                message: "success updated",
-                data
-            });
-        }
+        // Savatchada mahsulotni qidirish va yangilash yoki yangi mahsulot qo'shish
+        let foundProduct = cart.productData.find(item =>
+            item.product._id.toString() === product._id.toString() &&
+            (!attributes || isEqual(item.attributes, attributes))
+        );
 
-        const foundProduct = foundProducts.find(foundProduct => {
-            if (foundProduct.attributes && attributes) {
-                if (isEqual(foundProduct.attributes, attributes)) {
-                    return foundProduct;
-                }
-            }
-        })
-
-        foundProduct ? (foundProduct.quantity = quantity) : cart.productData.push(req.body.productData);
-        
+        foundProduct ? foundProduct.quantity = quantity : cart.productData.push(req.body.productData);
 
         const data = await cart.save();
-        return res.json({
-            message: "success updated",
-            data
-        });
+        return res.json({ message: "success updated", data });
 
     } catch (error) {
-        console.log(error)
-        return res.status(500).json(error.message);
+        console.error(error);
+        return res.status(500).json({ message: error.message });
     }
 });
+
 
 router.get("/cart/:id", async (req, res) => {
     try {

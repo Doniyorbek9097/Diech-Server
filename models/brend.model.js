@@ -14,11 +14,13 @@ const brendSchema = mongoose.Schema({
 
     title: {
         type: String,
+        default:"",
         intl: true
     },
 
     image: {
         type: String,
+        default:"",
         intl: true
     },
 
@@ -29,6 +31,7 @@ const brendSchema = mongoose.Schema({
 
     discription: {
         type: String,
+        default:"",
         intl: true
     },
 
