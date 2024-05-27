@@ -33,7 +33,7 @@ router.get('/order-all', checkToken, async (req, res) => {
                                 }
                                 target.soldOut.push(order._id);
                                 target.soldOutCount += productData.quantity;
-                                target.quantity = Math.max(target.quantity - productData.quantity, 1);
+                                target.quantity -= productData.quantity;
                             }
                         },
                         returned: () => {
@@ -45,7 +45,7 @@ router.get('/order-all', checkToken, async (req, res) => {
                                 }
                                 target.returned.push(order._id);
                                 target.returnedCount += productData.quantity; 
-                                target.quantity = Math.max(target.quantity + productData.quantity, 1);
+                                target.quantity += productData.quantity;
                             }
                         }
                     };
