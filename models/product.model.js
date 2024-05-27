@@ -39,15 +39,15 @@ const propertiesSchema = Schema({
 
 const optionSchema = Schema({
     name: {
-        type:String,
+        type: String,
     },
 
     type: {
-        type:String,
+        type: String,
     },
 
-    values:[String]
-    
+    values: [String]
+
 })
 
 const productOptionModel = model("ProductOption", optionSchema);
@@ -137,15 +137,24 @@ const productSchema = Schema({
         default: 0
     },
 
-    soldOut: {
-        type:Array,
-        default: []   
+    soldOut: [{
+        type: Schema.Types.ObjectId,
+        ref: "Order"
+    }],
+
+    soldOutCount: {
+        type: Number,
+        default: 0
     },
 
+    returned: [{
+        type: Schema.Types.ObjectId,
+        ref: "Order"
+    }],
 
-    returned: {
-        type:Array,
-        default: [] 
+    returnedCount: {
+        type: Number,
+        default: 0
     },
 
     rating: {
@@ -159,14 +168,35 @@ const productSchema = Schema({
     },
 
     attributes: [],
-    variants:[{
-        name:String,
-        orginal_price:Number,
+    variants: [{
+        name: String,
+        orginal_price: Number,
         sale_price: Number,
-        quantity:Number,
-        discount:Number,
-        sku:String
+        quantity: Number,
+        discount: Number,
+        sku: String,
+
+        soldOut: [{
+            type: Schema.Types.ObjectId,
+            ref: "Order"
+        }],
+
+        soldOutCount: {
+            type: Number,
+            default: 0
+        },
+
+        returned: [{
+            type: Schema.Types.ObjectId,
+            ref: "Order"
+        }],
+
     }],
+
+    returnedCount: {
+        type: Number,
+        default: 0
+    },
 
     type: {
         type: String,
@@ -185,23 +215,23 @@ const productSchema = Schema({
 
 productSchema.pre("save", async function (next) {
     this.discount = parseInt(((this.orginal_price - this.sale_price) / this.orginal_price) * 100);
-//       const product = this;
+    //       const product = this;
 
-//   product.variants.forEach(variant => {
-//     variant.options.forEach(option => {
-//       if (!option.sku) {
-//         // Variant nomi va option nomini birlashtirib sku yaratish
-//         option.sku = `${variant.name}-${option.name}`.replace(/\s+/g, '-').toUpperCase();
-//           if(option.options.length) {
-//              option.options.forEach(option2 => {
-//                 option2.sku = `${option.name}-${option2.name}`.replace(/\s+/g, '-').toUpperCase();
-//              });
-//           }
-//       }
-//     });
-//   });
+    //   product.variants.forEach(variant => {
+    //     variant.options.forEach(option => {
+    //       if (!option.sku) {
+    //         // Variant nomi va option nomini birlashtirib sku yaratish
+    //         option.sku = `${variant.name}-${option.name}`.replace(/\s+/g, '-').toUpperCase();
+    //           if(option.options.length) {
+    //              option.options.forEach(option2 => {
+    //                 option2.sku = `${option.name}-${option2.name}`.replace(/\s+/g, '-').toUpperCase();
+    //              });
+    //           }
+    //       }
+    //     });
+    //   });
 
-  next();
+    next();
 })
 
 

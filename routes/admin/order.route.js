@@ -8,35 +8,50 @@ const { productModel } = require("../../models/product.model")
 const { checkToken } = require("../../middlewares/authMiddleware");
 
 
-
 router.get('/order-all', checkToken, async (req, res) => {
     try {
         const orders = await orderModel.find().populate("products.product");
         res.json({ message: "success", data: orders });
 
-        const updateProduct = async (product, orderId, item, increment) => {
-            const index = product[increment.array].indexOf(orderId);
-            if (index !== -1) product[increment.array].splice(index, 1);
-            if (!product[increment.opposite].includes(orderId)) {
-                product[increment.opposite].push(orderId);
-                product.quantity += increment.change * item.quantity;
-            }
-            await product.save();
-        };
-
         for (const order of orders) {
-            for (const item of order.products) {
-                const product = await productModel.findById(item.product?._id);
-                if (!product) continue;
+            for (const productData of order.products) {
+                const product = await productModel.findById(productData.product?._id);
 
-                const incrementMap = {
-                    soldOut: { array: 'returned', opposite: 'soldOut', change: -1 },
-                    returned: { array: 'soldOut', opposite: 'returned', change: 1 },
-                    notSold: { array: 'soldOut', opposite: 'soldOut', change: 1 },
-                };
+                if (product) {
+                    let target = product;
+                    if (product.variants && product.variants.length > 0) {
+                        target = product.variants.find(variant => variant._id.toString() === productData.selected_variant._id.toString()) || product;
+                    }
 
-                if (incrementMap[item.status]) {
-                    await updateProduct(product, order._id, item, incrementMap[item.status]);
+                    const statusActions = {
+                        soldOut: () => {
+                            if (!target.soldOut.some(item => item.toString() === order._id.toString())) {
+                                const returnedIndex = target.returned.findIndex(item => item.toString() === order._id.toString());
+                                if (returnedIndex !== -1 && target.returnedCount > 0) {
+                                    target.returned.splice(returnedIndex, 1);
+                                    target.returnedCount -= productData.quantity; 
+                                }
+                                target.soldOut.push(order._id);
+                                target.soldOutCount += productData.quantity;
+                                target.quantity = Math.max(target.quantity - productData.quantity, 1);
+                            }
+                        },
+                        returned: () => {
+                            if (!target.returned.some(item => item.toString() === order._id.toString())) {
+                                const soldIndex = target.soldOut.findIndex(item => item.toString() === order._id.toString());
+                                if (soldIndex !== -1 && target.soldOutCount > 0) {
+                                    target.soldOut.splice(soldIndex, 1);
+                                    target.soldOutCount -= productData.quantity;
+                                }
+                                target.returned.push(order._id);
+                                target.returnedCount += productData.quantity; 
+                                target.quantity = Math.max(target.quantity + productData.quantity, 1);
+                            }
+                        }
+                    };
+
+                    statusActions[productData.status]?.();
+                    await product.save();
                 }
             }
         }
@@ -45,6 +60,7 @@ router.get('/order-all', checkToken, async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 });
+
 
 
 
