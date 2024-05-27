@@ -15,10 +15,10 @@ router.post("/add-cart", async (req, res) => {
             const data = await new cartModel(req.body).save();
             return res.status(201).json({ message: "success created", data });
         }
-
+        console.log(attributes)
         // Savatchada mahsulotni qidirish va yangilash yoki yangi mahsulot qo'shish
         let foundProduct = cart.productData.find(item =>
-            item.product._id.toString() === product._id.toString() &&
+            item.product._id.toString() === product._id.toString() && !Array.isArray(attributes) &&
             (!attributes || isEqual(item.attributes, attributes))
         );
 

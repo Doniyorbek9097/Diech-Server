@@ -85,6 +85,10 @@ router.get("/products", async (req, res) => {
 
 // one product by slug
 router.get("/product-slug/:slug", async (req, res) => {
+
+  let sku = req.query?.sku || "";
+ 
+
     try {
         let product = await productModel.findOne({ slug: req.params.slug })
             .populate("parentCategory")
@@ -111,9 +115,9 @@ router.get("/product-slug/:slug", async (req, res) => {
         
         user_id && !product.views.includes(user_id) && (product.views.push(user_id), product.viewsCount++);
         await product.save()
-          
-      const variant = product.variants.find(item => item.sku == req.query.sku);
-          console.log(variant);
+          // console.log(req.query.sku)
+      const variant = product.variants.find(item => item.sku.toLowerCase() == sku.toLowerCase());
+        
         return res.json({
            product,
            variant: variant ? variant : product.variants[0]
