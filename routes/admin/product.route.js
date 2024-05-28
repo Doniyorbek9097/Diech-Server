@@ -48,6 +48,28 @@ router.post("/product-add", checkToken, async (req, res) => {
 router.get("/product-all", checkToken, async (req, res) => {
     try {
         let products = await productModel.find();
+
+    products = products.map(product => {
+            const stock = product.variants.length ? product.variants.reduce((count, item) => count += item.quantity, 0) : product.quantity;
+            const stock_variants = product.variants.reduce((acc, item) => acc.concat({sku: item.sku, count: item.quantity}), []);
+            const sold = product.variants.length ? product.variants.reduce((count, item) => count += item.soldOutCount, 0) : product.soldOutCount;
+            const sold_variants = product.variants.reduce((acc, item) => acc.concat({sku: item.sku, count: item.soldOutCount}), []);
+            const returned = product.variants.length ? product.variants.reduce((count, item) => count += item.returnedCount, 0) : product.returnedCount;
+            const returned_variants = product.variants.reduce((acc, item) => acc.concat({sku: item.sku, count: item.returnedCount}), []);
+            const views = product.viewsCount;
+            return {
+                _id: product._id,
+                name: product.name,
+                stock,
+                stock_variants,
+                sold,
+                sold_variants,
+                returned,
+                returned_variants,
+                views
+            }
+        })
+
         return res.json(products);
     } catch (error) {
         console.log(error)

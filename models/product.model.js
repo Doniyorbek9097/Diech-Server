@@ -73,7 +73,10 @@ const productSchema = Schema({
     },
 
     images: [],
-    quantity: { type: Number, min: 1 },
+    quantity: {
+        type: Number,
+        default: 1
+    },
     orginal_price: { type: Number, min: 0 },
     sale_price: { type: Number, min: 0 },
 
@@ -172,7 +175,10 @@ const productSchema = Schema({
         name: String,
         orginal_price: Number,
         sale_price: Number,
-        quantity: Number,
+        quantity: {
+            type: Number,
+            default: 1
+        },
         discount: Number,
         sku: String,
 
@@ -190,6 +196,11 @@ const productSchema = Schema({
             type: Schema.Types.ObjectId,
             ref: "Order"
         }],
+
+        returnedCount: {
+            type: Number,
+            default: 0
+        },
 
     }],
 
