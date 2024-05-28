@@ -115,12 +115,11 @@ router.get("/product-slug/:slug", async (req, res) => {
         
         user_id && !product.views.includes(user_id) && (product.views.push(user_id), product.viewsCount++);
         await product.save()
-          // console.log(req.query.sku)
+
       const variant = product.variants.find(item => item.sku.toLowerCase() == sku.toLowerCase());
-        
         return res.json({
-           product,
-           variant: variant ? variant : product.variants[0]
+           data:product,
+           variant: variant || product.variants[0] || product
         });
 
     } catch (error) {
