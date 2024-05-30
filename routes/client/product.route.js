@@ -127,7 +127,7 @@ router.get("/product-slug/:slug", async (req, res) => {
             rating: product.rating,
             reviews: product.reviews,
             viewsCount: product.viewsCount,
-            orginal_price: variant?.orginal_price || product?.sale_price,
+            orginal_price: variant?.orginal_price || product?.orginal_price,
             sale_price: variant?.sale_price || product?.sale_price,
             inStock: variant?.inStock || product?.inStock,
             discount: variant?.discount || product?.discount,
