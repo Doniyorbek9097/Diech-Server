@@ -7,22 +7,26 @@ const { isEqual } = require("../../utils/isEqual");
 
 router.post("/add-cart", async (req, res) => {
     try {
-        const { productData: { product, quantity, attributes }, cart_id } = req.body;
-        let cart = await cartModel.findOne({ "_id": cart_id }).populate("productData.product");
+        const { product: { quantity, attributes, _id: productId }, cart_id } = req.body;
 
+        let cart = await cartModel.findOne({ "_id": cart_id });
         // Savatcha topilmasa, yangi savatcha yaratish
         if (!cart) {
             const data = await new cartModel(req.body).save();
             return res.status(201).json({ message: "success created", data });
         }
-        console.log(attributes)
+
         // Savatchada mahsulotni qidirish va yangilash yoki yangi mahsulot qo'shish
-        let foundProduct = cart.productData.find(item =>
-            item.product._id.toString() === product._id.toString() && !Array.isArray(attributes) &&
+        let foundProduct = cart.products.find(item =>
+            item._id.toString() === productId.toString() && 
             (!attributes || isEqual(item.attributes, attributes))
         );
 
-        foundProduct ? foundProduct.quantity = quantity : cart.productData.push(req.body.productData);
+        if (foundProduct) {
+            foundProduct.quantity = quantity;
+        } else {
+            cart.products.push(req.body.product);
+        }
 
         const data = await cart.save();
         return res.json({ message: "success updated", data });
@@ -37,7 +41,6 @@ router.post("/add-cart", async (req, res) => {
 router.get("/cart/:id", async (req, res) => {
     try {
         let cart = await cartModel.findOne({ _id: req.params.id })
-            .populate("productData.product")
         res.status(200).json(cart);
     } catch (error) {
         console.log(error);
@@ -52,8 +55,8 @@ router.delete("/cart-delete/:id/:product_id", async (req, res) => {
     try {
         if (mongoose.isValidObjectId(req.params.id)) {
             const cart = await cartModel.findById(req.params.id);
-            const productIndex = cart.productData.findIndex(item => item.product._id === req.params.product_id);
-            cart.productData.splice(productIndex, 1);
+            const productIndex = cart.products.findIndex(item => item._id === req.params.product_id);
+            cart.products.splice(productIndex, 1);
             const SavedCart = await cart.save();
             return res.status(200).json(SavedCart)
         }

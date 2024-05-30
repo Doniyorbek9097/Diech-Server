@@ -73,7 +73,7 @@ const productSchema = Schema({
     },
 
     images: [],
-    quantity: {
+    inStock: {
         type: Number,
         default: 1
     },
@@ -175,7 +175,7 @@ const productSchema = Schema({
         name: String,
         orginal_price: Number,
         sale_price: Number,
-        quantity: {
+        inStock: {
             type: Number,
             default: 1
         },

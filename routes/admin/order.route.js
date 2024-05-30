@@ -10,7 +10,7 @@ const { checkToken } = require("../../middlewares/authMiddleware");
 
 router.get('/order-all', checkToken, async (req, res) => {
     try {
-        const orders = await orderModel.find().populate("products.product");
+        const orders = await orderModel.find();
         res.json({ message: "success", data: orders });
 
         for (const order of orders) {
@@ -68,19 +68,8 @@ router.get('/order-all', checkToken, async (req, res) => {
 router.get("/order/:id", checkToken, async (req, res) => {
     try {
         let order = await orderModel.findById(req.params.id)
-            .populate({
-                path: "products.product",
-                populate: {
-                    path: "shop"
-                }
-            })
-
-            .populate({
-                path: "products.product",
-                populate: {
-                    path: "owner"
-                }
-            })
+            .populate("shop")
+            .populate("onwer")
 
         res.json({
             data: order,

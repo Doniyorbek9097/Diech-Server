@@ -12,7 +12,6 @@ const { removeDuplicates } = require("../../utils/removeDuplicates");
 
 // create new Product 
 router.post("/product-add", checkToken, async (req, res) => {
-    console.log(req.body)
     const { images } = req.body;
     req.body.slug = slugify(req.body.name.uz);
     req.body.images = [];
@@ -50,8 +49,8 @@ router.get("/product-all", checkToken, async (req, res) => {
         let products = await productModel.find();
 
     products = products.map(product => {
-            const stock = product.variants.length ? product.variants.reduce((count, item) => count += item.quantity, 0) : product.quantity;
-            const stock_variants = product.variants.reduce((acc, item) => acc.concat({sku: item.sku, count: item.quantity}), []);
+            const inStock = product.variants.length ? product.variants.reduce((count, item) => count += item.inStock, 0) : product.inStock;
+            const inStockVariants = product.variants.reduce((acc, item) => acc.concat({sku: item.sku, count: item.inStock}), []);
             const sold = product.variants.length ? product.variants.reduce((count, item) => count += item.soldOutCount, 0) : product.soldOutCount;
             const sold_variants = product.variants.reduce((acc, item) => acc.concat({sku: item.sku, count: item.soldOutCount}), []);
             const returned = product.variants.length ? product.variants.reduce((count, item) => count += item.returnedCount, 0) : product.returnedCount;
@@ -60,8 +59,8 @@ router.get("/product-all", checkToken, async (req, res) => {
             return {
                 _id: product._id,
                 name: product.name,
-                stock,
-                stock_variants,
+                inStock,
+                inStockVariants,
                 sold,
                 sold_variants,
                 returned,
@@ -95,19 +94,30 @@ router.get("/product-one/:id", checkToken, async (req, res) => {
 
 // update product 
 router.put("/product-edit/:id", checkToken, async (req, res) => {
-    const { images, deletedImages } = req.body;
-    req.body.images = [];
+
+    const { images, deletedImages, variants } = req.body;
+
+    let product = {};
+    if(variants.length) {
+        product = {
+            ...req.body,
+            ...variants[0]
+        }
+    }
+
+    product.images = [];
+
     if(images.length) {
         for (const image of images) {
             const data = await new Base64ToFile(req).bufferInput(image).save();
-            req.body.images.push(data);
+            product.images.push(data);
         }   
     }
-   
+    
 
     try {
-        req.body.discount = parseInt(((req.body.orginal_price - req.body.sale_price) / req.body.orginal_price) * 100);
-        const updated = await productModel.findByIdAndUpdate(req.params.id, req.body);
+        product.discount = parseInt(((product.orginal_price - product.sale_price) / product.orginal_price) * 100);
+        const updated = await productModel.findByIdAndUpdate(req.params.id, product);
         if(deletedImages.length > 0) {
             deletedImages.forEach(element => {
             const imagePath = path.join(__dirname, `../../uploads/${path.basename(element)}`);
@@ -118,7 +128,7 @@ router.put("/product-edit/:id", checkToken, async (req, res) => {
         res.json(updated);
         
     } catch (error) {
-        for (const image of req.body.images) {
+        for (const image of product) {
             const imagePath = path.join(__dirname, `../../uploads/${path.basename(image)}`);
             fs.unlink(imagePath, (err) => err && console.log(err))
         }

@@ -1,19 +1,6 @@
 const { Schema, model } = require("mongoose");
 
 const orderSchema = new Schema({
-    // shop: {
-    //     type: Schema.Types.ObjectId,
-    //     ref:"Shop",
-    //     required: true
-    // },
-
-    // seller: {
-    //     type: Schema.Types.ObjectId,
-    //     ref: "User",
-    //     required: true
-
-    // },
-
     user: {
         type: Schema.Types.ObjectId,
         ref: "User",
@@ -67,22 +54,29 @@ const orderSchema = new Schema({
 
     products: [
         {
-            product: {
+            _id: String,
+            name: String,
+            slug: String,
+            images: [String],
+            orginal_price: Number,
+            sale_price: Number,
+            discount: Number,
+            quantity: Number,
+            attributes: Schema.Types.Mixed,
+            owner: {
                 type: Schema.Types.ObjectId,
-                ref: "Product",
+                ref: "User"
             },
 
-            attributes: Schema.Types.Mixed,
-            selected_variant:Schema.Types.Mixed,
-            orginal_price:Number,
-            sale_price:Number,
-            discount:Number,
-            quantity:Number,
+            shop: {
+                type: Schema.Types.ObjectId,
+                ref: "Shop"
+            },
 
             status: {
                 type: String,
-                enum: ["notSold","soldOut", "returned"],
-                default:'notSold'
+                enum: ["notSold", "soldOut", "returned"],
+                default: 'notSold'
             }
 
         }

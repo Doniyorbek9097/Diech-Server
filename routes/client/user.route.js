@@ -13,7 +13,7 @@ const { generateOTP } = require("../../utils/otpGenrater");
 router.post("/signup", async (req, res) => {
     try {
         let { phone_number } = req.body;
-         if(!phone_number) return res.status(404).send("Telefon raqam topilmadi");
+        if (!phone_number) return res.status(404).send("Telefon raqam topilmadi");
 
         const otpCode = generateOTP(4);
         const otp = new otpModel({ phone_number: phone_number, otp: otpCode });
@@ -27,7 +27,7 @@ router.post("/signup", async (req, res) => {
         // const respon = await sendSms(phone_number, txt);
         return res.json({
             message: `Tasdiqlash kodi ${phone_number} ga yuborildi`,
-            data:otpCode
+            data: otpCode
         });
 
     } catch (error) {
@@ -43,7 +43,7 @@ router.post("/signup/verify", async (req, res) => {
     try {
         let { phone_number, otp } = req.body;
         const otpHoder = await otpModel.find({ phone_number: phone_number });
-        
+
         if (otpHoder.length == 0) return res.json({
             message: "You use an Expired OTP!"
         });
@@ -64,7 +64,7 @@ router.post("/signup/verify", async (req, res) => {
             user.verified = true;
 
             const token = await generateToken({
-                _id:user._id,
+                _id: user._id,
                 phone_number: phone_number
             });
             const result = await user.save();
@@ -89,22 +89,16 @@ router.post("/signup/verify", async (req, res) => {
 })
 
 
-router.get("/user/:id",  async (req, res) => {
+router.get("/user/:id", async (req, res) => {
     try {
         const user = await userModel.findById(req.params.id)
-        .populate({
-            path:"orders",
-            populate: {
-                path:"products.product",
-                populate: {
-                    path:"shop"
-                }
-            }
-        })
-        
+            .populate({
+                path: "orders"
+            })
+
         if (user) {
             return res.json({
-                message:"Success",
+                message: "Success",
                 data: user
             });
         }
@@ -122,22 +116,22 @@ router.get("/user/:id",  async (req, res) => {
 
 
 
-router.put("/user-update/:id", checkToken, async(req, res) => {
-try {
-    const user = await userModel.findOne({username:req.body.username});
-    if(user) return res.json({
-        message: "Bunday username foydalanuvchisi mavjud iltimos boshqa username kiriting"
-    })
-    const updated = await userModel.findByIdAndUpdate(req.params.id, req.body);
-    console.log(updated)
-    res.send({
-        message: "success updated",
-        data: updated
-    })
-} catch (error) {
-    console.log(error);
-    res.status(500).send("Serverda Xatolik")
-}
+router.put("/user-update/:id", checkToken, async (req, res) => {
+    try {
+        const user = await userModel.findOne({ username: req.body.username });
+        if (user) return res.json({
+            message: "Bunday username foydalanuvchisi mavjud iltimos boshqa username kiriting"
+        })
+        const updated = await userModel.findByIdAndUpdate(req.params.id, req.body);
+        console.log(updated)
+        res.send({
+            message: "success updated",
+            data: updated
+        })
+    } catch (error) {
+        console.log(error);
+        res.status(500).send("Serverda Xatolik")
+    }
 });
 
 

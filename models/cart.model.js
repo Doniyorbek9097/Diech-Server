@@ -1,38 +1,36 @@
 const { Schema, model } = require("mongoose");
 
 const cartSchema = Schema({
-    productData: [
+    products: [
         {
-           product: {
-                type: Schema.Types.ObjectId,
-                ref: "Product",
-                required:true
-            },
-
+            _id: String,
+            name: String,
+            slug: String,
+            images:[String],
+            attributes: Schema.Types.Mixed,
+            orginal_price: Number,
+            sale_price: Number,
+            discount: Number,
+            isStock:Number,
+            quantity: Number,
             shop: {
                 type: Schema.Types.ObjectId,
                 ref: "Shop"
             },
 
-            selected_variant: Schema.Types.Mixed,
-            attributes: Schema.Types.Mixed,
-            orginal_price:Number,
-            sale_price: Number,
-            discount:Number,
-            quantity: {
-                type:Number,
-                required:true
-            },
-            
+            owner: {
+                type: Schema.Types.ObjectId,
+                ref:"User"
+            }
         }
     ],
 
-    createdAt: { 
-        type: Date, 
-        default: Date.now, 
-        expires:3600 
+    createdAt: {
+        type: Date,
+        default: Date.now,
+        expires: 3600
     }
 
-},{timestamps:true});
+}, { timestamps: true });
 
 module.exports = model("Cart", cartSchema);

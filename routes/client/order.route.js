@@ -36,8 +36,6 @@ router.get("/product-statistic", async (req, res) => {
     try {
         const sort = req.query.sort || "";
         const orders = await orderModel.find()
-            .populate("products.product")
-            .select("products -_id")
             .sort({ createdAt: -1 })
 
         res.json({

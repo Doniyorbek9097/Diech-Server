@@ -118,8 +118,30 @@ router.get("/product-slug/:slug", async (req, res) => {
 
       const variant = product.variants.find(item => item.sku.toLowerCase() == sku.toLowerCase());
         return res.json({
-           data:product,
-           variant: variant || product.variants[0] || product
+           data: {
+            _id: product._id,
+            name: product.name,
+            discription: product.discription,
+            images: product.images,
+            properties: product?.properties,
+            rating: product.rating,
+            reviews: product.reviews,
+            viewsCount: product.viewsCount,
+            orginal_price: variant?.orginal_price || product?.sale_price,
+            sale_price: variant?.sale_price || product?.sale_price,
+            inStock: variant?.inStock || product?.inStock,
+            discount: variant?.discount || product?.discount,
+            soldOutCount: variant?.soldOutCount || product?.soldOutCount,
+            attributes: product?.attributes,
+            variants: product?.variants,
+            brend: product?.brend,
+            shop: product?.shop,
+            parentCategory: product.parentCategory,
+            subCategory: product?.subCategory,
+            childCategory: product?.childCategory,
+
+           }, 
+           message:"success"
         });
 
     } catch (error) {

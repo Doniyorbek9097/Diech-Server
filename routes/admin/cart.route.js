@@ -44,7 +44,6 @@ router.get("/cart/:id",  async (req, res) => {
         const lang = req.headers['lang'];
         let cart = await cartModel.findOne({_id:req.params.id})
             .populate("user")
-            .populate("products.product");
 
         if (cart) {
             cart = JSON.parse(JSON.stringify(cart));
