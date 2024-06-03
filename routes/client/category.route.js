@@ -12,7 +12,6 @@ const { redisClient } = require("../../config/redisDB");
 
 // Get prent all category
 router.get("/categories", async (req, res) => {
-
     try {
         let page = parseInt(req.query?.page) - 1 || 0;
         let limit = parseInt(req.query?.limit) || 8;

@@ -9,9 +9,12 @@ const { Base64ToFile } = require("../../utils/base64ToFile");
 const { checkToken } = require("../../middlewares/authMiddleware");
 const { nestedVariant } = require("../../utils/nestedVariant");
 const { removeDuplicates } = require("../../utils/removeDuplicates");
+const { redisClient } = require("../../config/redisDB");
+
 
 // create new Product 
 router.post("/product-add", checkToken, async (req, res) => {
+    await redisClient.FLUSHALL()
     const { images, parentCategory, subCategory, childCategory } = req.body;
     req.body.slug = slugify(req.body.name.uz);
     req.body.images = [];
@@ -102,6 +105,7 @@ router.get("/product-one/:id", checkToken, async (req, res) => {
 
 // update product 
 router.put("/product-edit/:id", checkToken, async (req, res) => {
+    await redisClient.FLUSHALL()
 
     const { images, deletedImages, variants, parentCategory, subCategory, childCategory } = req.body;
     
