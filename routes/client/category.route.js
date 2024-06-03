@@ -14,12 +14,10 @@ const { redisClient } = require("../../config/redisDB");
 router.get("/categories", async (req, res) => {
 
     try {
-
         let page = parseInt(req.query?.page) - 1 || 0;
         let limit = parseInt(req.query?.limit) || 8;
         let search = req.query?.search || "";
         const cacheKey = `categories:${page}:${limit}:${search}`;
-
         const cacheData = await redisClient.get(cacheKey)
         if(cacheData) return res.json(JSON.parse(cacheData))
 
@@ -61,6 +59,7 @@ router.get("/categories", async (req, res) => {
             categories,
             products,
         }
+
 
         redisClient.SETEX(cacheKey, 3600, JSON.stringify(data))
         return res.status(200).json(data);

@@ -1,7 +1,9 @@
 const redis = require('redis');
 
 // Redis mijozini yaratish
-const client = redis.createClient();
+const client = redis.createClient({
+    url: process.env.REDIS_URL
+});
 
 // Xatolarni qayd qilish
 client.on('error', (err) => {
