@@ -25,6 +25,11 @@ router.get("/user/:id", checkToken,  async (req, res) => {
             path:"shop",
             populate: {
                 path:'products',
+                populate: [
+                    {
+                        path:"product"
+                    }
+                ]
             }
         });
 

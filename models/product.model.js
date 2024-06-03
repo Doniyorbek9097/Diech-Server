@@ -87,22 +87,24 @@ const productSchema = Schema({
         default: false
     },
 
+    categories: [{
+        type: Schema.Types.ObjectId,
+        ref:"Category"
+    }],
+
     parentCategory: {
         type: Schema.Types.ObjectId,
-        ref: "Category",
-        // required:true
+        ref: "Category"
     },
 
     subCategory: {
         type: Schema.Types.ObjectId,
-        ref: "Category",
-        // required:true
+        ref: "Category"
     },
 
     childCategory: {
         type: Schema.Types.ObjectId,
-        ref: "Category",
-        // required:true
+        ref: "Category"
     },
 
     country: {
@@ -112,7 +114,7 @@ const productSchema = Schema({
 
     brend: {
         type: Schema.Types.ObjectId,
-        ref: "Brend"
+        ref: "Brend",
     },
 
     shop: {
@@ -243,6 +245,13 @@ productSchema.pre("save", async function (next) {
     //   });
 
     next();
+})
+
+
+productSchema.virtual("shop_variants", {
+    ref: "ShopProducts",
+    localField: "_id",
+    foreignField: "product",
 })
 
 

@@ -51,10 +51,6 @@ router.get("/category-all", checkToken, async (req, res) => {
         let limit = parseInt(req.query.limit) || 1;
         let search = req.query.search || "";
 
-        let product = await categoryModel.find().populate("parentProducts").populate("subProducts").populate("childProducts");
-        const productLenth = product.flatMap(cate => cate.parentProducts);
-
-
         let categories = await categoryModel.find({ parent: undefined })
             .populate({
                 path: "children",
@@ -69,44 +65,12 @@ router.get("/category-all", checkToken, async (req, res) => {
                 }
             })
 
-            .populate({
-                path: "parentProducts",
-                match: {
-                    $or: [
-                        { slug: { $regex: search, $options: "i" } },
-                    ]
-                },
-                limit: limit,
-                sort: { createdAt: -1 },
-                skip: page * limit
-            })
-            .populate({
-                path: "subProducts",
-                match: {
-                    $or: [
-                        { slug: { $regex: search, $options: "i" } },
-                    ]
-                },
-                limit: limit,
-                sort: { createdAt: -1 },
-                skip: page
-            })
-            .populate({
-                path: "childProducts",
-                match: {
-                    $or: [
-                        { slug: { $regex: search, $options: "i" } },
-                    ]
-                },
-                limit: limit,
-                sort: { createdAt: -1 },
-                skip: page
-            })
-        // .populate("brendId")
+            
 
+        const products = categories.flatMap(cate => cate.products);
 
         return res.status(200).json({
-            totalPage: Math.ceil(productLenth.length / limit),
+            totalPage: Math.ceil(products.length / limit),
             page: page + 1,
             limit,
             categories

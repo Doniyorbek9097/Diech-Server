@@ -12,10 +12,11 @@ const { removeDuplicates } = require("../../utils/removeDuplicates");
 
 // create new Product 
 router.post("/product-add", checkToken, async (req, res) => {
-    const { images } = req.body;
+    const { images, parentCategory, subCategory, childCategory } = req.body;
     req.body.slug = slugify(req.body.name.uz);
     req.body.images = [];
-
+    req.body.categories.push(parentCategory, subCategory, childCategory);
+    
     if(images?.length) {
         for (const image of images) {
             const data = await new Base64ToFile(req).bufferInput(image).save();
@@ -24,7 +25,14 @@ router.post("/product-add", checkToken, async (req, res) => {
     }
 
     try {
-        const newProduct = await new productModel(req.body).save();
+        let newProduct = await new productModel(req.body).save();
+        newProduct = await newProduct.populate({
+            path:'categories',
+            populate: {
+                path:'children'
+            }
+        })
+
         return res.status(200).json(newProduct);
 
     } catch (error) {
@@ -95,15 +103,14 @@ router.get("/product-one/:id", checkToken, async (req, res) => {
 // update product 
 router.put("/product-edit/:id", checkToken, async (req, res) => {
 
-    const { images, deletedImages, variants } = req.body;
-
+    const { images, deletedImages, variants, parentCategory, subCategory, childCategory } = req.body;
+    
+    
     let product = {};
-    if(variants.length) {
-        product = {
-            ...req.body,
-            ...variants[0]
-        }
-    }
+    if(variants.length) product = {...variants[0], ...req.body};
+    else product = {...req.body};
+
+    product.categories.push(parentCategory, subCategory, childCategory);
 
     product.images = [];
 
@@ -128,7 +135,7 @@ router.put("/product-edit/:id", checkToken, async (req, res) => {
         res.json(updated);
         
     } catch (error) {
-        for (const image of product) {
+        for (const image of product?.images) {
             const imagePath = path.join(__dirname, `../../uploads/${path.basename(image)}`);
             fs.unlink(imagePath, (err) => err && console.log(err))
         }

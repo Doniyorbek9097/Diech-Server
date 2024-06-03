@@ -1,13 +1,18 @@
+const { redisClient } = require("../../config/redisDB");
 const carouselModel = require("../../models/carousel.model");
 const router = require("express").Router();
 
 
 
-
 router.get("/carousel-all", async(req,res) => {
-    try {       
+    try {
+        const cacheKey = "carousel"
+        const cacheData = await redisClient.get(cacheKey)
+        if(cacheData) return res.json(JSON.parse(cacheData));
+
         let result = await carouselModel.find();
-       return res.status(200).json(result);
+        redisClient.SETEX(cacheKey, 3600, JSON.stringify(result));
+       return res.json(result);
 
     } catch (error) {
         console.log(error);

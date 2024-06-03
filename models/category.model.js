@@ -34,11 +34,6 @@ const categorySchema = new Schema({
         }
     },
 
-    brendId: {
-        type: Schema.Types.ObjectId,
-        ref: 'Brend'
-    },
-
 
     parent: {
         ref: "Category",
@@ -73,26 +68,11 @@ const categorySchema = new Schema({
 
 
 
-categorySchema.virtual("parentProducts", {
+categorySchema.virtual("products", {
     ref: "Product",
     localField: "_id",
-    foreignField: "parentCategory",
+    foreignField: "categories",
 })
-
-
-categorySchema.virtual("subProducts", {
-    ref: "Product",
-    localField: "_id",
-    foreignField: "subCategory",
-})
-
-
-categorySchema.virtual("childProducts", {
-    ref: "Product",
-    localField: "_id",
-    foreignField: "childCategory",
-})
-
 
 
 const categoryModel = model("Category", categorySchema);

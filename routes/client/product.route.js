@@ -28,10 +28,7 @@ router.get("/products", async (req, res) => {
         .sort(matchSorted)
         .limit(limit)
         .skip(page * limit)
-        // .populate({
-        //   path:"shop",
-        //   populate: "point"
-        // })
+        .populate("shop_variants")
         
         return res.json({
           data: products,
@@ -91,14 +88,9 @@ router.get("/product-slug/:slug", async (req, res) => {
 
     try {
         let product = await productModel.findOne({ slug: req.params.slug })
-            .populate("parentCategory")
             .populate({
-                path:"subCategory",
-                populate: "subProducts"
-            })
-            .populate({
-                path: "childCategory",
-                populate: "childProducts"
+                path:"categories",
+                populate: "children"
             })
             .populate({
                 path:"brend",
@@ -136,9 +128,7 @@ router.get("/product-slug/:slug", async (req, res) => {
             variants: product?.variants,
             brend: product?.brend,
             shop: product?.shop,
-            parentCategory: product.parentCategory,
-            subCategory: product?.subCategory,
-            childCategory: product?.childCategory,
+            categories: product.categories
 
            }, 
            message:"success"

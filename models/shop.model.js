@@ -88,7 +88,7 @@ shopSchema.virtual("employees", {
 
 
 shopSchema.virtual("products", {
-    "ref": "Product",
+    "ref": "ShopProducts",
     localField: "_id",
     foreignField: "shop"
 });
