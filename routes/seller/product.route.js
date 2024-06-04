@@ -6,12 +6,14 @@ const slugify = require("slugify");
 const path = require("path")
 const fs = require("fs");
 const { Base64ToFile } = require("../../utils/base64ToFile");
-const { checkToken } = require("../../middlewares/authMiddleware")
+const { checkToken } = require("../../middlewares/authMiddleware");
+const { redisClient } = require("../../config/redisDB");
 
 
 
 // create new Product 
 router.post("/product-add", checkToken, async (req, res) => {
+    redisClient.FLUSHALL()
 
     try {
         const { parentCategory, subCategory, childCategory } = req.body;
@@ -63,7 +65,8 @@ router.get("/product-one/:id", checkToken, async (req, res) => {
 // update product 
 router.put("/product-edit/:id", checkToken, async (req, res) => {
     try {
-        
+        redisClient.FLUSHALL()
+
         const { variants } = req.body
         let product = {};
         if (variants.length) {
@@ -103,6 +106,8 @@ router.put("/product-edit/:id", checkToken, async (req, res) => {
 
 router.delete("/product-delete/:id", checkToken, async (req, res) => {
     try {
+        redisClient.FLUSHALL()
+        
         const deleted = await shopProductModel.findByIdAndDelete(req.params.id);
         return res.status(200).json({ message: "success deleted!", data: deleted });
 
