@@ -34,29 +34,28 @@ router.get("/categories", async (req, res) => {
                 }
             })
 
-            .populate({
-                path: "products",
-                match: {
-                    $or: [
-                        { slug: { $regex: search, $options: "i" } },
-                    ]
-                },
-                limit: limit,
-                sort: { createdAt: -1 },
-                skip: page * limit,
-                populate: {
-                    path:"shop_variants"
-                }
-            })
+            // .populate({
+            //     path: "products",
+            //     match: {
+            //         $or: [
+            //             { slug: { $regex: search, $options: "i" } },
+            //         ]
+            //     },
+            //     limit: limit,
+            //     sort: { createdAt: -1 },
+            //     skip: page * limit,
+            //     populate: {
+            //         path:"shop_variants"
+            //     }
+            // })
 
-        const products = categories.flatMap(cate => cate.products);
+        // const products = categories.flatMap(cate => cate.products);
 
         const data = {
             totalPage: Math.ceil(products.length / limit),
             page: page + 1,
             limit,
             categories,
-            products,
         }
 
 
