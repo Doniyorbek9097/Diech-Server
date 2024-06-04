@@ -74,6 +74,13 @@ categorySchema.virtual("products", {
     foreignField: "categories",
 })
 
+categorySchema.virtual("shop_products", {
+    ref: "ShopProducts",
+    localField: "_id",
+    foreignField: "categories",
+})
+
+
 
 const categoryModel = model("Category", categorySchema);
 

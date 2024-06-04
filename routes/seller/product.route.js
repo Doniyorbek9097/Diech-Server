@@ -14,6 +14,11 @@ const { checkToken } = require("../../middlewares/authMiddleware")
 router.post("/product-add", checkToken, async (req, res) => {
 
     try {
+        const { parentCategory, subCategory, childCategory } = req.body;
+        req.body.categories = [parentCategory, subCategory, childCategory];
+        req.body.slug = slugify(`${req.body.name} ${req.body.slug}`)
+        req.body.discount = parseInt(((req.body.orginal_price - req.body.sale_price) / req.body.orginal_price) * 100);
+
         const newProduct = await new shopProductModel(req.body).save();
         return res.status(200).json(newProduct);
 
@@ -31,7 +36,7 @@ router.get("/product-all", async (req, res) => {
         if (category_id) query.categories = { $in: [category_id] };
         if (brend_id) query.brend = brend_id;
         let products = await productModel.find(query);
-        if(products.length) return res.json(products);
+        if (products.length) return res.json(products);
         return res.json([])
     } catch (error) {
         console.log(error)
@@ -44,9 +49,9 @@ router.get("/product-all", async (req, res) => {
 // one product by id 
 router.get("/product-one/:id", checkToken, async (req, res) => {
     try {
-
         let product = await shopProductModel.findOne({ _id: req.params.id })
-        return res.status(200).json(product.toObject());
+            .populate("product")
+        return res.status(200).json(product);
     } catch (error) {
         console.log(error);
         return res.status(500).send("Server Ishlamayapti");
@@ -57,39 +62,40 @@ router.get("/product-one/:id", checkToken, async (req, res) => {
 
 // update product 
 router.put("/product-edit/:id", checkToken, async (req, res) => {
-    req.body.slug = slugify(req.body.name.uz);
-    const { images, deletedImages } = req.body;
-    req.body.images = [];
-
-    for (const image of images) {
-        const data = await new Base64ToFile(req).bufferInput(image).save();
-        req.body.images.push(data);
-    }
-
     try {
-        req.body.discount = parseInt(((req.body.orginal_price - req.body.sale_price) / req.body.orginal_price) * 100);
-
-        const updated = await shopProductModel.findByIdAndUpdate(req.params.id, req.body);
-        if(deletedImages.length > 0) {
-            deletedImages.forEach(element => {
-            const imagePath = path.join(__dirname, `../../uploads/${path.basename(element)}`);
-                fs.unlink(imagePath, (err) => err && console.log(err))
-            });
+        
+        const { variants } = req.body
+        let product = {};
+        if (variants.length) {
+            variants.forEach(item => {
+                item.discount = parseInt(((item.orginal_price - item.sale_price) / item.orginal_price) * 100);
+            })
+            product = {
+                ...req.body,
+                orginal_price: variants[0].orginal_price,
+                sale_price: variants[0].sale_price,
+                inStock: variants[0].inStock,
+                discount: variants[0].discount,
+                soldOut: variants[0].soldOut,
+                soldOutCount: variants[0].soldOutCount,
+                returned: variants[0].returned,
+                returnedCount: variants[0].returnedCount
+            };
+        
+        } else {
+            product = { ...req.body };
         }
 
+
+        product.discount = parseInt(((product.orginal_price - product.sale_price) / product.orginal_price) * 100);
+        const updated = await shopProductModel.findByIdAndUpdate(req.params.id, product);
         await updated.save();
         res.status(200).json(updated);
 
-        
     } catch (error) {
-        for (const image of req.body.images) {
-            const imagePath = path.join(__dirname, `../../uploads/${path.basename(image)}`);
-            fs.unlink(imagePath, (err) => err && console.log(err))
-        }
-
         console.log(error);
-        res.status(500).send("Server Xatosi: "+ error);
-        
+        res.status(500).send("Server Xatosi: " + error);
+
     }
 });
 
@@ -98,7 +104,7 @@ router.put("/product-edit/:id", checkToken, async (req, res) => {
 router.delete("/product-delete/:id", checkToken, async (req, res) => {
     try {
         const deleted = await shopProductModel.findByIdAndDelete(req.params.id);
-        return res.status(200).json({ message:"success deleted!", data: deleted });
+        return res.status(200).json({ message: "success deleted!", data: deleted });
 
     } catch (error) {
         console.log(error);

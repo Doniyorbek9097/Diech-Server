@@ -18,7 +18,7 @@ router.post("/add-cart", async (req, res) => {
 
         // Savatchada mahsulotni qidirish va yangilash yoki yangi mahsulot qo'shish
         let foundProduct = cart.products.find(item =>
-            item._id.toString() === productId.toString() && 
+            item._id.toString() === productId && 
             (!attributes || isEqual(item.attributes, attributes))
         );
 
@@ -41,6 +41,8 @@ router.post("/add-cart", async (req, res) => {
 router.get("/cart/:id", async (req, res) => {
     try {
         let cart = await cartModel.findOne({ _id: req.params.id })
+        .populate("products.shop")
+        
         res.status(200).json(cart);
     } catch (error) {
         console.log(error);

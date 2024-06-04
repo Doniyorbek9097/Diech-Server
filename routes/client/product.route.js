@@ -7,7 +7,7 @@ const path = require("path")
 const fs = require("fs");
 const { Base64ToFile } = require("../../utils/base64ToFile");
 const { redisClient } = require("../../config/redisDB");
-
+const { shopProductModel } = require("../../models/shop.products.model")
 
 
 // get all products 
@@ -31,6 +31,7 @@ router.get("/products", async (req, res) => {
         .skip(page * limit)
         .populate("shop_variants")
         
+
         return res.json({
           data: products,
           message: "success"
@@ -86,23 +87,16 @@ router.get("/product-slug/:slug", async (req, res) => {
 
   let sku = req.query?.sku || "";
  
-
     try {
-        let product = await productModel.findOne({ slug: req.params.slug })
+        let product = await shopProductModel.findOne({ slug: req.params.slug })
             .populate({
                 path:"categories",
                 populate: "children"
             })
-            .populate({
-                path:"brend",
-                populate: {
-                    path:'products'
-                }
-            })
-        .populate("owner", "username")
-        .populate("shop")
-
-
+            .populate("shop")
+            .populate("brend")
+            .populate('product')
+            console.log(product)
         let user_id = req.headers['user'];
         user_id =  (user_id === "null") ? null : (user_id === "undefined") ? undefined : user_id;
         
@@ -110,13 +104,14 @@ router.get("/product-slug/:slug", async (req, res) => {
         await product.save()
 
       const variant = product.variants.find(item => item.sku.toLowerCase() == sku.toLowerCase());
+
         return res.json({
            data: {
             _id: product._id,
-            name: product.name,
-            discription: product.discription,
-            images: product.images,
-            properties: product?.properties,
+            name: product.product.name,
+            discription: product.product.discription,
+            images: product.product.images,
+            properties: product?.product.properties,
             rating: product.rating,
             reviews: product.reviews,
             viewsCount: product.viewsCount,
@@ -130,7 +125,6 @@ router.get("/product-slug/:slug", async (req, res) => {
             brend: product?.brend,
             shop: product?.shop,
             categories: product.categories
-
            }, 
            message:"success"
         });

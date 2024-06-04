@@ -36,7 +36,19 @@ router.get("/shops", async(req,res) => {
 router.get("/shop/:slug", async(req,res) => {
     try {
         const result = await shopModel.findOne({slug:req.params.slug})
-        .populate("products")
+        .populate(
+        {
+            path:"products",
+            populate: [
+                {
+                    path:"product"
+                },
+                {
+                    path:"shop"
+                }
+            ]
+        })
+        
         res.json({
             data: result,
             message:"success"

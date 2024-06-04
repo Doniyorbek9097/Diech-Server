@@ -18,19 +18,31 @@ const reviewSchema = Schema(
 
 
 const shopProductsSchema = Schema({
+    name: String,
+    slug: String,
+    discount: Number,
+    orginal_price: Number,
+    sale_price: Number,
+    inStock: Number,
+    product: {
+        type: Schema.Types.ObjectId,
+        ref:"Product",
+    }, 
+    categories: [{
+        type: Schema.Types.ObjectId,
+        ref:"Category",
+        required: true
+    }],
+
+    brend: {
+        type: Schema.Types.ObjectId,
+        ref:"Brend"
+    },
+
     shop: {
         type: Schema.Types.ObjectId,
         ref: "Shop"
     },
-
-    product: {
-        type: Schema.Types.ObjectId,
-        ref:"Product",
-    },
-
-    orginal_price: Number,
-    sale_price: Number,
-    inStock: Number,
 
     reviews: {
         type: [reviewSchema]
@@ -73,7 +85,8 @@ const shopProductsSchema = Schema({
     },
 
     discount: {
-        type: Number
+        type: Number,
+        default: 1
     },
 
     attributes: [],

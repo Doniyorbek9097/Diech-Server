@@ -16,6 +16,7 @@ router.get("/categories", async (req, res) => {
         let page = parseInt(req.query?.page) - 1 || 0;
         let limit = parseInt(req.query?.limit) || 8;
         let search = req.query?.search || "";
+        redisClient.FLUSHALL()
         const cacheKey = `categories:${page}:${limit}:${search}`;
         const cacheData = await redisClient.get(cacheKey)
         if(cacheData) return res.json(JSON.parse(cacheData))
@@ -34,28 +35,26 @@ router.get("/categories", async (req, res) => {
                 }
             })
 
-            // .populate({
-            //     path: "products",
-            //     match: {
-            //         $or: [
-            //             { slug: { $regex: search, $options: "i" } },
-            //         ]
-            //     },
-            //     limit: limit,
-            //     sort: { createdAt: -1 },
-            //     skip: page * limit,
-            //     populate: {
-            //         path:"shop_variants"
-            //     }
-            // })
+            .populate({
+                path: "shop_products",
+                populate: [
+                    {
+                        path:"product"
+                    },
+                    {
+                        path:"shop"
+                    }
+                ]
+            })
 
-        // const products = categories.flatMap(cate => cate.products);
-
+    
+            const products = categories.flatMap(cate => cate.shop_products);
         const data = {
             totalPage: Math.ceil(products.length / limit),
             page: page + 1,
             limit,
             categories,
+            products
         }
 
 
@@ -115,10 +114,10 @@ router.get("/category-slug/:slug", async (req, res) => {
             })
 
             .populate({
-                path: "products",
-                limit: limit,
-                sort: { createdAt: -1 },
-                skip: page * limit
+                path: "shop_products",
+                populate: {
+                    path:"product"
+                }
             })
 
 
@@ -127,7 +126,7 @@ router.get("/category-slug/:slug", async (req, res) => {
         }
 
         return res.status(200).json({
-            totalPage: Math.ceil(category.products.length / limit),
+            totalPage: Math.ceil(category.shop_products.length / limit),
             page: page + 1,
             limit,
             category,

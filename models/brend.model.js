@@ -51,7 +51,7 @@ const brendSchema = mongoose.Schema({
 
 
 brendSchema.virtual("products", {
-    "ref": "Product",
+    "ref": "ShopProducts",
     localField: "_id",
     foreignField: "brend",
 });
