@@ -154,6 +154,8 @@ router.put("/product-edit/:id", checkToken, async (req, res) => {
 
 router.delete("/product-delete/:id", checkToken, async (req, res) => {
     try {
+        redisClient.FLUSHALL()
+
         const deleted = await productModel.findByIdAndDelete(req.params.id);
         await cartModel.deleteMany({'products.product': deleted._id})
         const { images, colors } = deleted;

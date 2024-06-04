@@ -7,6 +7,7 @@ const nestedCategories = require("../../utils/nestedCategories");
 const { Base64ToFile } = require("../../utils/base64ToFile");
 const { isEqual } = require("../../utils/isEqual");
 const { checkToken } = require("../../middlewares/authMiddleware")
+const { redisClient } = require("../../config/redisDB");
 
 const path = require("path");
 const fs = require("fs");
@@ -14,7 +15,7 @@ const fs = require("fs");
 // Create new Category 
 router.post("/category-add", checkToken, async (req, res) => {
     try {
-
+        redisClient.FLUSHALL()
         if (!req.body.name || (!req.body.name.uz && !req.body.name.ru))
             return res.send({
                 message: "category name not found"
@@ -109,6 +110,8 @@ router.get("/category-one/:id", checkToken, async (req, res) => {
 
 // Edit Category 
 router.put("/category-edit/:id", checkToken, async (req, res) => {
+    redisClient.FLUSHALL()
+
     if (req.body?.left_banner) {
         const { image } = req.body.left_banner;
         req.body.left_banner.image.uz = await new Base64ToFile(req).bufferInput(image.uz).save();
@@ -167,6 +170,8 @@ router.put("/category-edit/:id", checkToken, async (req, res) => {
 // Delete Category 
 router.delete("/category-delete/:id", checkToken, async (req, res) => {
     try {
+        redisClient.FLUSHALL()
+
         const allCategoies = [];
         let parentDeleted = await categoryModel.findByIdAndDelete(req.params.id);
         if (!parentDeleted) return res.status(404).json("Category not found");
