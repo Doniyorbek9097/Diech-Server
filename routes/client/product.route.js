@@ -96,7 +96,6 @@ router.get("/product-slug/:slug", async (req, res) => {
             .populate("shop")
             .populate("brend")
             .populate('product')
-            console.log(product)
         let user_id = req.headers['user'];
         user_id =  (user_id === "null") ? null : (user_id === "undefined") ? undefined : user_id;
         
@@ -104,8 +103,10 @@ router.get("/product-slug/:slug", async (req, res) => {
         await product.save()
 
       const variant = product.variants.find(item => item.sku.toLowerCase() == sku.toLowerCase());
+      
+      const products = await shopProductModel.find({name: product.name}).populate('shop')
 
-        return res.json({
+      return res.json({
            data: {
             _id: product._id,
             name: product.product.name,
@@ -124,7 +125,8 @@ router.get("/product-slug/:slug", async (req, res) => {
             variants: product?.variants,
             brend: product?.brend,
             shop: product?.shop,
-            categories: product.categories
+            categories: product.categories,
+            shop_products: products
            }, 
            message:"success"
         });
