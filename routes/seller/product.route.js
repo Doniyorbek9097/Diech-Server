@@ -53,7 +53,7 @@ router.get("/product-one/:id", checkToken, async (req, res) => {
     try {
         let product = await shopProductModel.findOne({ _id: req.params.id })
             .populate("product")
-        return res.status(200).json(product);
+        return res.status(200).json(product.toObject());
     } catch (error) {
         console.log(error);
         return res.status(500).send("Server Ishlamayapti");
