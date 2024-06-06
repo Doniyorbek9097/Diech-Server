@@ -17,6 +17,67 @@ const reviewSchema = Schema(
 )
 
 
+const attributeChildSchema = Schema({
+    value: {
+        type: String,
+        intl: true
+    },
+    sku: String,
+    images: []
+},
+    {
+        toJSON: {
+            virtuals: true
+        }
+    }
+
+)
+
+const attributesSchema = Schema({
+    title: {
+        type: String,
+        intl: true
+    },
+    children: [attributeChildSchema],
+},
+
+    { toJSON: { virtuals: true } })
+
+
+const variantsSchema = Schema({
+    name: String,
+    orginal_price: Number,
+    sale_price: Number,
+    inStock: {
+        type: Number,
+        default: 1
+    },
+    discount: Number,
+    sku: String,
+
+    soldOut: [{
+        type: Schema.Types.ObjectId,
+        ref: "Order"
+    }],
+
+    soldOutCount: {
+        type: Number,
+        default: 0
+    },
+
+    returned: [{
+        type: Schema.Types.ObjectId,
+        ref: "Order"
+    }],
+
+    returnedCount: {
+        type: Number,
+        default: 0
+    },
+
+})
+
+
 const shopProductsSchema = Schema({
     name: String,
     slug: String,
@@ -26,17 +87,17 @@ const shopProductsSchema = Schema({
     inStock: Number,
     product: {
         type: Schema.Types.ObjectId,
-        ref:"Product",
-    }, 
+        ref: "Product",
+    },
     categories: [{
         type: Schema.Types.ObjectId,
-        ref:"Category",
+        ref: "Category",
         required: true
     }],
 
     brend: {
         type: Schema.Types.ObjectId,
-        ref:"Brend"
+        ref: "Brend"
     },
 
     shop: {
@@ -89,45 +150,15 @@ const shopProductsSchema = Schema({
         default: 1
     },
 
-    attributes: [],
-    variants: [{
-        name: String,
-        orginal_price: Number,
-        sale_price: Number,
-        inStock: {
-            type: Number,
-            default: 1
-        },
-        discount: Number,
-        sku: String,
+    attributes: [attributesSchema],
+    variants: [variantsSchema],
 
-        soldOut: [{
-            type: Schema.Types.ObjectId,
-            ref: "Order"
-        }],
+},
 
-        soldOutCount: {
-            type: Number,
-            default: 0
-        },
-
-        returned: [{
-            type: Schema.Types.ObjectId,
-            ref: "Order"
-        }],
-
-        returnedCount: {
-            type: Number,
-            default: 0
-        },
-
-    }]
-}, 
-
-{
-    timestamps: true,
-    toJSON: { virtuals: true }
-}
+    {
+        timestamps: true,
+        toJSON: { virtuals: true }
+    }
 )
 
 const shopProductModel = model("ShopProducts", shopProductsSchema);

@@ -172,7 +172,21 @@ const productSchema = Schema({
         type: Number
     },
 
-    attributes: [],
+    attributes: [{
+        title: {
+            type: String,
+            intl: true
+        },
+        children: [{
+            value: {
+                type: String,
+                intl: true
+            },
+            sku: String,
+            images: []
+        }]
+    }],
+    
     variants: [{
         name: String,
         orginal_price: Number,

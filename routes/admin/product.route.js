@@ -111,7 +111,7 @@ router.put("/product-edit/:id", checkToken, async (req, res) => {
     
     
     let product = {};
-    if(variants.length) product = {...req.body, ...variants[0]};
+    if(variants.length) product = {...variants[0], ...req.body};
     else product = {...req.body};
 
     product.categories.push(parentCategory, subCategory, childCategory);
