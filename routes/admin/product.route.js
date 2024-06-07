@@ -124,12 +124,26 @@ router.put("/product-edit/:id", checkToken, async (req, res) => {
             product.images.push(data);
         }   
     }
+
+    if(product?.attributes?.length) {
+        for (const attr of product?.attributes) {
+            for (const child of attr.children) {
+            let images = [];
+                for (const image of child.images) {
+                    images.push(await new Base64ToFile(req).bufferInput(image).save())
+                }
+
+                child.images = images;
+            }
+        }
+    }
     
 
     try {
         product.discount = parseInt(((product.orginal_price - product.sale_price) / product.orginal_price) * 100);
+        if(isNaN(product.discount)) product.discount = 0;
         const updated = await productModel.findByIdAndUpdate(req.params.id, product);
-        if(deletedImages.length > 0) {
+        if(deletedImages?.length > 0) {
             deletedImages.forEach(element => {
             const imagePath = path.join(__dirname, `../../uploads/${path.basename(element)}`);
                 fs.unlink(imagePath, (err) => err && console.log(err))

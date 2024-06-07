@@ -20,7 +20,8 @@ router.post("/product-add", checkToken, async (req, res) => {
         req.body.categories = [parentCategory, subCategory, childCategory];
         req.body.slug = slugify(`${req.body.name} ${req.body.slug}`)
         req.body.discount = parseInt(((req.body.orginal_price - req.body.sale_price) / req.body.orginal_price) * 100);
-
+        if(isNaN(req.body.discount)) req.body.discount = 0;
+        
         const newProduct = await new shopProductModel(req.body).save();
         return res.status(200).json(newProduct);
 

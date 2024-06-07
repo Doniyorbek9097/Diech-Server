@@ -36,24 +36,23 @@ const propertiesSchema = Schema({
 );
 
 
-
-const optionSchema = Schema({
-    name: {
+const attributesSchema = Schema({
+    title: {
         type: String,
+        intl: true
     },
-
-    type: {
-        type: String,
-    },
-
-    values: [String]
-
+    children: [{
+        value: {
+            type: String,
+            intl: true
+        },
+        sku: String,
+        images: []
+    }]
 })
 
-const productOptionModel = model("ProductOption", optionSchema);
 
-
-
+const attributeModel = model("Attribute", attributesSchema)
 
 
 const productSchema = Schema({
@@ -172,20 +171,7 @@ const productSchema = Schema({
         type: Number
     },
 
-    attributes: [{
-        title: {
-            type: String,
-            intl: true
-        },
-        children: [{
-            value: {
-                type: String,
-                intl: true
-            },
-            sku: String,
-            images: []
-        }]
-    }],
+    attributes: [attributesSchema],
     
     variants: [{
         name: String,
@@ -242,22 +228,6 @@ const productSchema = Schema({
 
 productSchema.pre("save", async function (next) {
     this.discount = parseInt(((this.orginal_price - this.sale_price) / this.orginal_price) * 100);
-    //       const product = this;
-
-    //   product.variants.forEach(variant => {
-    //     variant.options.forEach(option => {
-    //       if (!option.sku) {
-    //         // Variant nomi va option nomini birlashtirib sku yaratish
-    //         option.sku = `${variant.name}-${option.name}`.replace(/\s+/g, '-').toUpperCase();
-    //           if(option.options.length) {
-    //              option.options.forEach(option2 => {
-    //                 option2.sku = `${option.name}-${option2.name}`.replace(/\s+/g, '-').toUpperCase();
-    //              });
-    //           }
-    //       }
-    //     });
-    //   });
-
     next();
 })
 
@@ -271,6 +241,7 @@ productSchema.virtual("shop_variants", {
 
 const productModel = model("Product", productSchema);
 module.exports = {
-    productOptionModel,
+    attributeModel,
     productModel,
 }
+
