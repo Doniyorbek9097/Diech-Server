@@ -16,6 +16,7 @@ router.get("/categories", async (req, res) => {
         let page = parseInt(req.query?.page) - 1 || 0;
         let limit = parseInt(req.query?.limit) || 8;
         let search = req.query?.search || "";
+        
         const cacheKey = `categories:${page}:${limit}:${search}`;
         const cacheData = await redisClient.get(cacheKey)
         if(cacheData) return res.json(JSON.parse(cacheData))
@@ -52,8 +53,7 @@ router.get("/categories", async (req, res) => {
             totalPage: Math.ceil(products.length / limit),
             page: page + 1,
             limit,
-            categories,
-            products
+            categories
         }
 
 

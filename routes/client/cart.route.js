@@ -8,7 +8,6 @@ const { isEqual } = require("../../utils/isEqual");
 router.post("/add-cart", async (req, res) => {
     try {
         const { product: { quantity, attributes, _id: productId }, cart_id } = req.body;
-
         let cart = await cartModel.findOne({ "_id": cart_id });
         // Savatcha topilmasa, yangi savatcha yaratish
         if (!cart) {

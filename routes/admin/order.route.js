@@ -6,7 +6,7 @@ const { generateOTP } = require("../../utils/otpGenrater");
 const bcrypt = require("bcrypt");
 const { productModel } = require("../../models/product.model")
 const { checkToken } = require("../../middlewares/authMiddleware");
-
+const { shopProductModel } = require("../../models/shop.products.model")
 
 router.get('/order-all', checkToken, async (req, res) => {
     try {
@@ -15,7 +15,7 @@ router.get('/order-all', checkToken, async (req, res) => {
 
         for (const order of orders) {
             for (const productData of order.products) {
-                const product = await productModel.findById(productData.product?._id);
+                const product = await shopProductModel.findById(productData.product?._id);
 
                 if (product) {
                     let target = product;
@@ -68,9 +68,9 @@ router.get('/order-all', checkToken, async (req, res) => {
 router.get("/order/:id", checkToken, async (req, res) => {
     try {
         let order = await orderModel.findById(req.params.id)
-            .populate("shop")
-            .populate("onwer")
-
+        .populate({
+            path:"products.shop",
+        })
         res.json({
             data: order,
             message: "success"

@@ -57,7 +57,7 @@ const orderSchema = new Schema({
             _id: String,
             name: String,
             slug: String,
-            images: [String],
+            image:String,
             orginal_price: Number,
             sale_price: Number,
             discount: Number,

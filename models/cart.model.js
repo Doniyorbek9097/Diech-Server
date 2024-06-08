@@ -6,7 +6,7 @@ const cartSchema = Schema({
             _id: String,
             name: String,
             slug: String,
-            images:[String],
+            image:String,
             attributes: Schema.Types.Mixed,
             orginal_price: Number,
             sale_price: Number,
