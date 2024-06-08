@@ -40,7 +40,7 @@ sellerRoutes.forEach(route => app.use("/api/seller/", route));
 
 // Socket.io bilan ishlash
 io.on('connection', (socket) => {
-    // console.log('Foydalanuvchi bog\'landi '+ socket.id);
+    console.log('Foydalanuvchi bog\'landi '+ socket.id);
     
     socket.on("add:category", (data) => {
         io.emit("add:category", data)
