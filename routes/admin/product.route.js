@@ -15,41 +15,16 @@ const { redisClient } = require("../../config/redisDB");
 // create new Product 
 router.post("/product-add", checkToken, async (req, res) => {
     await redisClient.FLUSHALL()
-    const { images, parentCategory, subCategory, childCategory } = req.body;
-    req.body.slug = slugify(req.body.name.uz);
-    req.body.images = [];
-    req.body.categories.push(parentCategory, subCategory, childCategory);
-    
-    if(images?.length) {
-        for (const image of images) {
-            const data = await new Base64ToFile(req).bufferInput(image).save();
-            req.body.images.push(data);
-        }
-    }
+    const {body: product} = req;
+    product.slug = slugify(product.name.uz);
+    product.categories = [product.parentCategory, product.subCategory, product.childCategory]
 
     try {
-        let newProduct = await new productModel(req.body).save();
-        newProduct = await newProduct.populate({
-            path:'categories',
-            populate: {
-                path:'children'
-            }
-        })
-
+        let newProduct = await new productModel(product).save();
         return res.status(200).json(newProduct);
 
     } catch (error) {
         console.log(error);
-        const { images } = req.body;
-        if (images?.length > 0) {
-            for (const image of images) {
-                fs.unlink(
-                    path.join(__dirname, `../../uploads/${path.basename(image)}`),
-                    (err) => err && console.log(err)
-                )
-            }
-        }
-
         return res.status(500).json("serverda Xatolik")
     }
 });
@@ -59,26 +34,26 @@ router.get("/product-all", checkToken, async (req, res) => {
     try {
         let products = await productModel.find();
 
-    products = products.map(product => {
-            const inStock = product.variants.length ? product.variants.reduce((count, item) => count += item.inStock, 0) : product.inStock;
-            const inStockVariants = product.variants.reduce((acc, item) => acc.concat({sku: item.sku, count: item.inStock}), []);
-            const sold = product.variants.length ? product.variants.reduce((count, item) => count += item.soldOutCount, 0) : product.soldOutCount;
-            const sold_variants = product.variants.reduce((acc, item) => acc.concat({sku: item.sku, count: item.soldOutCount}), []);
-            const returned = product.variants.length ? product.variants.reduce((count, item) => count += item.returnedCount, 0) : product.returnedCount;
-            const returned_variants = product.variants.reduce((acc, item) => acc.concat({sku: item.sku, count: item.returnedCount}), []);
-            const views = product.viewsCount;
-            return {
-                _id: product._id,
-                name: product.name,
-                inStock,
-                inStockVariants,
-                sold,
-                sold_variants,
-                returned,
-                returned_variants,
-                views
-            }
-        })
+    // products = products.map(product => {
+    //         const inStock = product.variants.length ? product.variants.reduce((count, item) => count += item.inStock, 0) : product.inStock;
+    //         const inStockVariants = product.variants.reduce((acc, item) => acc.concat({sku: item.sku, count: item.inStock}), []);
+    //         const sold = product.variants.length ? product.variants.reduce((count, item) => count += item.soldOutCount, 0) : product.soldOutCount;
+    //         const sold_variants = product.variants.reduce((acc, item) => acc.concat({sku: item.sku, count: item.soldOutCount}), []);
+    //         const returned = product.variants.length ? product.variants.reduce((count, item) => count += item.returnedCount, 0) : product.returnedCount;
+    //         const returned_variants = product.variants.reduce((acc, item) => acc.concat({sku: item.sku, count: item.returnedCount}), []);
+    //         const views = product.viewsCount;
+    //         return {
+    //             _id: product._id,
+    //             name: product.name,
+    //             inStock,
+    //             inStockVariants,
+    //             sold,
+    //             sold_variants,
+    //             returned,
+    //             returned_variants,
+    //             views
+    //         }
+    //     })
 
         return res.json(products);
     } catch (error) {
@@ -106,22 +81,16 @@ router.get("/product-one/:id", checkToken, async (req, res) => {
 router.put("/product-edit/:id", checkToken, async (req, res) => {
     await redisClient.FLUSHALL()
 
-    const { images, deletedImages, variants, parentCategory, subCategory, childCategory } = req.body;
-    
-    
-    let product = {};
-    if(variants.length) product = {...variants[0], ...req.body};
-    else product = {...req.body};
+    const { body: product } = req;    
+    product.categories = [product.parentCategory, product.subCategory, product.childCategory]
 
-    product.categories.push(parentCategory, subCategory, childCategory);
-
-    product.images = [];
-
-    if(images.length) {
-        for (const image of images) {
+    if(product.images.length) {
+        let images = [];
+        for (const image of product.images) {
             const data = await new Base64ToFile(req).bufferInput(image).save();
-            product.images.push(data);
+            images.push(data);
         }   
+        product.images = images;
     }
 
     if(product?.attributes?.length) {
@@ -139,27 +108,37 @@ router.put("/product-edit/:id", checkToken, async (req, res) => {
     
 
     try {
-        product.discount = parseInt(((product.orginal_price - product.sale_price) / product.orginal_price) * 100);
-        if(isNaN(product.discount)) product.discount = 0;
+
         const updated = await productModel.findByIdAndUpdate(req.params.id, product);
-        if(deletedImages?.length > 0) {
-            deletedImages.forEach(element => {
+        if(product?.deletedImages?.length > 0) {
+            product.deletedImages.forEach(element => {
             const imagePath = path.join(__dirname, `../../uploads/${path.basename(element)}`);
                 fs.unlink(imagePath, (err) => err && console.log(err))
             });
         }
 
-        res.json(updated);
+        return res.json(updated);
         
     } catch (error) {
+        
         for (const image of product?.images) {
             const imagePath = path.join(__dirname, `../../uploads/${path.basename(image)}`);
             fs.unlink(imagePath, (err) => err && console.log(err))
         }
 
+        if(product?.attributes?.length) {
+            for (const attr of product?.attributes) {
+                for (const child of attr.children) {
+                    for (const image of child.images) {
+                        const imagePath = path.join(__dirname, `../../uploads/${path.basename(image)}`);
+                        fs.unlink(imagePath, (err) => err && console.log(err))
+                    }
+                }
+            }
+        }
+
         console.log(error);
         res.status(500).send("Server Xatosi: "+ error);
-        
     }
 });
 
@@ -168,7 +147,6 @@ router.put("/product-edit/:id", checkToken, async (req, res) => {
 router.delete("/product-delete/:id", checkToken, async (req, res) => {
     try {
         redisClient.FLUSHALL()
-
         const deleted = await productModel.findByIdAndDelete(req.params.id);
         await cartModel.deleteMany({'products.product': deleted._id})
         const { images } = deleted;
@@ -177,6 +155,17 @@ router.delete("/product-delete/:id", checkToken, async (req, res) => {
             const imagePath = path.join(__dirname, `../../uploads/${path.basename(item)}`);
             fs.unlink(imagePath, (err) => err && console.log(err))
         }) 
+
+        if(deleted?.attributes?.length) {
+            for (const attr of deleted?.attributes) {
+                for (const child of attr.children) {
+                    for (const image of child.images) {
+                        const imagePath = path.join(__dirname, `../../uploads/${path.basename(image)}`);
+                        fs.unlink(imagePath, (err) => err && console.log(err))
+                    }
+                }
+            }
+        }
 
         return res.status(200).json({ result: deleted });
 

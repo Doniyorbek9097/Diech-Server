@@ -66,8 +66,6 @@ const categorySchema = new Schema({
 );
 
 
-
-
 categorySchema.virtual("products", {
     ref: "Product",
     localField: "_id",

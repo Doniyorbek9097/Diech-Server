@@ -72,19 +72,8 @@ const productSchema = Schema({
     },
 
     images: [],
-    inStock: {
-        type: Number,
-        default: 1
-    },
-    orginal_price: { type: Number, min: 0 },
-    sale_price: { type: Number, min: 0 },
 
     properteis: [propertiesSchema],
-
-    active: {
-        type: Boolean,
-        default: false
-    },
 
     categories: [{
         type: Schema.Types.ObjectId,
@@ -106,25 +95,10 @@ const productSchema = Schema({
         ref: "Category"
     },
 
-    country: {
-        type: String,
-        default: ""
-    },
 
     brend: {
         type: Schema.Types.ObjectId,
         ref: "Brend",
-    },
-
-    shop: {
-        type: Schema.Types.ObjectId,
-        ref: "Shop"
-    },
-
-    owner: {
-        type: Schema.Types.ObjectId,
-        ref: "User"
-
     },
 
     reviews: {
@@ -173,39 +147,6 @@ const productSchema = Schema({
 
     attributes: [attributesSchema],
     
-    variants: [{
-        name: String,
-        orginal_price: Number,
-        sale_price: Number,
-        inStock: {
-            type: Number,
-            default: 1
-        },
-        discount: Number,
-        sku: String,
-
-        soldOut: [{
-            type: Schema.Types.ObjectId,
-            ref: "Order"
-        }],
-
-        soldOutCount: {
-            type: Number,
-            default: 0
-        },
-
-        returned: [{
-            type: Schema.Types.ObjectId,
-            ref: "Order"
-        }],
-
-        returnedCount: {
-            type: Number,
-            default: 0
-        },
-
-    }],
-
     returnedCount: {
         type: Number,
         default: 0
@@ -224,19 +165,6 @@ const productSchema = Schema({
     }
 
 );
-
-
-productSchema.pre("save", async function (next) {
-    this.discount = parseInt(((this.orginal_price - this.sale_price) / this.orginal_price) * 100);
-    next();
-})
-
-
-productSchema.virtual("shop_variants", {
-    ref: "ShopProducts",
-    localField: "_id",
-    foreignField: "product",
-})
 
 
 const productModel = model("Product", productSchema);

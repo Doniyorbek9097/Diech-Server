@@ -18,21 +18,17 @@ router.get("/category-all", async (req, res) => {
         let categories = await categoryModel.find()
             .populate({
                 path: "children",
-                populate: [
-                    {
-                        path:"children",
-                        populate: [
-                            {
-                                path:"products",
-                                populate: {
-                                    path: "brend"
-                                }
-                            },
-                        ]
+                populate: {
+                    path: "children",
+                    populate: {
+                        path: "products",
+                        populate: {
+                            path: "brend"
+                        }
                     },
-                ]
+                },
             })
-            
+
 
         return res.status(200).json({
             // totalPage: Math.ceil(products.length / limit),
@@ -43,8 +39,8 @@ router.get("/category-all", async (req, res) => {
         });
 
     } catch (err) {
-            console.log(err)
-            res.status(500).json("server ishlamayapti")
+        console.log(err)
+        res.status(500).json("server ishlamayapti")
     }
 });
 
