@@ -11,7 +11,9 @@ router.post("/add-cart", async (req, res) => {
         let cart = await cartModel.findOne({ "_id": cart_id });
         // Savatcha topilmasa, yangi savatcha yaratish
         if (!cart) {
-            const data = await new cartModel(req.body).save();
+            cart = new cartModel(req.body);
+            cart.products.push(req.body.product)
+            const data = await cart.save()
             return res.status(201).json({ message: "success created", data });
         }
 
