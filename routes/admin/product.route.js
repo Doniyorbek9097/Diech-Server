@@ -93,7 +93,6 @@ router.get("/product-all", checkToken, async (req, res) => {
 router.get("/product-one/:id", checkToken, async (req, res) => {
     try {
         let product = await productModel.findOne({ _id: req.params.id })
-
         return res.status(200).json(product.toObject());
     } catch (error) {
         console.log(error);
@@ -172,18 +171,7 @@ router.delete("/product-delete/:id", checkToken, async (req, res) => {
 
         const deleted = await productModel.findByIdAndDelete(req.params.id);
         await cartModel.deleteMany({'products.product': deleted._id})
-        const { images, colors } = deleted;
-
-        // if (colors.length > 0) {
-        //     for (const color of colors) {
-        //         for (const image of color.images) {
-        //             fs.unlink(
-        //                 path.join(__dirname, `../uploads/${path.basename(image)}`),
-        //                 (err) => err && console.log(err)
-        //             )
-        //         }
-        //     }
-        // }
+        const { images } = deleted;
 
         (images.length > 0) && images.forEach(item => {
             const imagePath = path.join(__dirname, `../../uploads/${path.basename(item)}`);
