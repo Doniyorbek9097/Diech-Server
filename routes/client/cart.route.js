@@ -42,7 +42,7 @@ router.post("/add-cart", async (req, res) => {
 router.get("/cart/:id", async (req, res) => {
     try {
         let cart = await cartModel.findOne({ _id: req.params.id })
-        .populate("products.shop")
+        .populate("products.shop", 'name slug')
         
         res.status(200).json(cart);
     } catch (error) {

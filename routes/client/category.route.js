@@ -7,6 +7,7 @@ const { isEqual } = require("../../utils/isEqual");
 const path = require("path");
 const fs = require("fs");
 const { redisClient } = require("../../config/redisDB");
+const { message } = require("telegraf/filters");
 
 
 
@@ -16,11 +17,10 @@ router.get("/categories", async (req, res) => {
         let page = parseInt(req.query?.page) - 1 || 0;
         let limit = parseInt(req.query?.limit) || 8;
         let search = req.query?.search || "";
-        
         const cacheKey = `categories:${page}:${limit}:${search}`;
         const cacheData = await redisClient.get(cacheKey)
         if(cacheData) return res.json(JSON.parse(cacheData))
-
+            
         let categories = await categoryModel.find({ parent: undefined })
             .populate({
                 path: "children",
@@ -37,18 +37,21 @@ router.get("/categories", async (req, res) => {
 
             .populate({
                 path: "shop_products",
+                select: ['name', 'slug', 'images', 'orginal_price', 'sale_price','discount','reviews', 'rating', 'viewsCount', 'attributes'],
                 populate: [
                     {
-                        path:"product"
+                        path:"product",
+                        select: ['name','slug','images'],
                     },
                     {
-                        path:"shop"
+                        path:"shop",
+                        select: ['name', 'slug']
                     }
                 ]
             })
 
     
-            const products = categories.flatMap(cate => cate.shop_products);
+        const products = categories.flatMap(cate => cate.shop_products);
         const data = {
             totalPage: Math.ceil(products.length / limit),
             page: page + 1,
@@ -71,9 +74,18 @@ router.get("/categories", async (req, res) => {
 router.get("/category-all", async (req, res) => {
     try {
         let search = req.query.search || "";
+        const cacheKey = `category-all:${search}`;
+        const cacheData = await redisClient.get(cacheKey)
+        if(cacheData) return res.json({
+            categories: JSON.parse(cacheData),
+            message:"success"
+        })
+
         let categories = await categoryModel.find({ slug:{ $regex: search, $options: "i" } },)
         .limit(3)
-            
+        
+        redisClient.SETEX(cacheKey, 3600, JSON.stringify(categories));
+
         return res.status(200).json({
             categories
         });
@@ -114,8 +126,10 @@ router.get("/category-slug/:slug", async (req, res) => {
 
             .populate({
                 path: "shop_products",
+                select: ['name slug images orginal_price sale_price discount'],
                 populate: {
-                    path:"product"
+                    path:"product",
+                    select: ['name images']
                 }
             })
 
