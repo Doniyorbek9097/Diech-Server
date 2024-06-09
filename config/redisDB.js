@@ -10,7 +10,7 @@ client.on('error', (err) => {
     console.error('Redis xatosi:', err);
 });
 
-// Redis serveriga ulanishni tekshirish
+// Redis serveriga ulanishni tekshir
 client.connect().then(() => {
     console.log('Redis serverga muvaffaqiyatli ulanildi!');
 }).catch((err) => {
