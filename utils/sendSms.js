@@ -4,7 +4,7 @@ exports.sendSms = async (to, text) => {
     const infobipClient = new Infobip({
         baseUrl: process.env.INFOBIP_URL,
         apiKey: process.env.INFOBIP_KEY,
-        authType: AuthType.ApiKey,
+        authType: AuthType.ApiKey, 
       });
       
       try {

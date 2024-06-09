@@ -8,7 +8,7 @@ const path = require("path");
 const fs = require("fs");
 const { redisClient } = require("../../config/redisDB");
 const { message } = require("telegraf/filters");
-
+const _ = require('lodash')
 
 
 // Get prent all category
@@ -50,7 +50,6 @@ router.get("/categories", async (req, res) => {
                 ]
             })
 
-    
         const products = categories.flatMap(cate => cate.shop_products);
         const data = {
             totalPage: Math.ceil(products.length / limit),
@@ -111,38 +110,51 @@ router.get("/category-slug/:slug", async (req, res) => {
         let search = req.query?.search || "";
 
         let category = await categoryModel.findOne({ slug: req.params.slug })
-            .populate({
-                path: "children",
-                populate: {
+        .populate({
+            path: "children",
+            populate: {
+                path: "children"
+            }
+        })
+        .populate({
+            path: "parent",
+            populate: [
+                {
+                    path: "parent"
+                },
+
+                {
                     path: "children"
                 }
-            })
-            .populate({
-                path: "parent",
-                populate: {
-                    path: "parent"
-                }
-            })
+            ]
+        })
 
-            .populate({
-                path: "shop_products",
-                select: ['name slug images orginal_price sale_price discount'],
-                populate: {
-                    path:"product",
-                    select: ['name images']
+        .populate({
+            path: "shop_products",
+            select: ['name', 'slug', 'images', 'orginal_price', 'sale_price','discount','reviews', 'rating', 'viewsCount', 'attributes'],
+            populate: [
+                {
+                    path:"categories",
+                    select: ['name', 'slug']
+                },
+                {
+                    path:"shop",
+                    select: ['name', 'slug']
                 }
-            })
-
+            ]
+        })
 
         if (!category) {
             return res.json({ error: 'Category not found' });
         }
 
-        return res.status(200).json({
+        const categories = _.uniqWith(_.flatMap(category.shop_products, 'categories'),_.isEqual);
+        return res.json({
             totalPage: Math.ceil(category.shop_products.length / limit),
             page: page + 1,
             limit,
             category,
+            categories
         });
 
     } catch (error) {
