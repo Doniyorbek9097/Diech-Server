@@ -138,6 +138,14 @@ router.get("/category-slug/:slug", async (req, res) => {
                     select: ['name', 'slug']
                 },
                 {
+                    path:"product",
+                    select: ['name', 'slug', 'images']
+                },
+                {
+                    path:"brend",
+                    select: ['name', 'slug']
+                },
+                {
                     path:"shop",
                     select: ['name', 'slug']
                 }
@@ -149,6 +157,7 @@ router.get("/category-slug/:slug", async (req, res) => {
         }
 
         const categories = _.uniqWith(_.flatMap(category.shop_products, 'categories'),_.isEqual);
+
         return res.json({
             totalPage: Math.ceil(category.shop_products.length / limit),
             page: page + 1,
