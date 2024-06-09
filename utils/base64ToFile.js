@@ -2,7 +2,7 @@ const path = require("path")
 const fs = require("fs")
 const { generateOTP } = require("./otpGenrater");
 const sharp = require("sharp");
-
+const mkdirp = require("mkdirp")
 const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
 const ffmpeg = require('fluent-ffmpeg');
 ffmpeg.setFfmpegPath(ffmpegPath);
@@ -48,7 +48,7 @@ class Base64ToFile {
     save() {
         return new Promise((resolve, rejact) => {
             if(!fs.existsSync(this._file_path)) {
-                fs.mkdirSync(path.join(__dirname, "../uploads"))
+                mkdirp.sync(this._file_path)
             }
             // if(Array.isArray(this._bufferInput) && this._bufferInput !== null) {
             //     const filePaths = [];
