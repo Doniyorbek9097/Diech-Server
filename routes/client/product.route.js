@@ -23,10 +23,11 @@ router.get("/products", async (req, res) => {
     const matchSorted = {};
     matchSorted.soldOut = soldFilter;
     matchSorted.rating = ratingFilter;
+    const {lang = ''} = req.headers;
 
-    // const cacheKey = `product:${slug}:${sku}`;
-    // const cacheData = await redisClient.get(cacheKey)
-    // if (cacheData) return res.json(JSON.parse(cacheData))
+    const cacheKey = `product:${lang}`;
+    const cacheData = await redisClient.get(cacheKey)
+    if (cacheData) return res.json(JSON.parse(cacheData))
   
     let products = await shopProductModel.find({ slug: { $regex: search, $options: "i" } })
       .select('name slug images orginal_price sale_price discount reviews rating viewsCount attributes variants')
@@ -36,10 +37,13 @@ router.get("/products", async (req, res) => {
       .limit(limit)
       .skip(page * limit)
 
-    return res.json({
-      data: products,
-      message: "success"
-    });
+      const data = {
+        data: products,
+        message: "success"
+      }
+
+      redisClient.SETEX(cacheKey, 3600, JSON.stringify(data))
+      res.json(data);
 
   } catch (error) {
     console.log(error)
@@ -53,13 +57,12 @@ router.get("/products", async (req, res) => {
 router.get("/product-slug/:slug", async (req, res) => {
 
   const {sku = ''} = req.query;
-  const { slug = '' } = req.params;
-  const cacheKey = `product:${slug}:${sku}`;
+  const {slug = '' } = req.params;
+  const {lang = ''} = req.headers;
+
+  const cacheKey = `product:${lang}:${slug}:${sku}`;
   const cacheData = await redisClient.get(cacheKey)
-  if (cacheData) return res.json({
-      data: JSON.parse(cacheData),
-      message: "success"
-    })
+  if (cacheData) return res.json(JSON.parse(cacheData))
 
   try {
     let product = await shopProductModel.findOne({ slug })
@@ -88,7 +91,8 @@ router.get("/product-slug/:slug", async (req, res) => {
       .select('name slug discount orginal_price sale_price attributes reviews')
 
     const data = {
-      _id: product._id,
+      data: {
+        _id: product._id,
       name: product.product.name,
       discription: product.product.discription,
       images: product.product.images,
@@ -107,14 +111,12 @@ router.get("/product-slug/:slug", async (req, res) => {
       shop: product?.shop,
       categories: product.categories,
       shop_products: products
+      },
+        message:"success"
     };
 
     redisClient.SETEX(cacheKey, 3600, JSON.stringify(data));
-
-    return res.json({
-      data,
-      message: "success"
-    });
+    return res.json(data);
 
   } catch (error) {
     console.log(error);

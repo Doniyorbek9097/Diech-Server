@@ -18,7 +18,9 @@ router.get("/categories", async (req, res) => {
         let page = parseInt(req.query?.page) - 1 || 0;
         let limit = parseInt(req.query?.limit) || 8;
         let search = req.query?.search || "";
-        const cacheKey = `categories:${page}:${limit}:${search}`;
+        const {lang = ""} = req.headers;
+
+        const cacheKey = `categories:${lang}:${page}:${limit}:${search}`;
         const cacheData = await redisClient.get(cacheKey)
         if(cacheData) return res.json(JSON.parse(cacheData))
             
@@ -85,10 +87,7 @@ router.get("/category-all", async (req, res) => {
         .limit(3)
         
         redisClient.SETEX(cacheKey, 3600, JSON.stringify(categories));
-
-        return res.status(200).json({
-            categories
-        });
+        return res.status(200).json(categories);
 
     } catch (err) {
         if (err) {
@@ -107,7 +106,12 @@ router.get("/category-slug/:slug", async (req, res) => {
     try {
         let page = parseInt(req.query?.page) - 1 || 0;
         let limit = parseInt(req.query?.limit) || 8;
-        let search = req.query?.search || "";
+        let {search = ""} = req.query;
+        const {lang = ""} = req.headers;
+
+        const cacheKey = `category-slug:${lang}:${page}:${limit}:${search}`;
+        const cacheData = await redisClient.get(cacheKey)
+        if(cacheData) return res.json(JSON.parse(cacheData))
 
         let category = await categoryModel.findOne({ slug: req.params.slug })
         .populate({
@@ -168,14 +172,16 @@ router.get("/category-slug/:slug", async (req, res) => {
             category.shop_products = [];
         }
 
-
-        return res.json({
+        const data = {
             totalPage: Math.ceil(category.shop_products.length / limit),
             page: page + 1,
             limit,
             category,
             categories
-        });
+        }
+
+        redisClient.SETEX(cacheKey, 3600, data)
+        return res.json(data);
 
     } catch (error) {
         if (error) {
