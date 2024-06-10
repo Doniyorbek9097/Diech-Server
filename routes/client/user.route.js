@@ -24,7 +24,8 @@ router.post("/signup", async (req, res) => {
         const otpResult = await otp.save();
 
         const txt = `${otpCode} - Tasdiqlash kodi.\nKodni hech kimga bermang.\nFiribgarlardan saqlaning.\nKompaniya OLCHA.UZ`
-        // const respon = await sendSms(phone_number, txt);
+        const respon = await sendSms(phone_number, txt);
+        console.log(respon);
         return res.json({
             message: `Tasdiqlash kodi ${phone_number} ga yuborildi`,
             data: otpCode

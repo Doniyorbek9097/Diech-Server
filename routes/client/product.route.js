@@ -29,7 +29,7 @@ router.get("/products", async (req, res) => {
     // if (cacheData) return res.json(JSON.parse(cacheData))
   
     let products = await shopProductModel.find({ slug: { $regex: search, $options: "i" } })
-      .select("name slug orginal_price sale_price discount product")
+      .select('name slug images orginal_price sale_price discount reviews rating viewsCount attributes variants')
       .populate("product", "name slug images")
       .populate("shop", "name slug")
       .sort(matchSorted)

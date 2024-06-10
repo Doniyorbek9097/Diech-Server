@@ -59,3 +59,44 @@ io.on('connection', (socket) => {
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`server is runinng on port ${PORT}`))
 
+
+
+
+const { Infobip, AuthType } = require('@infobip-api/sdk');
+console.log(process.env.INFOBIP_URL);
+console.log(process.env.INFOBIP_KEY);
+
+const sendSms = async (to, text) => {
+    const infobipClient = new Infobip({
+        baseUrl: process.env.INFOBIP_URL,
+        apiKey: process.env.INFOBIP_KEY,
+        authType: AuthType.ApiKey, 
+    });
+      
+    try {
+        const infobipResponse = await infobipClient.channels.sms.send({
+            type: "text",
+            messages: [{
+                destinations: [
+                    {
+                        to: to,
+                    },
+                ],
+                from: "Olcha.uz",
+                text: text,
+            }],
+        });
+
+        return infobipResponse;
+    } catch (error) {
+        if (error.response) {
+            // API tomonidan qaytarilgan xato
+            console.error('API xato kodi:', error.response.status);
+            console.error('API xato ma\'lumotlari:', error.response.data);
+        } else {
+            // Boshqa xatolar
+            console.error('Xato:', error.message);
+        }
+    }
+}
+
