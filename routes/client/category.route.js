@@ -8,7 +8,8 @@ const path = require("path");
 const fs = require("fs");
 const { redisClient } = require("../../config/redisDB");
 const { message } = require("telegraf/filters");
-const _ = require('lodash')
+const _ = require('lodash');
+const { shopProductModel } = require("../../models/shop.products.model");
 
 
 // Get prent all category
@@ -104,7 +105,6 @@ router.get("/category-all", async (req, res) => {
 // Get by slug name 
 router.get("/category-slug/:slug", async (req, res) => {
     try {
-
         let page = parseInt(req.query?.page) - 1 || 0;
         let limit = parseInt(req.query?.limit) || 8;
         let search = req.query?.search || "";
@@ -131,7 +131,7 @@ router.get("/category-slug/:slug", async (req, res) => {
 
         .populate({
             path: "shop_products",
-            select: ['name', 'slug', 'images', 'orginal_price', 'sale_price','discount','reviews', 'rating', 'viewsCount', 'attributes'],
+            select: ['name', 'slug', 'images', 'orginal_price', 'sale_price','discount','reviews', 'rating', 'viewsCount', 'attributes','variants'],
             populate: [
                 {
                     path:"categories",
@@ -152,11 +152,22 @@ router.get("/category-slug/:slug", async (req, res) => {
             ]
         })
 
+        
         if (!category) {
             return res.json({ error: 'Category not found' });
         }
 
         const categories = _.uniqWith(_.flatMap(category.shop_products, 'categories'),_.isEqual);
+        const { price = '' } = req.query;
+        const [minPrice = 0, maxPrice = Number.MAX_VALUE] = price ? price.split(',').map(Number) : [];
+        let products = await shopProductModel.find({categories:{$in: category._id}, orginal_price: { $gte: minPrice, $lte: maxPrice }}).populate("product")
+
+        if (products.length) {
+            category.shop_products = products;
+        } else {
+            category.shop_products = [];
+        }
+
 
         return res.json({
             totalPage: Math.ceil(category.shop_products.length / limit),

@@ -90,7 +90,6 @@ router.put("/product-edit/:id", checkToken, async (req, res) => {
             product = { ...req.body };
         }
 
-
         product.discount = parseInt(((product.orginal_price - product.sale_price) / product.orginal_price) * 100);
         const updated = await shopProductModel.findByIdAndUpdate(req.params.id, product);
         await updated.save();
