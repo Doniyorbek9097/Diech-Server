@@ -2,7 +2,7 @@ const redis = require('redis');
 
 // Redis mijozini yaratish
 const client = redis.createClient({
-    url: process.env.REDIS_URL
+    // url: process.env.REDIS_URL
 });
 
 // Xatolarni qayd qilish

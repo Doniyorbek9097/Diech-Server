@@ -180,7 +180,7 @@ router.get("/category-slug/:slug", async (req, res) => {
             categories
         }
 
-        redisClient.SETEX(cacheKey, 3600, data)
+        redisClient.SETEX(cacheKey, 3600, JSON.stringify(data))
         return res.json(data);
 
     } catch (error) {

@@ -63,8 +63,6 @@ server.listen(PORT, () => console.log(`server is runinng on port ${PORT}`))
 
 
 const { Infobip, AuthType } = require('@infobip-api/sdk');
-console.log(process.env.INFOBIP_URL);
-console.log(process.env.INFOBIP_KEY);
 
 const sendSms = async (to, text) => {
     const infobipClient = new Infobip({
@@ -82,11 +80,12 @@ const sendSms = async (to, text) => {
                         to: to,
                     },
                 ],
-                from: "Olcha.uz",
+                from: "wefwfwe",
                 text: text,
             }],
         });
 
+        console.log(infobipResponse.config.data);
         return infobipResponse;
     } catch (error) {
         if (error.response) {
@@ -100,3 +99,4 @@ const sendSms = async (to, text) => {
     }
 }
 
+sendSms(to="998930540633", text="salom")
