@@ -13,7 +13,7 @@ class Base64ToFile {
         this.request = request;
         this.response = response;
         this._file_name = `image-${generateOTP(10)}.webp`;
-        this._file_path = path.join(__dirname, "../../var/data/uploads");
+        this._file_path = path.join(__dirname, "../../mnt/data/uploads");
         this._bufferInput = "";
         this._width = "";
         this._height = "";
