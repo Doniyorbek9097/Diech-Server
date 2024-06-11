@@ -1,6 +1,6 @@
 const redis = require('redis');
 
-// Redis mijozini yaratish
+// Redis mijozini 
 const client = redis.createClient({
     url: process.env.REDIS_URL
 });
