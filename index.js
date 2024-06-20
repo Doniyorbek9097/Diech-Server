@@ -1,4 +1,5 @@
 const http = require("http");
+const fs = require('fs')
 const express = require("express");
 const { Server } = require('socket.io');
 const cors = require("cors");
@@ -7,9 +8,6 @@ require("dotenv/config");
 require("./config/db");
 // const redisClient = require("./config/redisDB")
 // require("./bot");
-const adminRoutes = require("./routes/admin");
-const sellerRoutes = require("./routes/seller");
-const clientRoutes = require("./routes/client");
 
 const mongoose = require("mongoose");
 const { removeDuplicates } = require("./utils/removeDuplicates");
@@ -27,16 +25,20 @@ const io = new Server(server, {
 app.use(cors());
 app.use(bodyParser.json({limit: '100mb'}));
 app.use(bodyParser.urlencoded({limit: '100mb', extended: true}));
-app.use("/uploads", express.static("uploads"))
+app.use("/uploads", express.static("uploads"));
 app.use("/", (req, res, next) => {
     const lang = req.headers['lang']
     if(lang) mongoose.setDefaultLanguage(lang);
     return next();
-})
+});
 
-adminRoutes.forEach(route => app.use("/api/admin/", route));
-clientRoutes.forEach(route => app.use("/api/client/", route));
-sellerRoutes.forEach(route => app.use("/api/seller/", route));
+
+['client', 'admin', 'seller'].forEach(dir => {
+    fs.readdirSync(`./routes/${dir}`).forEach(route => {
+      app.use(`/api/${dir}/`, require(`./routes/${dir}/${route}`));
+    });
+  });
+
 
 // Socket.io bilan ishlash uplanish
 io.on('connection', (socket) => {

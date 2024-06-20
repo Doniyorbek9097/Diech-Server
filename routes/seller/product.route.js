@@ -1,6 +1,6 @@
 const router = require("express").Router();
 const { productModel } = require("../../models/product.model");
-const { shopProductModel } = require("../../models/shop.products.model");
+const { shopProductModel, shopVariantsModel, attributeModel } = require("../../models/shop.products.model");
 const categoryModel = require("../../models/category.model")
 const slugify = require("slugify");
 const path = require("path")
@@ -20,8 +20,8 @@ router.post("/product-add", checkToken, async (req, res) => {
         req.body.categories = [parentCategory, subCategory, childCategory];
         req.body.slug = slugify(`${req.body.name} ${req.body.slug}`)
         req.body.discount = parseInt(((req.body.orginal_price - req.body.sale_price) / req.body.orginal_price) * 100);
-        if(isNaN(req.body.discount)) req.body.discount = 0;
-        
+        if (isNaN(req.body.discount)) req.body.discount = 0;
+
         const newProduct = await new shopProductModel(req.body).save();
         return res.status(200).json(newProduct);
 
@@ -38,7 +38,7 @@ router.get("/product-all", async (req, res) => {
         let query = {};
         if (category_id) query.categories = { $in: [category_id] };
         if (brend_id) query.brend = brend_id;
-        let products = await productModel.find(query);
+        let products = await productModel.find(query).populate("variants")
         if (products.length) return res.json(products);
         return res.json([])
     } catch (error) {
@@ -53,8 +53,8 @@ router.get("/product-all", async (req, res) => {
 router.get("/product-one/:id", checkToken, async (req, res) => {
     try {
         let product = await shopProductModel.findOne({ _id: req.params.id })
-            .populate("product")
-        return res.status(200).json(product.toObject());
+            .populate("product", 'attributes').populate("variants")
+        return res.status(200).json(product);
     } catch (error) {
         console.log(error);
         return res.status(500).send("Server Ishlamayapti");
@@ -85,7 +85,7 @@ router.put("/product-edit/:id", checkToken, async (req, res) => {
                 returned: variants[0].returned,
                 returnedCount: variants[0].returnedCount
             };
-        
+
         } else {
             product = { ...req.body };
         }
@@ -107,7 +107,7 @@ router.put("/product-edit/:id", checkToken, async (req, res) => {
 router.delete("/product-delete/:id", checkToken, async (req, res) => {
     try {
         redisClient.FLUSHALL()
-        
+
         const deleted = await shopProductModel.findByIdAndDelete(req.params.id);
         return res.status(200).json({ message: "success deleted!", data: deleted });
 
@@ -116,6 +116,20 @@ router.delete("/product-delete/:id", checkToken, async (req, res) => {
         return res.status(500).json("Serverda Xatolik")
     }
 });
+
+
+
+
+router.post('/add-variant', async (req, res) => {
+    for (const variant of req.body) {
+        variant.sku = `${variant.product_name}-${variant.sku}`;
+        await shopVariantsModel.updateOne(
+            { sku: variant.sku },
+            { $set: variant },
+            { upsert: true }
+        )
+    }
+})
 
 
 module.exports = router;

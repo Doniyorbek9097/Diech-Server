@@ -104,16 +104,17 @@ router.get("/category-all", async (req, res) => {
 // Get by slug name 
 router.get("/category-slug/:slug", async (req, res) => {
     try {
+        let {slug = ""} = req.params;
         let page = parseInt(req.query?.page) - 1 || 0;
         let limit = parseInt(req.query?.limit) || 8;
         let {search = ""} = req.query;
         const {lang = ""} = req.headers;
 
-        const cacheKey = `category-slug:${lang}:${page}:${limit}:${search}`;
+        const cacheKey = `category-slug:${lang}:${slug}:${page}:${limit}:${search}`;
         const cacheData = await redisClient.get(cacheKey)
         if(cacheData) return res.json(JSON.parse(cacheData))
 
-        let category = await categoryModel.findOne({ slug: req.params.slug })
+        let category = await categoryModel.findOne({ slug })
         .populate({
             path: "children",
             populate: {

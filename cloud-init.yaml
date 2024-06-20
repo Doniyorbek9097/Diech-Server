@@ -1,0 +1,8 @@
+#cloud-config
+runcmd:
+  - curl -fsSL https://deb.nodesource.com/setup_16.x | bash -
+  - apt-get install -y nodejs git
+  - git clone https://github.com/YOUR_USERNAME/YOUR_REPOSITORY.git /root/your_project
+  - cd /root/your_project
+  - npm install --force
+  - npm start

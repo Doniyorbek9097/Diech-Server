@@ -44,17 +44,33 @@ const attributesSchema = Schema({
     { toJSON: { virtuals: true } })
 
 
+const attributeModel = model("ShopAttribute", attributesSchema)
+
 const variantsSchema = Schema({
+    product: {
+        type: Schema.Types.ObjectId,
+        ref: "ShopProducts",
+        required: true
+    },
+    product_name: String,
+    attribute: {
+        type: Schema.Types.Mixed
+    },
     name: String,
     orginal_price: Number,
     sale_price: Number,
+   
+
     inStock: {
         type: Number,
         default: 1
     },
     discount: Number,
     sku: String,
-
+    attributes: {
+        type: Schema.Types.ObjectId,
+        ref:"Attribute"
+    },
     soldOut: [{
         type: Schema.Types.ObjectId,
         ref: "Order"
@@ -76,6 +92,9 @@ const variantsSchema = Schema({
     },
 
 })
+
+
+const shopVariantsModel = model('ShopVariants', variantsSchema)
 
 
 const shopProductsSchema = Schema({
@@ -151,7 +170,6 @@ const shopProductsSchema = Schema({
     },
 
     attributes: [attributesSchema],
-    variants: [variantsSchema],
 
 },
 
@@ -161,8 +179,18 @@ const shopProductsSchema = Schema({
     }
 )
 
+
+shopProductsSchema.virtual("variants", {
+    ref:"ShopVariants",
+    localField: "_id",
+    foreignField: "product",
+})
+
+
 const shopProductModel = model("ShopProducts", shopProductsSchema);
 
 module.exports = {
-    shopProductModel
+    shopProductModel,
+    attributeModel,
+    shopVariantsModel,
 }

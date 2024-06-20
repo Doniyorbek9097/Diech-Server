@@ -111,8 +111,10 @@ router.put("/product-edit/:id", checkToken, async (req, res) => {
 
         const updated = await productModel.findByIdAndUpdate(req.params.id, product);
         if(product?.deletedImages?.length > 0) {
+            console.log(product?.deletedImages)
             product.deletedImages.forEach(element => {
-            const imagePath = path.join(__dirname, `../../uploads/${path.basename(element)}`);
+            let imagePath;
+            element && (imagePath = path.join(__dirname, `../../uploads/${path.basename(element)}`));
                 fs.unlink(imagePath, (err) => err && console.log(err))
             });
         }
@@ -174,6 +176,9 @@ router.delete("/product-delete/:id", checkToken, async (req, res) => {
         return res.status(500).json("Serverda Xatolik")
     }
 });
+
+
+
 
 
 module.exports = router;

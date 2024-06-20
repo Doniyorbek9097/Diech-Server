@@ -8,26 +8,9 @@ const sendEmail = require("../../utils/sendEmail");
 const { sendSms } = require("../../utils/sendSms");
 const { generateOTP } = require("../../utils/otpGenrater");
 const { generateToken } = require("../../utils/generateToken")
+const Auth = require("../../controllers/admin/auth")
 
-router.get("/auth/:id",  async (req, res) => {
-    try {
-        const user = await userModel.findById(req.params.id)
-        !user ? res.status(500).send({
-            message: "Token xato"
-        })
-        :
-        res.json({
-            message: "success",
-            data: user
-        })
-
-    
-
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json("Serverda Xatolik " + error.message)
-    }
-});
+router.get("/auth/:id", Auth.user);
 
 
 router.post("/signup", async (req, res) => {

@@ -29,6 +29,8 @@ router.post("/add-cart", async (req, res) => {
             cart.products.push(req.body.product);
         }
 
+         
+
         const data = await cart.save();
         return res.json({ message: "success updated", data });
 
