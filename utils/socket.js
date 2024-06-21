@@ -1,7 +1,7 @@
 exports.socketHandler = (io, socket) => {
     
     socket.on('disconnect', () => {
-      console.log('Ulanuvchi tark etild');
+      console.log('Ulanuvchi tark etildi');
     });
   };
   

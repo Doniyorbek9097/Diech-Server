@@ -1,5 +1,6 @@
 const http = require("http");
 const fs = require('fs')
+const path = require("path")
 const express = require("express");
 const { Server } = require('socket.io');
 const cors = require("cors");
@@ -25,7 +26,8 @@ const io = new Server(server, {
 app.use(cors());
 app.use(bodyParser.json({limit: '100mb'}));
 app.use(bodyParser.urlencoded({limit: '100mb', extended: true}));
-app.use("/uploads", express.static('../../../../mnt/data/uploads'));
+const baseDir = process.env.NODE_ENV === 'production' ? "../../../../mnt/data/uploads" : "./uploads";
+app.use("/uploads", express.static(baseDir));
 app.use("/", (req, res, next) => {
     const lang = req.headers['lang']
     if(lang) mongoose.setDefaultLanguage(lang);
