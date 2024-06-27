@@ -37,18 +37,25 @@ const propertiesSchema = Schema({
 
 
 const attributesSchema = Schema({
-    title: {
-        type: String,
-        intl: true
+    option: {
+        type: Schema.Types.ObjectId,
+        ref:"Option"
     },
-    children: [{
-        value: {
-            type: String,
-            intl: true
+    options: [{
+        option: {
+            type: Schema.Types.ObjectId,
+            ref:"OptionValues"
         },
-        sku: String,
-        images: []
-    }]
+        images: {
+            type: Array,
+            default: undefined
+        }
+    }],
+
+    product_id: {
+        type: Schema.Types.ObjectId,
+        ref:"Product"
+    }
 })
 
 
@@ -145,7 +152,6 @@ const productSchema = Schema({
         type: Number
     },
 
-    attributes: [attributesSchema],
     
     returnedCount: {
         type: Number,
@@ -165,6 +171,12 @@ const productSchema = Schema({
     }
 
 );
+
+productSchema.virtual("attributes", {
+    ref:"Attribute",
+    localField: "_id",
+    foreignField:"product_id"
+})
 
 
 const productModel = model("Product", productSchema);

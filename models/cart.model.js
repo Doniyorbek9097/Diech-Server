@@ -2,17 +2,16 @@ const { Schema, model } = require("mongoose");
 
 const cartSchema = Schema({
     products: [
-        {
-            _id: String,
-            name: String,
-            slug: String,
-            image:String,
-            attributes: Schema.Types.Mixed,
-            orginal_price: Number,
-            sale_price: Number,
-            discount: Number,
-            isStock:Number,
-            quantity: Number,
+        {   
+            product_id: {
+                type: Schema.Types.ObjectId,
+                ref: "ShopProducts"
+            },
+            variant_id: {
+                type: Schema.Types.ObjectId,
+                ref: "ShopVariants"
+            },
+            
             shop: {
                 type: Schema.Types.ObjectId,
                 ref: "Shop"
@@ -20,8 +19,10 @@ const cartSchema = Schema({
 
             owner: {
                 type: Schema.Types.ObjectId,
-                ref:"User"
-            }
+                ref: "User"
+            },
+
+            quantity: Number,
         }
     ],
 
@@ -31,6 +32,10 @@ const cartSchema = Schema({
         expires: 3600
     }
 
-}, { timestamps: true });
+}, 
+{ 
+    toJSON: { virtuals: true },
+    timestamps: true 
+});
 
 module.exports = model("Cart", cartSchema);

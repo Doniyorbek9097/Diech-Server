@@ -38,7 +38,7 @@ router.get("/product-all", async (req, res) => {
         let query = {};
         if (category_id) query.categories = { $in: [category_id] };
         if (brend_id) query.brend = brend_id;
-        let products = await productModel.find(query).populate("variants")
+        let products = await productModel.find(query)
         if (products.length) return res.json(products);
         return res.json([])
     } catch (error) {
@@ -53,7 +53,26 @@ router.get("/product-all", async (req, res) => {
 router.get("/product-one/:id", checkToken, async (req, res) => {
     try {
         let product = await shopProductModel.findOne({ _id: req.params.id })
-            .populate("product", 'attributes').populate("variants")
+            .populate({
+              path:"product",
+              populate: {
+                path:"attributes",
+                populate: [
+                    {
+                        path:"option",
+                        select:["label"]
+                    },
+                    {
+                        path:"options.option",
+                        select:["label", "images"]
+
+                    },
+                   
+                ]
+              }   
+            })
+            .populate("variants")
+        console.log(product)
         return res.status(200).json(product);
     } catch (error) {
         console.log(error);
@@ -108,7 +127,11 @@ router.delete("/product-delete/:id", checkToken, async (req, res) => {
     try {
         redisClient.FLUSHALL()
 
-        const deleted = await shopProductModel.findByIdAndDelete(req.params.id);
+        const deleted = await shopProductModel.findByIdAndDelete(req.params.id).populate('variants')
+        for (const variant of deleted.variants) {
+           await shopVariantsModel.deleteMany({_id: variant._id})
+        }
+        
         return res.status(200).json({ message: "success deleted!", data: deleted });
 
     } catch (error) {
@@ -117,19 +140,6 @@ router.delete("/product-delete/:id", checkToken, async (req, res) => {
     }
 });
 
-
-
-
-router.post('/add-variant', async (req, res) => {
-    for (const variant of req.body) {
-        variant.sku = `${variant.product_name}-${variant.sku}`;
-        await shopVariantsModel.updateOne(
-            { sku: variant.sku },
-            { $set: variant },
-            { upsert: true }
-        )
-    }
-})
 
 
 module.exports = router;

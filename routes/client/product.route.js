@@ -7,7 +7,8 @@ const path = require("path")
 const fs = require("fs");
 const { Base64ToFile } = require("../../utils/base64ToFile");
 const { redisClient } = require("../../config/redisDB");
-const { shopProductModel } = require("../../models/shop.products.model")
+const { shopProductModel } = require("../../models/shop.products.model");
+const { populate } = require("../../models/user.model");
 
 
 // get all products 
@@ -55,11 +56,10 @@ router.get("/products", async (req, res) => {
 
 // one product by slug
 router.get("/product-slug/:slug", async (req, res) => {
-
   const {sku = ''} = req.query;
   const {slug = '' } = req.params;
   const {lang = ''} = req.headers;
-
+  redisClient.FLUSHALL()
   const cacheKey = `product:${lang}:${slug}:${sku}`;
   const cacheData = await redisClient.get(cacheKey)
   if (cacheData) return res.json(JSON.parse(cacheData))
@@ -76,19 +76,40 @@ router.get("/product-slug/:slug", async (req, res) => {
       })
       .populate("shop", "name slug")
       .populate("brend", "name slug")
-      .populate('product')
+      .populate({
+        path:"product",
+           
+      })
+      .populate({
+        path:"variants",
+        populate: {
+          path:"attributes",
+          populate: [
+              {
+                  path:"option",
+                  select:["label"]
+              },
+              {
+                  path:"value",
+                  select:["label","option_id"]
 
-    let user_id = req.headers['user'];
+              },
+             
+          ]
+        }
+      })
+
+      let user_id = req.headers['user'];
     user_id = (user_id === "null") ? null : (user_id === "undefined") ? undefined : user_id;
 
     user_id && !product.views.includes(user_id) && (product.views.push(user_id), product.viewsCount++);
     await product.save()
 
-    const variant = product.variants.find(item => item.sku.toLowerCase() == sku.toLowerCase());
+    // const variant = product.variants.find(item => item.sku.toLowerCase() == sku.toLowerCase());
 
     const products = await shopProductModel.find({ name: product.name, slug: { $ne: product.slug } })
       .populate('shop', 'name slug')
-      .select('name slug discount orginal_price sale_price attributes reviews')
+      .select('name slug discount orginal_price sale_price reviews')
 
     const data = {
       data: {
@@ -100,11 +121,11 @@ router.get("/product-slug/:slug", async (req, res) => {
       rating: product.rating,
       reviews: product.reviews,
       viewsCount: product.viewsCount,
-      orginal_price: variant?.orginal_price || product?.orginal_price,
-      sale_price: variant?.sale_price || product?.sale_price,
-      inStock: variant?.inStock || product?.inStock,
-      discount: variant?.discount || product?.discount,
-      soldOutCount: variant?.soldOutCount || product?.soldOutCount,
+      orginal_price: product?.orginal_price,
+      sale_price:  product?.sale_price,
+      inStock: product?.inStock,
+      discount: product?.discount,
+      soldOutCount: product?.soldOutCount,
       attributes: product?.attributes,
       variants: product?.variants,
       brend: product?.brend,
