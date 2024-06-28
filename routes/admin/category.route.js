@@ -16,21 +16,14 @@ const fs = require("fs");
 router.post("/category-add", checkToken, async (req, res) => {
     try {
         redisClient.FLUSHALL()
-        if (!req.body.name || (!req.body.name.uz && !req.body.name.ru))
-            return res.send({
-                message: "category name not found"
-            });
-        req.body.slug = slugify(req.body.name.uz)
 
-        const CategoryInstance = new categoryModel(req.body);
-        if (CategoryInstance.parent) {
-            await categoryModel.updateOne(
-                { _id: CategoryInstance.parent },
-                { $push: { children: CategoryInstance.id } }
-            );
+        const formData = req.body;
+
+        for (const cate of formData) {
+             cate.slug = slugify(cate.name.uz);
         }
-
-        const newCategory = await CategoryInstance.save();
+        
+        const newCategory = await categoryModel.insertMany(formData);
         return res.json({
             data: newCategory,
             message: "Success"
@@ -89,14 +82,45 @@ router.get("/category-all", checkToken, async (req, res) => {
 
 
 
-// Get byId Category 
+// Get byId one Category 
 router.get("/category-one/:id", checkToken, async (req, res) => {
     try {
         if (!mongoose.isValidObjectId(req.params.id)) {
             return res.status(404).send("Category Id haqiqiy emas");
         }
 
-        let category = await categoryModel.findById(req.params.id);
+        let category = await categoryModel.findById(req.params.id)
+        .populate({
+            path: "children",
+            populate: {
+                path: "children"
+            }
+        })
+
+        if (!category) return res.status(404).send("Category topilmadi");
+        return res.status(200).json(category);
+
+    } catch (error) {
+        console.log(error)
+        res.status(500).send(error.message)
+    }
+})
+
+// Get byId Category 
+router.get("/category/:id", checkToken, async (req, res) => {
+    try {
+        if (!mongoose.isValidObjectId(req.params.id)) {
+            return res.status(404).send("Category Id haqiqiy emas");
+        }
+
+        let category = await categoryModel.findById(req.params.id)
+        .populate({
+            path: "children",
+            populate: {
+                path: "children"
+            }
+        })
+
         if (!category) return res.status(404).send("Category topilmadi");
         return res.status(200).json(category.toObject());
 
@@ -105,6 +129,7 @@ router.get("/category-one/:id", checkToken, async (req, res) => {
         res.status(500).send(error.message)
     }
 })
+
 
 
 

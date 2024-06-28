@@ -40,7 +40,7 @@ router.post("/add-cart", async (req, res) => {
             populate: [
                 {
                     path: "product",
-                    select: "name"
+                
                 },
                 {
                     path: "shop",
@@ -69,9 +69,9 @@ router.post("/add-cart", async (req, res) => {
         return {
             product: {
                 ...product._doc,
-                name: item.product_id.product.name,
                 product_id: item.product_id._id,
-                variant_id: item?.variant_id._id
+                variant_id: item?.variant_id._id,
+                product: item.product_id.product
             },
 
             quantity: item.quantity,
@@ -130,9 +130,10 @@ router.get("/cart/:id", async (req, res) => {
             return {
                 product: {
                     ...product._doc,
-                    name: item.product_id.product.name,
                     product_id: item.product_id._id,
-                    variant_id: item?.variant_id._id
+                    variant_id: item?.variant_id._id,
+                    product:item.product_id.product
+
                 },
 
                 quantity: item.quantity,

@@ -41,12 +41,6 @@ const categorySchema = new Schema({
     },
 
 
-    children: [{
-        type: Schema.Types.ObjectId,
-        ref: 'Category'
-    }],
-
-
     createdBy: {
         type: Schema.Types.ObjectId,
         ref: "User"
@@ -65,6 +59,12 @@ const categorySchema = new Schema({
 
 );
 
+
+categorySchema.virtual("children", {
+    ref: "Category",
+    localField: "_id",
+    foreignField: "parent",
+})
 
 categorySchema.virtual("products", {
     ref: "Product",
