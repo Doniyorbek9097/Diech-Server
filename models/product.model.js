@@ -17,8 +17,7 @@ const reviewSchema = Schema(
 )
 
 
-
-const propertiesSchema = Schema({
+const propertyOptionsSchema = Schema({
     key: {
         type: String,
         intl: true
@@ -28,23 +27,31 @@ const propertiesSchema = Schema({
         intl: true
     }
 },
+{  toJSON: { virtuals: true } }
 
-    {
-        toJSON: { virtuals: true }
-    }
+)
 
+
+const propertiesSchema = Schema({
+    label: {
+        type: String,
+        intl: true
+    },
+    options: [propertyOptionsSchema]
+},
+{  toJSON: { virtuals: true } }
 );
 
 
 const attributesSchema = Schema({
     option: {
         type: Schema.Types.ObjectId,
-        ref:"Option"
+        ref: "Option"
     },
     options: [{
         option: {
             type: Schema.Types.ObjectId,
-            ref:"OptionValues"
+            ref: "OptionValues"
         },
         images: {
             type: Array,
@@ -54,7 +61,7 @@ const attributesSchema = Schema({
 
     product_id: {
         type: Schema.Types.ObjectId,
-        ref:"Product"
+        ref: "Product"
     }
 })
 
@@ -84,7 +91,7 @@ const productSchema = Schema({
 
     categories: [{
         type: Schema.Types.ObjectId,
-        ref:"Category"
+        ref: "Category"
     }],
 
     parentCategory: {
@@ -152,7 +159,7 @@ const productSchema = Schema({
         type: Number
     },
 
-    
+
     returnedCount: {
         type: Number,
         default: 0
@@ -173,9 +180,9 @@ const productSchema = Schema({
 );
 
 productSchema.virtual("attributes", {
-    ref:"Attribute",
+    ref: "Attribute",
     localField: "_id",
-    foreignField:"product_id"
+    foreignField: "product_id"
 })
 
 

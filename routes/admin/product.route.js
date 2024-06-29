@@ -19,7 +19,6 @@ router.post("/product-add", checkToken, async (req, res) => {
     await redisClient.FLUSHALL()
     const {body: product} = req;
     product.slug = slugify(product.name.uz);
-    product.categories = [product.parentCategory, product.subCategory, product.childCategory]
 
     try {
         let newProduct = await new productModel(product).save();
@@ -84,7 +83,6 @@ router.put("/product-edit/:id", checkToken, async (req, res) => {
     await redisClient.FLUSHALL()
 
     const { body: product } = req;    
-    product.categories = [product.parentCategory, product.subCategory, product.childCategory]
 
     if(product.images.length) {
         let images = [];
@@ -95,19 +93,6 @@ router.put("/product-edit/:id", checkToken, async (req, res) => {
         product.images = images;
     }
 
-    if(product?.attributes?.length) {
-        for (const attr of product?.attributes) {
-            for (const child of attr.children) {
-            let images = [];
-                for (const image of child.images) {
-                    images.push(await new Base64ToFile(req).bufferInput(image).save())
-                }
-
-                child.images = images;
-            }
-        }
-    }
-    
 
     try {
 
