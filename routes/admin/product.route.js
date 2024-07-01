@@ -10,9 +10,7 @@ const { checkToken } = require("../../middlewares/authMiddleware");
 const { nestedVariant } = require("../../utils/nestedVariant");
 const { removeDuplicates } = require("../../utils/removeDuplicates");
 const { redisClient } = require("../../config/redisDB");
-const { useUploadFolder } = require("../../config/uploadFolder");
-
-const uploadFolder = useUploadFolder()
+const { baseDir } = require("../../config/uploadFolder");
 
 // create new Product 
 router.post("/product-add", checkToken, async (req, res) => {
@@ -101,7 +99,7 @@ router.put("/product-edit/:id", checkToken, async (req, res) => {
             console.log(product?.deletedImages)
             product.deletedImages.forEach(element => {
             let imagePath;
-            element && (imagePath = `${uploadFolder}/${path.basename(element)}`);
+            element && (imagePath = `${baseDir}/${path.basename(element)}`);
                 fs.unlink(imagePath, (err) => err && console.log(err))
             });
         }
@@ -112,7 +110,7 @@ router.put("/product-edit/:id", checkToken, async (req, res) => {
         
         for (const image of product?.images) {
 
-            const imagePath = path.join(__dirname, `${uploadFolder}/${path.basename(image)}`);
+            const imagePath = path.join(__dirname, `${baseDir}/${path.basename(image)}`);
             fs.unlink(imagePath, (err) => err && console.log(err))
         }
 
@@ -120,7 +118,7 @@ router.put("/product-edit/:id", checkToken, async (req, res) => {
             for (const attr of product?.attributes) {
                 for (const child of attr.children) {
                     for (const image of child.images) {
-                        const imagePath = `${uploadFolder}/${path.basename(image)}`;
+                        const imagePath = `${baseDir}/${path.basename(image)}`;
                         fs.unlink(imagePath, (err) => err && console.log(err))
                     }
                 }
@@ -143,7 +141,7 @@ router.delete("/product-delete/:id", checkToken, async (req, res) => {
 
         (images.length > 0) && images.forEach(item => {
             
-            const imagePath = `${uploadFolder}/${path.basename(item)}`;
+            const imagePath = `${baseDir}/${path.basename(item)}`;
             fs.unlink(imagePath, (err) => err && console.log(err))
         }) 
 
@@ -151,7 +149,7 @@ router.delete("/product-delete/:id", checkToken, async (req, res) => {
             for (const attr of deleted?.attributes) {
                 for (const child of attr.children) {
                     for (const image of child.images) {
-                        const imagePath = path.join(__dirname, `${uploadFolder}/${path.basename(image)}`);
+                        const imagePath = path.join(__dirname, `${baseDir}/${path.basename(image)}`);
                         fs.unlink(imagePath, (err) => err && console.log(err))
                     }
                 }

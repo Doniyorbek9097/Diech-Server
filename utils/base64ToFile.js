@@ -7,13 +7,14 @@ const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
 const ffmpeg = require('fluent-ffmpeg');
 ffmpeg.setFfmpegPath(ffmpegPath);
 
+const { baseDir } = require("../config/uploadFolder");
+
 
 class Base64ToFile {
     constructor(request, response) {
         this.request = request;
         this.response = response;
         this._file_name = `image-${generateOTP(10)}.webp`;
-        const baseDir = process.env.NODE_ENV === 'production' ? "../../../../mnt/data/uploads" : "./uploads";
         this._file_path = baseDir;
         this._bufferInput = "";
         this._width = "";
