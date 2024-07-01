@@ -13,8 +13,8 @@ class Base64ToFile {
         this.request = request;
         this.response = response;
         this._file_name = `image-${generateOTP(10)}.webp`;
-        const baseDir = process.env.NODE_ENV === 'production' ? "../../../../mnt/data/uploads" : "../uploads";
-        this._file_path = path.join(__dirname, baseDir);
+        const baseDir = process.env.NODE_ENV === 'production' ? "../../../../mnt/data/uploads" : "./uploads";
+        this._file_path = baseDir;
         this._bufferInput = "";
         this._width = "";
         this._height = "";
@@ -48,9 +48,9 @@ class Base64ToFile {
 
     save() {
         return new Promise((resolve, rejact) => {
-            // if(!fs.existsSync(this._file_path)) {
-            //     mkdirp.sync(this._file_path)
-            // }
+            if(!fs.existsSync(this._file_path)) {
+                mkdirp.sync(this._file_path)
+            }
             // if(Array.isArray(this._bufferInput) && this._bufferInput !== null) {
             //     const filePaths = [];
             //     for (const file of this._bufferInput) {
