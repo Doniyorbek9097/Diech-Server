@@ -16,11 +16,10 @@ const fs = require("fs");
 router.post("/category-add", checkToken, async (req, res) => {
     try {
         redisClient.FLUSHALL()
-
         const formData = req.body;
 
         for (const cate of formData) {
-             cate.slug = slugify(cate.name.uz);
+             cate.slug = slugify(`${cate.name.ru.toLowerCase()}-${generateOTP(5)}`)
         }
         
         const newCategory = await categoryModel.insertMany(formData);
@@ -136,6 +135,7 @@ router.get("/category/:id", checkToken, async (req, res) => {
 // Edit Category 
 router.put("/category-edit/:id", checkToken, async (req, res) => {
     redisClient.FLUSHALL()
+    req.body.slug = slugify(`${req.body.name.ru.toLowerCase()}-${generateOTP(5)}`)
 
     if (req.body?.left_banner) {
         const { image } = req.body.left_banner;
@@ -193,9 +193,9 @@ router.put("/category-edit/:id", checkToken, async (req, res) => {
 
 
 router.get("/categories-update", async (req, res) => {
-    const categories = await categoryModel.find()
+    let categories = await categoryModel.find()
     const n =  categories.map(async cate => {
-        const slug = slugify(`${cate.slug}-${generateOTP(10)}`)
+        const slug = slugify(`${cate.toObject().name.ru.toLowerCase()}-${generateOTP(5)}`)
        return await categoryModel.updateOne({_id: cate._id}, {$set:{slug: slug}})
     })
 
