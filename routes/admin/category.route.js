@@ -192,12 +192,14 @@ router.put("/category-edit/:id", checkToken, async (req, res) => {
 });
 
 
-router.get("/categories-update", async () => {
+router.get("/categories-update", async (req, res) => {
     const categories = await categoryModel.find()
-    categories.map(cate => {
+    const n =  categories.map(async cate => {
         const slug = slugify(`${cate.slug}-${generateOTP(10)}`)
-        categoryModel.updateOne({_id: cate._id}, {$set:{slug: slug}})
+       return await categoryModel.updateOne({_id: cate._id}, {$set:{slug: slug}})
     })
+
+    res.json("success")
 
 })
 
