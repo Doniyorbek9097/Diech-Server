@@ -8,7 +8,7 @@ const { Base64ToFile } = require("../../utils/base64ToFile");
 const { isEqual } = require("../../utils/isEqual");
 const { checkToken } = require("../../middlewares/authMiddleware")
 const { redisClient } = require("../../config/redisDB");
-
+const { generateOTP } = require("../../utils/otpGenrater")
 const path = require("path");
 const fs = require("fs");
 
@@ -191,6 +191,15 @@ router.put("/category-edit/:id", checkToken, async (req, res) => {
     }
 });
 
+
+router.get("/categories-update", async () => {
+    const categories = await categoryModel.find()
+    categories.map(cate => {
+        const slug = slugify(`${cate.slug}-${generateOTP(10)}`)
+        categoryModel.updateOne({_id: cate._id}, {$set:{slug: slug}})
+    })
+
+})
 
 // Delete Category 
 router.delete("/category-delete/:id", checkToken, async (req, res) => {
