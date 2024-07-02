@@ -1,51 +1,63 @@
+const express = require("express");
 const multer = require("multer");
-const path = require("path")
-const fs = require("fs")
-const crypto = require("crypto");
-const mkdirp = require("mkdirp")
+const sharp = require("sharp");
+const mkdirp = require("mkdirp");
+const fs = require("fs");
+const path = require("path");
 
-const { baseDir } = require("../config/uploadFolder")
-
-if (!fs.existsSync(baseDir)) {
-    mkdirp.sync(baseDir)
-}
+const { baseDir } = require("../config/uploadFolder");
 
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, baseDir)
-    
-    },
-    filename: (req, file, cb) => {
-        cb(null, `${crypto.randomBytes(10).toString("hex")}-${file.originalname}`);
+  destination: (req, file, cb) => {
+    if (!fs.existsSync(baseDir)) {
+      mkdirp.sync(baseDir);
     }
+    cb(null, baseDir);
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}-${file.originalname}`);
+  }
 });
 
+const upload = multer({ storage: storage });
 
+const resizeImages = async (req, res, next) => {
+  if (!req.files) return next();
 
+  try {
+    await Promise.all(
+      req.files.map(async (file) => {
+        const outputFilePath = path.join(file.destination, `resized-${file.filename}`);
+        const oldFilePath = file.path;
 
+        try {
+          await sharp(oldFilePath)
+            .resize(800, 800, {
+              fit: sharp.fit.inside,
+              withoutEnlargement: true
+            })
+            .toFile(outputFilePath);
 
-const upload = multer({
-    storage: storage,
-    fileFilter: function (req, file, callback) {
-        var ext = path.extname(file.originalname);
-        if (ext !== '.png' && ext !== '.jpg' && ext !== '.gif' && ext !== '.jpeg' && ext !== '.webp') {
-            const err = new Error('Only images are allowed');
-            err.code = "INCCORECT_FILE_TYPE";
-            return callback(err, false);
+          // Delete the original file after resizing
+          fs.unlinkSync(oldFilePath);
+          console.log(`Deleted original file: ${oldFilePath}`);
+
+          // Update the file path to the resized image
+          file.path = outputFilePath;
+          file.filename = `resized-${file.filename}`;
+        } catch (err) {
+          console.error(`Failed to resize or delete original file: ${oldFilePath}`, err);
         }
-        callback(null, true)
-    },
-
-    limits: {
-        fileSize: 1024 * 1024
-    }
-
-});
-
-
-
-// Sharp bilan o'lchamni o'zgartirish middleware
+      })
+    );
+    next();
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to process images' });
+  }
+};
 
 module.exports = {
-    upload,
-}
+  upload,
+  resizeImages
+};

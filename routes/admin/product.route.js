@@ -2,14 +2,15 @@ const router = require("express").Router();
 const { productModel } = require("../../models/product.model");
 const cartModel = require("../../models/cart.model")
 const slugify = require("slugify");
+const sharp = require('sharp')
 const path = require("path")
 const fs = require("fs");
 const { Base64ToFile } = require("../../utils/base64ToFile");
 const { checkToken } = require("../../middlewares/authMiddleware");
 const { redisClient } = require("../../config/redisDB");
 const { baseDir } = require("../../config/uploadFolder");
-const { generateOTP } = require("../../utils/otpGenrater"); 
-const { upload } = require("../../middlewares/upload")
+const { generateOTP } = require("../../utils/otpGenrater");
+const { upload, resizeImages } = require("../../middlewares/upload")
 
 // create new Product 
 
@@ -25,14 +26,19 @@ router.get("/upload/:id", async (req, res) => {
 })
 
 
-router.put("/upload/:id", upload.array('images', 10),  async (req, res) => {
+router.put("/upload/:id", upload.array('images', 10), async (req, res) => {
     try {
-        const images = req.files.map(file => `${req.protocol}://${req.headers.host}/uploads/${file.filename}`);
-        const productId = req.params.id; 
+        const images = [];
+
+        for (const file of req.files) {
+            images.push(`${req.protocol}://${req.headers.host}/uploads/${file.filename}`)
+        }
+
+        const productId = req.params.id;
         const product = await productModel.findById(productId).select('images')
         product.images.push(...images)
+        res.json(product.images)
         await product.save()
-        return res.json(product.images);
 
     } catch (error) {
         console.log(error);
@@ -40,16 +46,18 @@ router.put("/upload/:id", upload.array('images', 10),  async (req, res) => {
 })
 
 
+
+
 router.post("/product-add", checkToken, async (req, res) => {
     await redisClient.FLUSHALL()
-    const {body: product} = req;
+    const { body: product } = req;
     product.slug = slugify(`${product.name.ru.toLowerCase()}`)
 
     try {
-        const existsProduct = await productModel.findOne({slug: product.slug})
-        if(existsProduct) {
+        const existsProduct = await productModel.findOne({ slug: product.slug })
+        if (existsProduct) {
             return res.json({
-                message:"Bunday product mavjud!"
+                message: "Bunday product mavjud!"
             })
         }
 
@@ -67,26 +75,26 @@ router.get("/product-all", checkToken, async (req, res) => {
     try {
         let products = await productModel.find();
 
-    // products = products.map(product => {
-    //         const inStock = product.variants.length ? product.variants.reduce((count, item) => count += item.inStock, 0) : product.inStock;
-    //         const inStockVariants = product.variants.reduce((acc, item) => acc.concat({sku: item.sku, count: item.inStock}), []);
-    //         const sold = product.variants.length ? product.variants.reduce((count, item) => count += item.soldOutCount, 0) : product.soldOutCount;
-    //         const sold_variants = product.variants.reduce((acc, item) => acc.concat({sku: item.sku, count: item.soldOutCount}), []);
-    //         const returned = product.variants.length ? product.variants.reduce((count, item) => count += item.returnedCount, 0) : product.returnedCount;
-    //         const returned_variants = product.variants.reduce((acc, item) => acc.concat({sku: item.sku, count: item.returnedCount}), []);
-    //         const views = product.viewsCount;
-    //         return {
-    //             _id: product._id,
-    //             name: product.name,
-    //             inStock,
-    //             inStockVariants,
-    //             sold,
-    //             sold_variants,
-    //             returned,
-    //             returned_variants,
-    //             views
-    //         }
-    //     })
+        // products = products.map(product => {
+        //         const inStock = product.variants.length ? product.variants.reduce((count, item) => count += item.inStock, 0) : product.inStock;
+        //         const inStockVariants = product.variants.reduce((acc, item) => acc.concat({sku: item.sku, count: item.inStock}), []);
+        //         const sold = product.variants.length ? product.variants.reduce((count, item) => count += item.soldOutCount, 0) : product.soldOutCount;
+        //         const sold_variants = product.variants.reduce((acc, item) => acc.concat({sku: item.sku, count: item.soldOutCount}), []);
+        //         const returned = product.variants.length ? product.variants.reduce((count, item) => count += item.returnedCount, 0) : product.returnedCount;
+        //         const returned_variants = product.variants.reduce((acc, item) => acc.concat({sku: item.sku, count: item.returnedCount}), []);
+        //         const views = product.viewsCount;
+        //         return {
+        //             _id: product._id,
+        //             name: product.name,
+        //             inStock,
+        //             inStockVariants,
+        //             sold,
+        //             sold_variants,
+        //             returned,
+        //             returned_variants,
+        //             views
+        //         }
+        //     })
 
         return res.json(products);
     } catch (error) {
@@ -114,14 +122,14 @@ router.get("/product-one/:id", checkToken, async (req, res) => {
 router.put("/product-edit/:id", checkToken, async (req, res) => {
     await redisClient.FLUSHALL()
 
-    const { body: product } = req;    
-   
-    if(product.images.length) {
+    const { body: product } = req;
+
+    if (product.images.length) {
         let images = [];
         for (const image of product.images) {
             const data = await new Base64ToFile(req).bufferInput(image).save();
             images.push(data);
-        }   
+        }
         product.images = images;
     }
 
@@ -129,26 +137,25 @@ router.put("/product-edit/:id", checkToken, async (req, res) => {
     try {
 
         const updated = await productModel.findByIdAndUpdate(req.params.id, product);
-        if(product?.deletedImages?.length > 0) {
-            console.log(product?.deletedImages)
+        if (product?.deletedImages?.length > 0) {
             product.deletedImages.forEach(element => {
-            let imagePath;
-            element && (imagePath = `${baseDir}/${path.basename(element)}`);
+                let imagePath;
+                element && (imagePath = `${baseDir}/${path.basename(element)}`);
                 fs.unlink(imagePath, (err) => err && console.log(err))
             });
         }
 
         return res.json(updated);
-        
+
     } catch (error) {
-        
+
         for (const image of product?.images) {
 
             const imagePath = path.join(__dirname, `${baseDir}/${path.basename(image)}`);
             fs.unlink(imagePath, (err) => err && console.log(err))
         }
 
-        if(product?.attributes?.length) {
+        if (product?.attributes?.length) {
             for (const attr of product?.attributes) {
                 for (const child of attr.children) {
                     for (const image of child.images) {
@@ -160,7 +167,7 @@ router.put("/product-edit/:id", checkToken, async (req, res) => {
         }
 
         console.log(error);
-        res.status(500).send("Server Xatosi: "+ error);
+        res.status(500).send("Server Xatosi: " + error);
     }
 });
 
@@ -170,16 +177,16 @@ router.delete("/product-delete/:id", checkToken, async (req, res) => {
     try {
         redisClient.FLUSHALL()
         const deleted = await productModel.findByIdAndDelete(req.params.id);
-        await cartModel.deleteMany({'products.product': deleted._id})
+        await cartModel.deleteMany({ 'products.product': deleted._id })
         const { images } = deleted;
 
         (images.length > 0) && images.forEach(item => {
-            
+
             const imagePath = `${baseDir}/${path.basename(item)}`;
             fs.unlink(imagePath, (err) => err && console.log(err))
-        }) 
+        })
 
-        if(deleted?.attributes?.length) {
+        if (deleted?.attributes?.length) {
             for (const attr of deleted?.attributes) {
                 for (const child of attr.children) {
                     for (const image of child.images) {
