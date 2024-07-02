@@ -8,14 +8,16 @@ const sendEmail = require("../../utils/sendEmail");
 const { sendSms } = require("../../utils/sendSms");
 const { generateOTP } = require("../../utils/otpGenrater");
 const { generateToken } = require("../../utils/generateToken")
-const Auth = require("../../controllers/admin/auth")
+const Auth = require("../../controllers/admin/auth");
+const { default: slugify } = require("slugify");
 
 router.get("/auth/:id", Auth.user);
 
 
 router.post("/signup", async (req, res) => {
     try {
-         const { phone_number, email } = req.body;
+         const { phone_number, email} = req.body;
+         
         let user = await userModel.findOne({ phone_number });
         if (user) return res.json({
             message: `${phone_number} allaqachon ro'yxatdan o'tgan!`,
@@ -73,7 +75,8 @@ router.post("/signup/verify", async (req, res) => {
 
             user.verified = true;
             user.role = "admin";
-            user.username = `user-${user._id}`;
+            user.username = slugify(`${user.firstname}-${generateOTP(4)}`);
+            
 
             // const documetCoout = await userModel.countDocuments();
             // if(documetCoout == 1) user.role = "creator";
@@ -121,7 +124,7 @@ router.post("/signin", async (req, res) => {
             });
         } 
         const validPassword = await bcrypt.compare(req.body.password, user.password);
-        console.log(validPassword)
+
         if (!validPassword) {
             return res.json({
                 message:"Parolingiz xato",

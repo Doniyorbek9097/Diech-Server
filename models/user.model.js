@@ -42,7 +42,7 @@ const userSchema = new mongooose.Schema({
 
     username: {
         type: String,
-        default:""
+        unique: true,
     },
 
     gender: {

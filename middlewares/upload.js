@@ -2,17 +2,17 @@ const multer = require("multer");
 const path = require("path")
 const fs = require("fs")
 const crypto = require("crypto");
+const mkdirp = require("mkdirp")
 
-const folder = path.join(__dirname, '../uploads')
+const { baseDir } = require("../config/uploadFolder")
 
-if (!fs.existsSync(folder)) {
-    fs.mkdirSync(folder)
+if (!fs.existsSync(baseDir)) {
+    mkdirp.sync(baseDir)
 }
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        const newPath = path.join(__dirname, '../uploads');
-        cb(null, newPath)
+        cb(null, baseDir)
     
     },
     filename: (req, file, cb) => {

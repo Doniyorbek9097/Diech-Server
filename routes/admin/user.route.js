@@ -50,7 +50,7 @@ router.get("/users", checkToken, async (req, res) => {
 
 router.post("/user-add", checkToken, async (req,res) => {
     try {
-
+        
         let user = await userModel.findOne({username: req.body?.username});
         if(user) return res.json({message: "bunday username mavjud boshqa username kiriting"});
 

@@ -2,23 +2,57 @@ const router = require("express").Router();
 const { productModel } = require("../../models/product.model");
 const cartModel = require("../../models/cart.model")
 const slugify = require("slugify");
-const langReplace = require("../../utils/langReplace");
 const path = require("path")
 const fs = require("fs");
 const { Base64ToFile } = require("../../utils/base64ToFile");
 const { checkToken } = require("../../middlewares/authMiddleware");
-const { nestedVariant } = require("../../utils/nestedVariant");
-const { removeDuplicates } = require("../../utils/removeDuplicates");
 const { redisClient } = require("../../config/redisDB");
 const { baseDir } = require("../../config/uploadFolder");
+const { generateOTP } = require("../../utils/otpGenrater"); 
+const { upload } = require("../../middlewares/upload")
 
 // create new Product 
+
+router.get("/upload/:id", async (req, res) => {
+    try {
+        const productId = req.params.id; // Replace with your product ID logic
+        const product = await productModel.findById(productId).select("images")
+        return res.json(product);
+
+    } catch (error) {
+        console.log(error);
+    }
+})
+
+
+router.put("/upload/:id", upload.array('images', 10),  async (req, res) => {
+    try {
+        const images = req.files.map(file => `${req.protocol}://${req.headers.host}/uploads/${file.filename}`);
+        const productId = req.params.id; 
+        const product = await productModel.findById(productId).select('images')
+        product.images.push(...images)
+        await product.save()
+        return res.json(product.images);
+
+    } catch (error) {
+        console.log(error);
+    }
+})
+
+
 router.post("/product-add", checkToken, async (req, res) => {
     await redisClient.FLUSHALL()
     const {body: product} = req;
-    product.slug = slugify(product.name.uz);
+    product.slug = slugify(`${product.name.ru.toLowerCase()}`)
 
     try {
+        const existsProduct = await productModel.findOne({slug: product.slug})
+        if(existsProduct) {
+            return res.json({
+                message:"Bunday product mavjud!"
+            })
+        }
+
         let newProduct = await new productModel(product).save();
         return res.status(200).json(newProduct);
 
@@ -81,7 +115,7 @@ router.put("/product-edit/:id", checkToken, async (req, res) => {
     await redisClient.FLUSHALL()
 
     const { body: product } = req;    
-
+   
     if(product.images.length) {
         let images = [];
         for (const image of product.images) {

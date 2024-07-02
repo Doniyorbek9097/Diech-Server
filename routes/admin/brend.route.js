@@ -27,6 +27,13 @@ router.post("/brend", async(req, res) => {
     req.body.slug = slugify(req.body.name);
 
     try {
+        const existsBrend = await brendModel.findOne({slug: req.body.slug});
+        if(existsBrend) {
+            return res.json({
+                message:"Bunday Brend Mavjud!"
+            })
+        }
+
         const newBrend = await new brendModel(req.body).save();
         return res.status(201).json(newBrend);
 
@@ -35,6 +42,7 @@ router.post("/brend", async(req, res) => {
         const { image, logo } = req.body;
         image && fs.unlink(`${baseDir}/${path.basename(image)}`, (err) => err && console.log(err));
         logo && fs.unlink(`${baseDir}/${path.basename(logo)}`, (err) => err && console.log(err));
+        res.status(500).json(error.message)
     }
 });
 
