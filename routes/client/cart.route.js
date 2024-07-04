@@ -35,53 +35,54 @@ router.post("/add-cart", async (req, res) => {
 
         let newCart = await cart.save();
         newCart = await cartModel.findById(newCart._id)
-        .populate({
-            path: 'products.product_id',
-            populate: [
-                {
-                    path: "product",
-                
+            .populate({
+                path: 'products.product_id',
+                populate: [
+                    {
+                        path: "product",
+                        select: ["name", "images"]
+                    },
+                    {
+                        path: "shop",
+                        select: "name"
+                    },
+                    {
+                        path: "brend",
+                        select: "name"
+                    },
+
+                    {
+                        path: 'variants.attributes.option',
+                    },
+
+                    {
+                        path: 'variants.attributes.value',
+                    }
+
+                ]
+            })
+
+        const products = newCart.products.flatMap(item => {
+            const variant = item.product_id?.variants.find(variant => variant?._id?.toString() == item?.variant_id?.toString())
+            let product = variant || item.product_id;
+            return {
+                product: {
+                    ...product._doc,
+                    name: item.product_id.product.name,
+                    images: product?.images?.length ? product.images : product?.product?.images,
+                    product_id: item.product_id._id,
+                    variant_id: item.variant_id
+
                 },
-                {
-                    path: "shop",
-                    select: "name"
-                },
-                {
-                    path: "brend",
-                    select: "name"
-                }
-            ]
-        })
-        .populate({
-            path: 'products.variant_id',
-            populate: [
-                {
-                    path: "attributes.option"
-                },
-                {
-                    path: "attributes.value"
-                }
-            ]
+
+                quantity: item.quantity,
+            }
         })
 
-    const products = newCart.products.flatMap(item => {
-        let product = item?.variant_id || item.product_id;
-        return {
-            product: {
-                ...product._doc,
-                product_id: item.product_id._id,
-                variant_id: item?.variant_id._id,
-                product: item.product_id.product
-            },
-
-            quantity: item.quantity,
+        const data = {
+            ...newCart._doc,
+            products
         }
-    })
-
-    const data = {
-        ...newCart._doc,
-        products
-    }
 
 
         return res.json({ message: "success updated", data });
@@ -101,7 +102,7 @@ router.get("/cart/:id", async (req, res) => {
                 populate: [
                     {
                         path: "product",
-                        select: "name"
+                        select: ["name", "images"]
                     },
                     {
                         path: "shop",
@@ -110,29 +111,30 @@ router.get("/cart/:id", async (req, res) => {
                     {
                         path: "brend",
                         select: "name"
-                    }
-                ]
-            })
-            .populate({
-                path: 'products.variant_id',
-                populate: [
-                    {
-                        path: "attributes.option"
                     },
+                    
                     {
-                        path: "attributes.value"
+                        path: 'variants.attributes.option',
+                    },
+
+                    {
+                        path: 'variants.attributes.value',
                     }
+
                 ]
             })
-
+        
+        
         const products = cart.products.flatMap(item => {
-            let product = item?.variant_id || item.product_id;
+            const variant = item.product_id?.variants.find(variant => variant?._id?.toString() == item?.variant_id?.toString())
+            let product = variant || item.product_id;
             return {
                 product: {
                     ...product._doc,
+                    name: item.product_id.product.name,
+                    images: product?.images?.length ? product.images : product?.product?.images,
                     product_id: item.product_id._id,
-                    variant_id: item?.variant_id._id,
-                    product:item.product_id.product
+                    variant_id: item.variant_id
 
                 },
 

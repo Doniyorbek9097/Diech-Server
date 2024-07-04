@@ -72,20 +72,16 @@ const variantsSchema = Schema({
 })
 
 
-const shopVariantsModel = model('ShopVariants', variantsSchema)
-
-
 const shopProductsSchema = Schema({
-    name: String,
+    product: {
+        type: Schema.Types.ObjectId,
+        ref: "Product",
+    },
     slug: String,
     discount: Number,
     orginal_price: Number,
     sale_price: Number,
     inStock: Number,
-    product: {
-        type: Schema.Types.ObjectId,
-        ref: "Product",
-    },
     categories: [{
         type: Schema.Types.ObjectId,
         ref: "Category",
@@ -150,7 +146,9 @@ const shopProductsSchema = Schema({
     attributes: {
         type: Array,
         default: undefined
-    }
+    },
+
+    variants: [variantsSchema]
 },
 
     {
@@ -160,16 +158,8 @@ const shopProductsSchema = Schema({
 )
 
 
-shopProductsSchema.virtual("variants", {
-    ref: "ShopVariants",
-    localField: "_id",
-    foreignField: "product",
-})
-
-
 const shopProductModel = model("ShopProducts", shopProductsSchema);
 
 module.exports = {
     shopProductModel,
-    shopVariantsModel,
 }

@@ -78,12 +78,9 @@ router.get("/product-slug/:slug", async (req, res) => {
       .populate("brend", "name slug")
       .populate({
         path:"product",
-           
       })
       .populate({
-        path:"variants",
-        populate: {
-          path:"attributes",
+        path:"variants.attributes",
           populate: [
               {
                   path:"option",
@@ -94,9 +91,7 @@ router.get("/product-slug/:slug", async (req, res) => {
                   select:["label","option_id"]
 
               },
-             
           ]
-        }
       })
 
       let user_id = req.headers['user'];
@@ -117,7 +112,7 @@ router.get("/product-slug/:slug", async (req, res) => {
       name: product.product.name,
       discription: product.product.discription,
       images: product.product.images,
-      properties: product?.product.properties,
+      properteis: product?.product.properteis,
       rating: product.rating,
       reviews: product.reviews,
       viewsCount: product.viewsCount,

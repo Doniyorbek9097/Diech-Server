@@ -8,6 +8,7 @@ const fs = require("fs");
 const { Base64ToFile } = require("../../utils/base64ToFile");
 const { checkToken } = require("../../middlewares/authMiddleware");
 const { redisClient } = require("../../config/redisDB");
+const { generateOTP } = require("../../utils/otpGenrater");
 
 
 
@@ -18,7 +19,7 @@ router.post("/product-add", checkToken, async (req, res) => {
     try {
         const { parentCategory, subCategory, childCategory } = req.body;
         req.body.categories = [parentCategory, subCategory, childCategory];
-        req.body.slug = slugify(`${req.body.name} ${req.body.slug}`)
+        req.body.slug = slugify(`${req.body.name} ${generateOTP(5)}`)
         req.body.discount = parseInt(((req.body.orginal_price - req.body.sale_price) / req.body.orginal_price) * 100);
         if (isNaN(req.body.discount)) req.body.discount = 0;
 
@@ -71,8 +72,7 @@ router.get("/product-one/:id", checkToken, async (req, res) => {
                 ]
               }   
             })
-            .populate("variants")
-        console.log(product)
+            
         return res.status(200).json(product);
     } catch (error) {
         console.log(error);
