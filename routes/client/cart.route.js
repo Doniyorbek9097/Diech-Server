@@ -67,7 +67,7 @@ router.post("/add-cart", async (req, res) => {
             let product = variant || item.product_id;
             return {
                 product: {
-                    ...product._doc,
+                    ...product,
                     name: item.product_id.product.name,
                     images: product?.images?.length ? product.images : product?.product?.images,
                     product_id: item.product_id._id,
