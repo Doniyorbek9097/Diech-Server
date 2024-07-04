@@ -21,9 +21,11 @@ router.post("/add-cart", async (req, res) => {
 
 
         // Savatchada mahsulotni qidirish va yangilash yoki yangi mahsulot qo'shish
-        let foundProduct = cart.products.find(item =>
-            item.product_id.toString() === product_id && variant_id && item.variant_id.toString() === variant_id
-        );
+        let foundProduct = cart.products.find(item => {
+            if(item) {
+                return  item?.product_id?.toString() === product_id && variant_id && item?.variant_id?.toString() === variant_id
+            }
+        });
 
         if (foundProduct) {
             foundProduct.quantity = quantity;
@@ -112,7 +114,7 @@ router.get("/cart/:id", async (req, res) => {
                         path: "brend",
                         select: "name"
                     },
-                    
+
                     {
                         path: 'variants.attributes.option',
                     },
@@ -123,27 +125,30 @@ router.get("/cart/:id", async (req, res) => {
 
                 ]
             })
-        
-        
+
+
         const products = cart?.products?.flatMap(item => {
             const variant = item.product_id?.variants.find(variant => variant?._id?.toString() == item?.variant_id?.toString())
             let product = variant || item.product_id;
-            return {
-                product: {
-                    ...product.toJSON(),
-                    name: item.product_id.product.name,
-                    images: product?.images?.length ? product.images : product?.product?.images,
-                    product_id: item.product_id._id,
-                    variant_id: item.variant_id
+            if (product) {
+                return {
+                    product: {
+                        ...product?.toJSON(),
+                        name: item.product_id.product.name,
+                        images: product?.images?.length ? product.images : product?.product?.images,
+                        product_id: item.product_id._id,
+                        variant_id: item.variant_id
 
-                },
+                    },
 
-                quantity: item.quantity,
+                    quantity: item.quantity,
+                }
             }
+
         })
 
         const data = {
-            ...cart.toJSON(),
+            ...cart?.toJSON(),
             products
         }
 
