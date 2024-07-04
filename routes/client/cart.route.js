@@ -67,7 +67,7 @@ router.post("/add-cart", async (req, res) => {
             let product = variant || item.product_id;
             return {
                 product: {
-                    ...product,
+                    ...product._doc,
                     name: item.product_id.product.name,
                     images: product?.images?.length ? product.images : product?.product?.images,
                     product_id: item.product_id._id,
@@ -125,7 +125,7 @@ router.get("/cart/:id", async (req, res) => {
             })
         
         
-        const products = cart.products.flatMap(item => {
+        const products = cart?.products?.flatMap(item => {
             const variant = item.product_id?.variants.find(variant => variant?._id?.toString() == item?.variant_id?.toString())
             let product = variant || item.product_id;
             return {
