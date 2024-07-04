@@ -67,7 +67,7 @@ router.post("/add-cart", async (req, res) => {
             let product = variant || item.product_id;
             return {
                 product: {
-                    ...product._doc,
+                    ...product.toJSON(),
                     name: item.product_id.product.name,
                     images: product?.images?.length ? product.images : product?.product?.images,
                     product_id: item.product_id._id,
@@ -80,7 +80,7 @@ router.post("/add-cart", async (req, res) => {
         })
 
         const data = {
-            ...newCart._doc,
+            ...newCart.toJSON(),
             products
         }
 
@@ -130,7 +130,7 @@ router.get("/cart/:id", async (req, res) => {
             let product = variant || item.product_id;
             return {
                 product: {
-                    ...product._doc,
+                    ...product.toJSON(),
                     name: item.product_id.product.name,
                     images: product?.images?.length ? product.images : product?.product?.images,
                     product_id: item.product_id._id,
@@ -143,7 +143,7 @@ router.get("/cart/:id", async (req, res) => {
         })
 
         const data = {
-            ...cart._doc,
+            ...cart.toJSON(),
             products
         }
 
