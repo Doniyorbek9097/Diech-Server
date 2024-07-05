@@ -1,4 +1,5 @@
 const { Schema, model } = require("mongoose");
+const { shopProductModel } = require("./shop.products.model")
 
 const reviewSchema = Schema(
     {
@@ -184,6 +185,25 @@ productSchema.virtual("attributes", {
     localField: "_id",
     foreignField: "product_id"
 })
+
+
+
+
+const deleteShopProducts = async function(next) {
+    try {
+        const doc = await this.model.findOne(this.getFilter());
+        if (doc) {
+            await shopProductModel.deleteMany({ product: doc._id });
+        }
+        next();
+    } catch (err) {
+        next(err);
+    }
+};
+
+productSchema.pre('findOneAndDelete', deleteShopProducts);
+productSchema.pre('findByIdAndDelete', deleteShopProducts);
+
 
 
 const productModel = model("Product", productSchema);
