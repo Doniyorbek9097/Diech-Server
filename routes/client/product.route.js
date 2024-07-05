@@ -102,7 +102,7 @@ router.get("/product-slug/:slug", async (req, res) => {
 
     // const variant = product.variants.find(item => item.sku.toLowerCase() == sku.toLowerCase());
 
-    const products = await shopProductModel.find({ name: product.name, slug: { $ne: product.slug } })
+    const products = await shopProductModel.find({ product: product.product._id, slug: { $ne: product.slug } })
       .populate('shop', 'name slug')
       .select('name slug discount orginal_price sale_price reviews')
 

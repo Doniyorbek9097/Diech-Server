@@ -201,8 +201,24 @@ const deleteShopProducts = async function(next) {
     }
 };
 
+
 productSchema.pre('findOneAndDelete', deleteShopProducts);
 productSchema.pre('findByIdAndDelete', deleteShopProducts);
+
+const deleteAttributes = async function(next) {
+    try {
+        const doc = await this.model.findOne(this.getFilter());
+        if (doc) {
+            await attributeModel.deleteMany({ product_id: doc._id });
+        }
+        next();
+    } catch (err) {
+        next(err);
+    }
+};
+
+productSchema.pre('findOneAndDelete', deleteAttributes);
+productSchema.pre('findByIdAndDelete', deleteAttributes);
 
 
 

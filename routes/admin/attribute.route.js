@@ -18,7 +18,6 @@ router.get("/get-product-attribute/:id", async(req, res) => {
         })
 
         product.attributes = product.attributes.map(attr => {
-            // console.log(attr);
             return {
                 _id: attr.option._id,
                 label: attr.option.label,
@@ -58,3 +57,23 @@ router.post("/add-attribute", async(req, res) => {
 
 
 module.exports = router
+
+
+const categories = [{
+    label:"A",
+    options: [{
+        label:"B",
+        options: [{
+            label:"D",
+            options: [{
+                label:"Z",
+                options:[{
+                    label:"X",
+                    options:[{
+                        label:"V"
+                    }]
+                }]
+            }]
+        }]
+    }]
+}]
