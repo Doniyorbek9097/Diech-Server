@@ -15,6 +15,8 @@ const { shopProductModel } = require("../../models/shop.products.model");
 // Get prent all category
 router.get("/categories", async (req, res) => {
     try {
+        let page = parseInt(req.query?.page) - 1 || 0;
+        let limit = parseInt(req.query?.limit) || 8;
         let search = req.query?.search || "";
         const {lang = ""} = req.headers;
 
@@ -61,15 +63,6 @@ router.get("/categories", async (req, res) => {
 
 
         redisClient.SETEX(cacheKey, 3600, JSON.stringify(data))
-
-        
-        const page = parseInt(req.query.page) || 1;
-        const limit = 5;  // Har bir sahifada nechta element ko'rsatilishini belgilang
-        const start = (page - 1) * limit;
-        const end = page * limit - 1;
-
-        cacheData =  redisClient.lRange(cacheKey, start, end)
-        return res.json(cacheData);
         return res.status(200).json(data);
 
     } catch (err) {
@@ -112,11 +105,13 @@ router.get("/category-all", async (req, res) => {
 router.get("/category-slug/:slug", async (req, res) => {
     try {
         let {slug = ""} = req.params;
+        let page = parseInt(req.query?.page) - 1 || 0;
+        let limit = parseInt(req.query?.limit) || 8;
         let {search = ""} = req.query;
         const {lang = ""} = req.headers;
 
         const cacheKey = `category-slug:${lang}:${slug}:${page}:${limit}:${search}`;
-        let cacheData = await redisClient.get(cacheKey)
+        const cacheData = await redisClient.get(cacheKey)
         if(cacheData) return res.json(JSON.parse(cacheData))
 
         let category = await categoryModel.findOne({ slug })
@@ -187,15 +182,7 @@ router.get("/category-slug/:slug", async (req, res) => {
         }
 
         redisClient.SETEX(cacheKey, 3600, JSON.stringify(data))
-
-
-        const page = parseInt(req.query.page) || 1;
-        const limit = 5;  // Har bir sahifada nechta element ko'rsatilishini belgilang
-        const start = (page - 1) * limit;
-        const end = page * limit - 1;
-
-        cacheData =  redisClient.lRange("items", start, end)
-        return res.json(cacheData);
+        return res.json(data);
 
     } catch (error) {
         if (error) {
