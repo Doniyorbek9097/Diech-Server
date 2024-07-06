@@ -15,61 +15,50 @@ const { shopProductModel } = require("../../models/shop.products.model");
 // Get prent all category
 router.get("/categories", async (req, res) => {
     try {
-        let page = parseInt(req.query?.page) - 1 || 0;
-        let limit = parseInt(req.query?.limit) || 8;
-        let search = req.query?.search || "";
-        const {lang = ""} = req.headers;
+        const page = Math.max(0, parseInt(req.query.page) - 1 || 0);
+        const limit = parseInt(req.query.limit, 10) || 8;
+        const search = req.query.search || "";
+        const { lang = "" } = req.headers;
 
         const cacheKey = `categories:${lang}:${page}:${limit}:${search}`;
-        const cacheData = await redisClient.get(cacheKey)
-        if(cacheData) return res.json(JSON.parse(cacheData))
-            
-        let categories = await categoryModel.find({ parent: undefined })
+        const cacheData = await redisClient.get(cacheKey);
+        if (cacheData) {
+            return res.json(JSON.parse(cacheData));
+        }
+
+        const categories = await categoryModel.find({ parent: undefined })
             .populate({
                 path: "children",
-                populate: {
-                    path: "children"
-                }
+                populate: { path: "children" }
             })
             .populate({
                 path: "parent",
-                populate: {
-                    path: "parent"
-                }
+                populate: { path: "parent" }
             })
-
             .populate({
                 path: "shop_products",
-                select: ['name', 'slug', 'images', 'orginal_price', 'sale_price','discount','reviews', 'rating', 'viewsCount', 'attributes'],
+                select: ['name', 'slug', 'images', 'orginal_price', 'sale_price', 'discount', 'reviews', 'rating', 'viewsCount', 'attributes'],
+                options: { limit, skip: page * limit }, // Apply pagination to shop_products
                 populate: [
-                    {
-                        path:"product",
-                        select: ['name','slug','images'],
-                    },
-                    {
-                        path:"shop",
-                        select: ['name', 'slug']
-                    }
+                    { path: "product", select: ['name', 'slug', 'images'] },
+                    { path: "shop", select: ['name', 'slug'] }
                 ]
-            })
+            });
 
-        const products = categories.flatMap(cate => cate.shop_products);
-        const data = {
-            totalPage: Math.ceil(products.length / limit),
-            page: page + 1,
-            limit,
-            categories
-        }
+        const totalProducts = categories.reduce((acc, cate) => acc + cate.shop_products.length, 0);
+        const totalPage = Math.ceil(totalProducts / limit);
+        const data = { totalPage, page: page + 1, limit, categories };
 
+        redisClient.SETEX(cacheKey, 3600, JSON.stringify(data));
 
-        redisClient.SETEX(cacheKey, 3600, JSON.stringify(data))
         return res.status(200).json(data);
-
     } catch (err) {
-            console.log(err)
-            res.status(500).json("server ishlamayapti")
+        console.error(err);
+        res.status(500).json({ message: "Server is not working" });
     }
 });
+
+
 
 
 
