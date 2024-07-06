@@ -105,13 +105,11 @@ router.get("/category-all", async (req, res) => {
 router.get("/category-slug/:slug", async (req, res) => {
     try {
         let {slug = ""} = req.params;
-        let page = parseInt(req.query?.page) - 1 || 0;
-        let limit = parseInt(req.query?.limit) || 8;
         let {search = ""} = req.query;
         const {lang = ""} = req.headers;
 
         const cacheKey = `category-slug:${lang}:${slug}:${page}:${limit}:${search}`;
-        const cacheData = await redisClient.get(cacheKey)
+        let cacheData = await redisClient.get(cacheKey)
         if(cacheData) return res.json(JSON.parse(cacheData))
 
         let category = await categoryModel.findOne({ slug })
@@ -182,7 +180,15 @@ router.get("/category-slug/:slug", async (req, res) => {
         }
 
         redisClient.SETEX(cacheKey, 3600, JSON.stringify(data))
-        return res.json(data);
+
+
+        const page = parseInt(req.query.page) || 1;
+        const limit = 5;  // Har bir sahifada nechta element ko'rsatilishini belgilang
+        const start = (page - 1) * limit;
+        const end = page * limit - 1;
+
+        cacheData =  redisClient.lRange("items", start, end)
+        return res.json(cacheData);
 
     } catch (error) {
         if (error) {
