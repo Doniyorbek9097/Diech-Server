@@ -2,6 +2,7 @@ const http = require("http");
 const fs = require('fs')
 const path = require("path")
 const express = require("express");
+const cookieParser = require('cookie-parser');
 const { Server } = require('socket.io');
 const cors = require("cors");
 var bodyParser = require('body-parser');
@@ -23,11 +24,23 @@ const io = new Server(server, {
     }
 })
 
-app.use(cors());
+
+const corsOptions = {
+    origin: process.env.BASE_URL || 'http://localhost:3000', // frontend domeningizni kiriting
+    credentials: true // cookie'larni ruxsat berish
+};
+
+app.use(cors(corsOptions));
+
 app.use(bodyParser.json({limit: '100mb'}));
 app.use(bodyParser.urlencoded({limit: '100mb', extended: true}));
+app.use(cookieParser())
+
 const baseDir = process.env.NODE_ENV === 'production' ? "../../../../mnt/data/uploads" : "./uploads";
 app.use("/uploads", express.static(baseDir));
+
+
+
 app.use("/", (req, res, next) => {
     const lang = req.headers['lang']
     if(lang) mongoose.setDefaultLanguage(lang);

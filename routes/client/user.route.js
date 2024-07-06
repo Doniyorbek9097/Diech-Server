@@ -71,11 +71,8 @@ router.post("/signup/verify", async (req, res) => {
             const result = await user.save();
 
             const deleteOtp = await otpModel.deleteMany({ phone_number: lastOtpFind.phone_number });
-            return res.json({
-                message: "Success",
-                token: token,
-                data: result
-            })
+            res.cookie('token', token, { httpOnly: true, secure: true });
+            return res.json({ message: "Success", data: result})
         }
 
 

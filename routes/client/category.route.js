@@ -27,18 +27,18 @@ router.get("/categories", async (req, res) => {
         }
 
         const categories = await categoryModel.find({ parent: undefined })
-        .populate({
-            path: "children",
-            populate: {
-                path: "children"
-            }
-        })
-        .populate({
-            path: "parent",
-            populate: {
-                path: "parent"
-            }
-        })
+            .populate({
+                path: "children",
+                populate: {
+                    path: "children"
+                }
+            })
+            .populate({
+                path: "parent",
+                populate: {
+                    path: "parent"
+                }
+            })
             .populate({
                 path: "shop_products",
                 select: ['name', 'slug', 'images', 'orginal_price', 'sale_price', 'discount', 'reviews', 'rating', 'viewsCount', 'attributes'],

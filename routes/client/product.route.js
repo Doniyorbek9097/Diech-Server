@@ -8,7 +8,7 @@ const fs = require("fs");
 const { Base64ToFile } = require("../../utils/base64ToFile");
 const { redisClient } = require("../../config/redisDB");
 const { shopProductModel } = require("../../models/shop.products.model");
-const { populate } = require("../../models/user.model");
+const { checkToken } = require("../../middlewares/authMiddleware")
 
 
 // get all products 
@@ -55,7 +55,7 @@ router.get("/products", async (req, res) => {
 
 
 // one product by slug
-router.get("/product-slug/:slug", async (req, res) => {
+router.get("/product-slug/:slug", checkToken, async (req, res) => {
   const {sku = ''} = req.query;
   const {slug = '' } = req.params;
   const {lang = ''} = req.headers;
