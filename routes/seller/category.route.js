@@ -29,6 +29,13 @@ router.get("/category-all", async (req, res) => {
                 },
             })
 
+            .populate({
+                path: "parent",
+                populate: {
+                    path: "parent"
+                }
+            })
+
 
         return res.status(200).json({
             // totalPage: Math.ceil(products.length / limit),
