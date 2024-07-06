@@ -25,16 +25,16 @@ const io = new Server(server, {
 })
 
 
-const corsOptions = {
-    origin: process.env.BASE_URL || 'http://localhost:3000', // frontend domeningizni kiriting
-    credentials: true // cookie'larni ruxsat berish
-};
+// const corsOptions = {
+//     origin: process.env.BASE_URL || 'http://localhost:3000', // frontend domeningizni kiriting
+//     credentials: true // cookie'larni ruxsat berish
+// };
 
-app.use(cors(corsOptions));
+app.use(cors());
 
 app.use(bodyParser.json({limit: '100mb'}));
 app.use(bodyParser.urlencoded({limit: '100mb', extended: true}));
-app.use(cookieParser())
+// app.use(cookieParser())
 
 const baseDir = process.env.NODE_ENV === 'production' ? "../../../../mnt/data/uploads" : "./uploads";
 app.use("/uploads", express.static(baseDir));
