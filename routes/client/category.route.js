@@ -15,7 +15,7 @@ const { shopProductModel } = require("../../models/shop.products.model");
 // Get prent all category
 router.get("/categories", async (req, res) => {
     try {
-        const page = Math.max(0, parseInt(req.query.page) - 1 || 0);
+        const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
         const limit = parseInt(req.query.limit, 10) || 8;
         const search = req.query.search || "";
         const { lang = "" } = req.headers;
@@ -27,14 +27,18 @@ router.get("/categories", async (req, res) => {
         }
 
         const categories = await categoryModel.find({ parent: undefined })
-            .populate({
-                path: "children",
-                populate: { path: "children" }
-            })
-            .populate({
-                path: "parent",
-                populate: { path: "parent" }
-            })
+        .populate({
+            path: "children",
+            populate: {
+                path: "children"
+            }
+        })
+        .populate({
+            path: "parent",
+            populate: {
+                path: "parent"
+            }
+        })
             .populate({
                 path: "shop_products",
                 select: ['name', 'slug', 'images', 'orginal_price', 'sale_price', 'discount', 'reviews', 'rating', 'viewsCount', 'attributes'],
