@@ -64,6 +64,8 @@ router.get("/product-slug/:slug", async (req, res) => {
   const cacheData = await redisClient.get(cacheKey)
   if (cacheData) return res.json(JSON.parse(cacheData))
 
+  const search = req.query.search || "";
+
   try {
     let product = await shopProductModel.findOne({ slug })
       .populate({

@@ -94,7 +94,10 @@ const productSchema = Schema({
         type: Schema.Types.ObjectId,
         ref: "Category"
     }],
-
+    
+    keywords: [],
+    barcode: String,
+    
     parentCategory: {
         type: Schema.Types.ObjectId,
         ref: "Category"

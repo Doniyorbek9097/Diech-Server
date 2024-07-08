@@ -25,16 +25,27 @@ const io = new Server(server, {
 })
 
 
-// const corsOptions = {
-//     origin: process.env.BASE_URL || 'http://localhost:3000', // frontend domeningizni kiriting
-//     credentials: true // cookie'larni ruxsat berish
-// };
+
+const allowedOrigins = ['http://frontend1.com', 'http://frontend2.com', 'http://frontend3.com'];
+
+const corsOptions = {
+    origin: function (origin, callback) {
+        // Agar so'rovning origin qiymati ruxsat berilgan domenlardan biri bo'lsa, uni qabul qilamiz
+        if (allowedOrigins.includes(origin) || !origin) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true // cookie'larni ruxsat berish
+};
+
 
 app.use(cors());
 
 app.use(bodyParser.json({limit: '100mb'}));
 app.use(bodyParser.urlencoded({limit: '100mb', extended: true}));
-// app.use(cookieParser())
+app.use(cookieParser())
 
 const baseDir = process.env.NODE_ENV === 'production' ? "../../../../mnt/data/uploads" : "./uploads";
 app.use("/uploads", express.static(baseDir));
