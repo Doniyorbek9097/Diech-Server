@@ -86,7 +86,7 @@ async function populateChildren(doc) {
         await doc.populate('children');
         if (doc.children.length) {
             for (let child of doc.children) {
-                await populateChildren(child);
+               return await populateChildren(child);
             }
         }
     } catch (error) {
