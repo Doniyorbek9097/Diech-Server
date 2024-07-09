@@ -83,7 +83,7 @@ categorySchema.virtual("shop_products", {
 // Rekursiv bolalar yuklash funksiyasi
 async function populateChildren(doc) {
     try {
-        await doc.populate('children').execPopulate();
+        await doc.populate('children');
         if (doc.children.length) {
             for (let child of doc.children) {
                 await populateChildren(child);
