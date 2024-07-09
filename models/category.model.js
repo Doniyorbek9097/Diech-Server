@@ -112,6 +112,7 @@ categorySchema.post(['find', 'findOne', 'findById'], async function(docs, next) 
     }
 });
 
+
 const categoryModel = model("Category", categorySchema);
 
 module.exports = {
