@@ -27,22 +27,6 @@ router.get("/categories", async (req, res) => {
         }
 
         const categories = await categoryModel.find({ parent: undefined })
-        .populate({
-            path:"children",
-            populate: {
-                path:"children",
-                populate: {
-                    path:"children",
-                    populate: {
-                        path:"children",
-                        populate: {
-                            path:"children"
-                        }
-                    }
-                }
-            }
-        })
-        
             .populate({
                 path: "parent",
                 populate: {

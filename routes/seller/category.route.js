@@ -17,25 +17,6 @@ router.get("/category-all", async (req, res) => {
 
         let categories = await categoryModel.find()
             .populate({
-                path: "children",
-                populate: {
-                    path: "children",
-                    populate: {
-                        path: "children",
-                        populate: {
-                            path: "children",
-                            populate: {
-                                path: "products",
-                                populate: {
-                                    path: "brend"
-                                }
-                            },
-                        }
-                    }
-                },
-            })
-
-            .populate({
                 path: "parent",
                 populate: {
                     path: "parent"

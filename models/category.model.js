@@ -14,27 +14,6 @@ const categorySchema = new Schema({
     icon: String,
     image: String,
 
-    left_banner: {
-        image: {
-            type: String,
-            intl: true,
-        },
-        slug: {
-            type: String
-        }
-    },
-
-    top_banner: {
-        image: {
-            type: String,
-            intl: true,
-        },
-        slug: {
-            type: String
-        }
-    },
-
-
     parent: {
         ref: "Category",
         type: Schema.Types.ObjectId,
@@ -66,18 +45,10 @@ categorySchema.virtual("children", {
     foreignField: "parent",
 })
 
-categorySchema.virtual("products", {
-    ref: "Product",
-    localField: "_id",
-    foreignField: "categories",
-})
-
-categorySchema.virtual("shop_products", {
-    ref: "ShopProducts",
-    localField: "_id",
-    foreignField: "categories",
-})
-
+categorySchema.pre(['find','findOne','findById'], function(next) {
+    this.populate("children");
+    next();
+});
 
 
 const categoryModel = model("Category", categorySchema);

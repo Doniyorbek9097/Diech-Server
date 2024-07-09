@@ -45,23 +45,6 @@ router.get("/category-all", async (req, res) => {
         let search = req.query.search || "";
 
         let categories = await categoryModel.find({ parent: undefined })
-        .populate({
-            path:"children",
-            populate: {
-                path:"children",
-                populate: {
-                    path:"children",
-                    populate: {
-                        path:"children",
-                        populate: {
-                            path:"children"
-                        }
-                    }
-                }
-            }
-        })
-        
-            
         const products = categories.flatMap(cate => cate.products);
 
         return res.status(200).json({
