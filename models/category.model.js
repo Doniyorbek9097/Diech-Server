@@ -98,6 +98,7 @@ async function populateChildren(doc) {
 // Middleware
 categorySchema.post(['find', 'findOne', 'findById'], async function(docs, next) {
     try {
+        console.log(docs)
         if (Array.isArray(docs)) {
             for (let doc of docs) {
                 await populateChildren(doc);
