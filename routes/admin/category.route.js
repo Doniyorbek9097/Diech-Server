@@ -37,7 +37,7 @@ router.post("/category-add", checkToken, async (req, res) => {
 
 
 // Get all category
-router.get("/category-all", checkToken, async (req, res) => {
+router.get("/category-all", async (req, res) => {
     try {
 
         let page = parseInt(req.query.page) - 1 || 0;

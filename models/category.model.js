@@ -83,19 +83,20 @@ categorySchema.virtual("shop_products", {
 // Rekursiv bolalar yuklash funksiyasi
 async function populateChildren(doc) {
     try {
-        await doc.populate('children');
+        await doc.populate('children').execPopulate();
         if (doc.children.length) {
             for (let child of doc.children) {
                 await populateChildren(child);
             }
         }
     } catch (error) {
-        console.log(error)
+        console.error('Error in populateChildren:', error);
+        throw error; // Xatoni qaytarib berish
     }
 }
 
 // Middleware
-categorySchema.post(['find', 'findOne', 'findById'], async function (docs) {
+categorySchema.post(['find', 'findOne', 'findById'], async function(docs, next) {
     try {
         if (Array.isArray(docs)) {
             for (let doc of docs) {
@@ -104,8 +105,10 @@ categorySchema.post(['find', 'findOne', 'findById'], async function (docs) {
         } else {
             await populateChildren(docs);
         }
+        next(); // Keyingi middleware yoki operatsiyaga o'tish
     } catch (error) {
-        console.log(error)
+        console.error('Error in middleware:', error);
+        next(error); // Xatoni next orqali yuborish
     }
 });
 
