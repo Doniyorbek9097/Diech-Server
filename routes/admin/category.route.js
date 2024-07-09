@@ -44,7 +44,7 @@ router.get("/category-all", async (req, res) => {
         let limit = parseInt(req.query.limit) || 1;
         let search = req.query.search || "";
 
-        let categories = await categoryModel.find({ parent: undefined })
+        let categories = await categoryModel.find({ parent: undefined }).populate('children')
         
             
         const products = categories.flatMap(cate => cate.products);
