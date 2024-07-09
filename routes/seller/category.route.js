@@ -15,7 +15,7 @@ const { productModel } = require("../../models/product.model");
 router.get("/category-all", async (req, res) => {
     try {
 
-        let categories = await categoryModel.find()
+        let categories = await categoryModel.find({ parent: undefined })
             .populate({
                 path: "parent",
                 populate: {
@@ -39,6 +39,18 @@ router.get("/category-all", async (req, res) => {
 });
 
 
+router.get("/category-one/:id", async (req,res) => {
+    const { id } = req.params;
+    let category = await categoryModel.findById(id)
+    .populate({
+        path:"products",
+        populate: {
+            path:"brend"
+        }
+    })
+    
+    return res.json(category)
+})
 
 
 module.exports = router;

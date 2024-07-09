@@ -17,9 +17,7 @@ router.post("/product-add", checkToken, async (req, res) => {
     redisClient.FLUSHALL()
 
     try {
-        const { parentCategory, subCategory, childCategory } = req.body;
-        req.body.categories = [parentCategory, subCategory, childCategory];
-        req.body.slug = slugify(`${req.body.name} ${generateOTP(20)}`)
+        req.body.slug = slugify(`${generateOTP(20)}`)
         req.body.discount = parseInt(((req.body.orginal_price - req.body.sale_price) / req.body.orginal_price) * 100);
         if (isNaN(req.body.discount)) req.body.discount = 0;
 
