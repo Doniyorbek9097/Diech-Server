@@ -21,11 +21,17 @@ router.get("/category-all", async (req, res) => {
                 populate: {
                     path: "children",
                     populate: {
-                        path: "products",
+                        path: "children",
                         populate: {
-                            path: "brend"
+                            path: "children",
+                            populate: {
+                                path: "products",
+                                populate: {
+                                    path: "brend"
+                                }
+                            },
                         }
-                    },
+                    }
                 },
             })
 
