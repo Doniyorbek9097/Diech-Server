@@ -64,10 +64,11 @@ router.get("/product-slug/:slug", async (req, res) => {
   const cacheData = await redisClient.get(cacheKey)
   if (cacheData) return res.json(JSON.parse(cacheData))
 
-  const search = req.query.search || "";
+  const searchTerms = req.query.search?.split(",") || [];
+const regexTerms = searchTerms.map(term => new RegExp(term, 'i'));
 
   try {
-    let product = await shopProductModel.findOne({ slug })
+    let product = await shopProductModel.findOne({ slug, keywords:{ $in: searchTerms } })
       .populate({
         path: "categories",
         select: ['name', 'slug'],
@@ -80,6 +81,7 @@ router.get("/product-slug/:slug", async (req, res) => {
       .populate("brend", "name slug")
       .populate({
         path:"product",
+        
       })
       .populate({
         path:"variants.attributes",
@@ -95,6 +97,8 @@ router.get("/product-slug/:slug", async (req, res) => {
               },
           ]
       })
+
+    console.log(product);
 
       let user_id = req.headers['user'];
     user_id = (user_id === "null") ? null : (user_id === "undefined") ? undefined : user_id;

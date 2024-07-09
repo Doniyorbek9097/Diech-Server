@@ -80,6 +80,27 @@ categorySchema.virtual("shop_products", {
 
 
 
+  // Rekursiv bolalar yuklash funksiyasi
+async function populateChildren(doc) {
+    await doc.populate('children');
+    if (doc.children.length) {
+      for (let child of doc.children) {
+        await populateChildren(child);
+      }
+    }
+  }
+
+// Middleware
+categorySchema.post(['find', 'findOne'], async function(docs) {
+    if (Array.isArray(docs)) {
+      for (let doc of docs) {
+        await populateChildren(doc);
+      }
+    } else {
+      await populateChildren(docs);
+    }
+  });
+
 const categoryModel = model("Category", categorySchema);
 
 module.exports = {

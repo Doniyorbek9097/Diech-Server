@@ -37,7 +37,7 @@ router.post("/category-add", checkToken, async (req, res) => {
 
 
 // Get all category
-router.get("/category-all", checkToken, async (req, res) => {
+router.get("/category-all", async (req, res) => {
     try {
 
         let page = parseInt(req.query.page) - 1 || 0;
@@ -45,21 +45,7 @@ router.get("/category-all", checkToken, async (req, res) => {
         let search = req.query.search || "";
 
         let categories = await categoryModel.find({ parent: undefined })
-            .populate({
-                path: "children",
-                populate: {
-                    path: "children"
-                }
-            })
-            .populate({
-                path: "parent",
-                populate: {
-                    path: "parent"
-                }
-            })
-
             
-
         const products = categories.flatMap(cate => cate.products);
 
         return res.status(200).json({
