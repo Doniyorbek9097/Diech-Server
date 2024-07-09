@@ -45,6 +45,8 @@ router.get("/category-all", async (req, res) => {
         let search = req.query.search || "";
 
         let categories = await categoryModel.find({ parent: undefined })
+        .populate("products")
+
         const products = categories.flatMap(cate => cate.products);
 
         return res.status(200).json({
@@ -73,13 +75,8 @@ router.get("/category-one/:id", checkToken, async (req, res) => {
         }
 
         let category = await categoryModel.findById(req.params.id)
-        .populate({
-            path: "children",
-            populate: {
-                path: "children"
-            }
-        })
-
+        .populate("products")
+        
         if (!category) return res.status(404).send("Category topilmadi");
         return res.status(200).json(category);
 

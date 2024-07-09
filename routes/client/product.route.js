@@ -68,7 +68,7 @@ router.get("/product-slug/:slug", async (req, res) => {
 const regexTerms = searchTerms.map(term => new RegExp(term, 'i'));
 
   try {
-    let product = await shopProductModel.findOne({ slug, keywords:{ $in: searchTerms } })
+    let product = await shopProductModel.findOne({ slug })
       .populate({
         path: "categories",
         select: ['name', 'slug'],

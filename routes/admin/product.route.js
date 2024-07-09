@@ -108,7 +108,7 @@ router.get("/product-all", checkToken, async (req, res) => {
 // one product by id 
 router.get("/product-one/:id", checkToken, async (req, res) => {
     try {
-        let product = await productModel.findOne({ _id: req.params.id })
+        let product = await productModel.findOne({ _id: req.params.id }).populate("categories")
         return res.status(200).json(product.toObject());
     } catch (error) {
         console.log(error);
