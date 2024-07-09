@@ -23,7 +23,7 @@ const categorySchema = new Schema({
             type: String
         }
     },
-    
+
     top_banner: {
         image: {
             type: String,
@@ -47,9 +47,9 @@ const categorySchema = new Schema({
     },
 
     type: {
-        type:String,
-        enum:["category"],
-        default:"category"
+        type: String,
+        enum: ["category"],
+        default: "category"
     }
 },
     {
@@ -80,26 +80,34 @@ categorySchema.virtual("shop_products", {
 
 
 
-  // Rekursiv bolalar yuklash funksiyasi
+// Rekursiv bolalar yuklash funksiyasi
 async function populateChildren(doc) {
-    await doc.populate('children');
-    if (doc.children.length) {
-      for (let child of doc.children) {
-        await populateChildren(child);
-      }
+    try {
+        await doc.populate('children');
+        if (doc.children.length) {
+            for (let child of doc.children) {
+                await populateChildren(child);
+            }
+        }
+    } catch (error) {
+        console.log(error)
     }
-  }
+}
 
 // Middleware
-categorySchema.post(['find', 'findOne','findById'], async function(docs) {
-    if (Array.isArray(docs)) {
-      for (let doc of docs) {
-        await populateChildren(doc);
-      }
-    } else {
-      await populateChildren(docs);
+categorySchema.post(['find', 'findOne', 'findById'], async function (docs) {
+    try {
+        if (Array.isArray(docs)) {
+            for (let doc of docs) {
+                await populateChildren(doc);
+            }
+        } else {
+            await populateChildren(docs);
+        }
+    } catch (error) {
+        console.log(error)
     }
-  });
+});
 
 const categoryModel = model("Category", categorySchema);
 
