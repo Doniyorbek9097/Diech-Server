@@ -16,6 +16,18 @@ const { generateOTP } = require("../../utils/otpGenrater");
 router.post("/product-add", checkToken, async (req, res) => {
     redisClient.FLUSHALL()
     try {
+        const {body: product} = req; 
+        const products = await shopProductModel.find().populate("product");
+        if(product?.barcode) {
+            const existsProduct = products.find(item => item.product.barcode == product?.barcode)
+            if (existsProduct) {
+                return res.json({
+                    message: "Bunday mahsulot mavjud!"
+                })
+            }    
+        }
+        
+        
         req.body.slug = slugify(`${generateOTP(20)}`)
         req.body.discount = parseInt(((req.body.orginal_price - req.body.sale_price) / req.body.orginal_price) * 100);
         if (isNaN(req.body.discount)) req.body.discount = 0;
