@@ -15,7 +15,6 @@ const { generateOTP } = require("../../utils/otpGenrater");
 // create new Product 
 router.post("/product-add", checkToken, async (req, res) => {
     redisClient.FLUSHALL()
-
     try {
         req.body.slug = slugify(`${generateOTP(20)}`)
         req.body.discount = parseInt(((req.body.orginal_price - req.body.sale_price) / req.body.orginal_price) * 100);
@@ -31,20 +30,17 @@ router.post("/product-add", checkToken, async (req, res) => {
 });
 
 // get all products 
-router.get("/product-all", async (req, res) => {
+router.get("/product-all/:shop_id", async (req, res) => {
     try {
-        const { category_id, brend_id } = req.query;
-        let query = {};
-        if (category_id) query.categories = { $in: [category_id] };
-        if (brend_id) query.brend = brend_id;
-        let products = await productModel.find(query)
-        if (products.length) return res.json(products);
-        return res.json([])
+        const { shop_id } = req.params;
+        let products = await shopProductModel.find({shop: shop_id})
+        .populate("product")
+        res.json(products);
+
     } catch (error) {
         console.log(error)
     }
 });
-
 
 
 
