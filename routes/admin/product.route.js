@@ -51,18 +51,22 @@ router.put("/upload/:id", upload.array('images', 10), async (req, res) => {
 router.post("/product-add", checkToken, async (req, res) => {
     await redisClient.FLUSHALL()
     const { body: product } = req;
+
     product.slug = slugify(`${product.name.ru.toLowerCase()}`)
 
     try {
-        const existsProduct = await productModel.findOne({ slug: product.slug })
+        const existsProduct = await productModel.findOne({ barcode: product.barcode })
         if (existsProduct) {
             return res.json({
-                message: "Bunday product mavjud!"
+                message: "Bunday mahsulot mavjud!"
             })
         }
 
         let newProduct = await new productModel(product).save();
-        return res.status(200).json(newProduct);
+        return res.json({
+            data: newProduct,
+            message:"success added"
+        });
 
     } catch (error) {
         console.log(error);
