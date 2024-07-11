@@ -55,17 +55,20 @@ router.post("/product-add", checkToken, async (req, res) => {
     product.slug = slugify(`${product.name.ru.toLowerCase()}`)
 
     try {
-        const existsProduct = await productModel.findOne({ barcode: product.barcode })
-        if (existsProduct) {
-            return res.json({
-                message: "Bunday mahsulot mavjud!"
-            })
+        if (product.barcode) {
+            const existsProduct = await productModel.findOne({ barcode: product.barcode })
+            if (existsProduct) {
+                return res.json({
+                    message: "Bunday mahsulot mavjud!"
+                })
+            }
         }
+
 
         let newProduct = await new productModel(product).save();
         return res.json({
             data: newProduct,
-            message:"success added"
+            message: "success added"
         });
 
     } catch (error) {
@@ -180,7 +183,7 @@ router.put("/product-edit/:id", checkToken, async (req, res) => {
 router.delete("/product-delete/:id", checkToken, async (req, res) => {
     try {
         redisClient.FLUSHALL()
-        const deleted = await productModel.findOneAndDelete({_id: req.params.id});
+        const deleted = await productModel.findOneAndDelete({ _id: req.params.id });
         const { images } = deleted;
 
         (images.length > 0) && images.forEach(item => {

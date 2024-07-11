@@ -16,23 +16,18 @@ const { generateOTP } = require("../../utils/otpGenrater");
 router.post("/product-add", checkToken, async (req, res) => {
     redisClient.FLUSHALL()
     try {
-        const {body: product} = req; 
-        const products = await shopProductModel.find().populate("product");
-        if(product?.barcode) {
-            const existsProduct = products.find(item => item.product.barcode == product?.barcode)
-            if (existsProduct) {
-                return res.json({
-                    message: "Bunday mahsulot mavjud!"
-                })
-            }    
+        const {body: products} = req; 
+
+        if (Array.isArray(products)) {
+            for (const product of products) {
+                product.slug = slugify(`${generateOTP(20)}`)
+                product.discount = parseInt(((product.orginal_price - product.sale_price) / product.orginal_price) * 100);
+                if (isNaN(product.discount)) product.discount = 0;
+            }
         }
         
-        
-        req.body.slug = slugify(`${generateOTP(20)}`)
-        req.body.discount = parseInt(((req.body.orginal_price - req.body.sale_price) / req.body.orginal_price) * 100);
-        if (isNaN(req.body.discount)) req.body.discount = 0;
 
-        const newProduct = await new shopProductModel(req.body).save();
+        const newProduct = await shopProductModel.insertMany(products)
         return res.status(200).json(newProduct);
 
     } catch (error) {
@@ -42,11 +37,38 @@ router.post("/product-add", checkToken, async (req, res) => {
 });
 
 // get all products 
-router.get("/product-all/:shop_id", async (req, res) => {
+router.get("/product-all", async (req, res) => {
     try {
-        const { shop_id } = req.params;
+        const { shop_id } = req.query;
         let products = await shopProductModel.find({shop: shop_id})
         .populate("product")
+
+        res.json(products);
+
+    } catch (error) {
+        console.log(error)
+    }
+});
+
+
+// get all products 
+router.get("/custom-products", async (req, res) => {
+    try {
+        const { search } = req.query;
+        let query = {};
+        if (search) {
+            query = {
+                $or: [
+                    { 'name.uz': { $regex: search, $options: "i" } }, // name maydoni bo'yicha qidirish
+                    { 'name.ru': { $regex: search, $options: "i" } }, // name maydoni bo'yicha qidirish
+                    { 'barcode': { $regex: search, $options: "i" } },
+                    { 'keywords': { $regex: search, $options: "i" } }, // keywords maydoni bo'yicha qidirish
+                ]
+            };
+        }
+
+        let products = await productModel.find(query)
+        .limit(5)
         res.json(products);
 
     } catch (error) {
