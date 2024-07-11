@@ -39,6 +39,7 @@ router.get("/products", async (req, res) => {
     const cacheKey = `product:${lang}:${search}`;
     const cacheData = await redisClient.get(cacheKey)
     if (cacheData) return res.json(JSON.parse(cacheData))
+      
     let products = await shopProductModel.find(query)
       .select('name slug images orginal_price sale_price discount reviews rating viewsCount attributes variants')
       .populate({

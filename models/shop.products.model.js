@@ -82,7 +82,8 @@ const shopProductsSchema = Schema({
     orginal_price: Number,
     sale_price: Number,
     inStock: Number,
- 
+    keywords: [],
+    barcode: String,
     categories: [{
         type: Schema.Types.ObjectId,
         ref: "Category",
