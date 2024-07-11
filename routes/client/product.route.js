@@ -30,8 +30,6 @@ router.get("/products", async (req, res) => {
     if (search) {
         query = {
             $or: [
-                { 'name.uz': { $regex: search, $options: "i" } }, // name maydoni bo'yicha qidirish
-                { 'name.ru': { $regex: search, $options: "i" } }, // name maydoni bo'yicha qidirish
                 { 'barcode': { $regex: search, $options: "i" } },
                 { 'keywords': { $regex: search, $options: "i" } }, // keywords maydoni bo'yicha qidirish
             ]
@@ -43,12 +41,14 @@ router.get("/products", async (req, res) => {
     if (cacheData) return res.json(JSON.parse(cacheData))
     let products = await shopProductModel.find(query)
       .select('name slug images orginal_price sale_price discount reviews rating viewsCount attributes variants')
-      .populate("product", "name slug images")
+      .populate({
+        path:"product",
+        select:["name","slug","images"],
+      })
       .populate("shop", "name slug")
       .sort(matchSorted)
       .limit(limit)
       .skip(page * limit)
-      console.log(data)
 
       const data = {
         data: products,
@@ -110,15 +110,12 @@ const regexTerms = searchTerms.map(term => new RegExp(term, 'i'));
           ]
       })
 
-    console.log(product);
 
       let user_id = req.headers['user'];
     user_id = (user_id === "null") ? null : (user_id === "undefined") ? undefined : user_id;
 
     user_id && !product.views.includes(user_id) && (product.views.push(user_id), product.viewsCount++);
     await product.save()
-
-    // const variant = product.variants.find(item => item.sku.toLowerCase() == sku.toLowerCase());
 
     const products = await shopProductModel.find({ product: product.product._id, slug: { $ne: product.slug } })
       .populate('shop', 'name slug')
