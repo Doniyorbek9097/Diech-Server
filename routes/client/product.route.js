@@ -17,26 +17,38 @@ router.get("/products", async (req, res) => {
 
     const page = parseInt(req.query?.page) - 1 || 0;
     const limit = parseInt(req.query.limit) || 10;
-    const search = req.query.search || "";
     const ratingFilter = req.query.rating;
     const soldFilter = req.query.sold;
+    const search = req.query.search || "";
 
     const matchSorted = {};
     matchSorted.soldOut = soldFilter;
     matchSorted.rating = ratingFilter;
     const {lang = ''} = req.headers;
 
-    const cacheKey = `product:${lang}`;
+    let query = {};
+    if (search) {
+        query = {
+            $or: [
+                { 'name.uz': { $regex: search, $options: "i" } }, // name maydoni bo'yicha qidirish
+                { 'name.ru': { $regex: search, $options: "i" } }, // name maydoni bo'yicha qidirish
+                { 'barcode': { $regex: search, $options: "i" } },
+                { 'keywords': { $regex: search, $options: "i" } }, // keywords maydoni bo'yicha qidirish
+            ]
+        };
+    }
+
+    const cacheKey = `product:${lang}:${search}`;
     const cacheData = await redisClient.get(cacheKey)
     if (cacheData) return res.json(JSON.parse(cacheData))
-  
-    let products = await shopProductModel.find({ slug: { $regex: search, $options: "i" } })
+    let products = await shopProductModel.find(query)
       .select('name slug images orginal_price sale_price discount reviews rating viewsCount attributes variants')
       .populate("product", "name slug images")
       .populate("shop", "name slug")
       .sort(matchSorted)
       .limit(limit)
       .skip(page * limit)
+      console.log(data)
 
       const data = {
         data: products,

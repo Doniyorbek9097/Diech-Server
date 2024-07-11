@@ -26,9 +26,8 @@ router.post("/product-add", checkToken, async (req, res) => {
             }
         }
         
-
         const newProduct = await shopProductModel.insertMany(products)
-        return res.status(200).json(newProduct);
+        return res.status(200).json({data: newProduct, message:"success added"});
 
     } catch (error) {
         console.log(error);
@@ -51,7 +50,7 @@ router.get("/product-all", async (req, res) => {
 });
 
 
-// get all products 
+// get all search products 
 router.get("/custom-products", async (req, res) => {
     try {
         const { search } = req.query;
