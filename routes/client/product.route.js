@@ -38,34 +38,20 @@ router.get("/products", async (req, res) => {
         };
     }
 
-    
-    const count = await shopProductModel.countDocuments();
-    const randomIndexes = [];
-
-    for (let i = 0; i < limit; i++) {
-      randomIndexes.push(Math.floor(Math.random() * count));
-    }
-
     const cacheKey = `product:${lang}:${search}`;
     const cacheData = await redisClient.get(cacheKey)
-
     if (cacheData) return res.json(JSON.parse(cacheData))
 
-    
     let products = await shopProductModel.find(query)
       .select('name slug images orginal_price sale_price discount reviews rating viewsCount attributes variants')
       .populate({
         path:"product",
         select:["name","slug","images","barcode","keywords"],
-        match: query,
       })
       .populate("shop", "name slug")
-      .where('_id')
       .sort(matchSorted)
       .limit(limit)
       .skip(page * limit)
-      .in(randomIndexes)
-
 
       const data = {
         data: products,

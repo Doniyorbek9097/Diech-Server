@@ -76,6 +76,17 @@ router.get("/custom-products", async (req, res) => {
 });
 
 
+router.get('/custom-product', async (req, res) => {
+    const barcode = req.query?.barcode;
+    const product = await productModel.findOne({barcode});
+    if(!product) return res.json({message:"Mahsulot topilmadi"})
+    console.log(product)
+    return res.json({
+        data:product,
+        message:"Success"
+    })
+})
+
 
 // one product by id 
 router.get("/product-one/:id", checkToken, async (req, res) => {
