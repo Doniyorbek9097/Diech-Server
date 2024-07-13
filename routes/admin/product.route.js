@@ -50,11 +50,9 @@ router.put("/upload/:id", upload.array('images', 10), async (req, res) => {
 
 router.post("/product-add", checkToken, async (req, res) => {
     await redisClient.FLUSHALL()
-    const { body: product } = req;
-
-    product.slug = slugify(`${product.name.ru.toLowerCase()}`)
-
-    try {
+    const { body: products } = req;
+    for (const product of products) {
+        product.slug = slugify(`${product.name.ru.toLowerCase()}`)
         if (product.barcode) {
             const existsProduct = await productModel.findOne({ barcode: product.barcode })
             if (existsProduct) {
@@ -63,9 +61,11 @@ router.post("/product-add", checkToken, async (req, res) => {
                 })
             }
         }
+    }
 
 
-        let newProduct = await new productModel(product).save();
+    try {
+        let newProduct = await productModel.insertMany(products);
         return res.json({
             data: newProduct,
             message: "success added"

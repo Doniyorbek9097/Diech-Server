@@ -7,7 +7,7 @@ const bcrypt = require("bcrypt")
 const router = require("express").Router();
 const sendEmail = require("../../utils/sendEmail");
 const { checkToken } = require("../../middlewares/authMiddleware");
-const { sendSms } = require("../../utils/sendSms");
+const { sendSms, getSmsToken } = require("../../utils/sendSms");
 const { generateOTP } = require("../../utils/otpGenrater");
 
 router.post("/signup", async (req, res) => {
@@ -23,11 +23,12 @@ router.post("/signup", async (req, res) => {
 
         const otpResult = await otp.save();
 
-        const txt = `${otpCode} - Tasdiqlash kodi.\nKodni hech kimga bermang.\nFiribgarlardan saqlaning.\nKompaniya OLCHA.UZ`
-        // const respon = await sendSms(phone_number, txt);
-        // console.log(respon);
+        const txt = `Diech market Tasdiqlash kodi ${otpCode}\nKodni hech kimga bermang.\nFiribgarlardan saqlaning.\nKompaniya Diech.uz`
+        const getsmstoken = getSmsToken()
+        const respon = await sendSms(getsmstoken, phone_number, txt);
+        console.log(respon);
         return res.json({
-            message: `Tasdiqlash kodi ${phone_number} ga yuborildi`,
+            message: `Diech market Tasdiqlash kodi ${phone_number} ga yuborildi`,
             data: otpCode
         });
 

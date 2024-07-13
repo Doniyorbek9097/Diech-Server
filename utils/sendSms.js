@@ -1,39 +1,55 @@
-require('dotenv').config();
-const { Infobip, AuthType } = require('@infobip-api/sdk');
+const axios = require('axios');
 
-exports.sendSms = async (to, text) => {
-    const infobipClient = new Infobip({
-        baseUrl: process.env.INFOBIP_URL,
-        apiKey: process.env.INFOBIP_KEY,
-        authType: AuthType.ApiKey, 
+const API_URL = 'https://notify.eskiz.uz/api';
+const EMAIL = 'doniyorbek3322@gmail.com';
+const PASSWORD = 'ylVmbwTaS1ynW5FY1995pBvDhfjV0GlrV7Qow7rf';
+
+async function getSmsToken() {
+  try {
+    const response = await axios.post(`${API_URL}/auth/login`, {
+      email: EMAIL,
+      password: PASSWORD,
     });
-      
-    try {
-        const infobipResponse = await infobipClient.channels.sms.send({
-            type: "text",
-            messages: [{
-                destinations: [
-                    {
-                        to: to,
-                    },
-                ],
-                from: "Olcha.uz",
-                text: text,
-            }],
-        });
-
-        return infobipResponse;
-    } catch (error) {
-        if (error.response) {
-            // API tomonidan qaytarilgan xato
-            console.error('API xato kodi:', error.response.status);
-            console.error('API xato ma\'lumotlari:', error.response.data);
-        } else {
-            // Boshqa xatolar
-            console.error('Xato:', error.message);
-        }
-    }
+    console.log('Token received:', response.data.data.token);
+    return response.data.data.token;
+  } catch (error) {
+    console.error('Error getting token:', error.response ? error.response.data : error.message);
+  }
 }
 
-// Misol uchun chaqirish
-// exports.sendSms('998930540633', 'Salom, bu test xabari!');
+
+async function sendSms(token, phoneNumber, message) {
+  try {
+    const response = await axios.post(
+      `${API_URL}/message/sms/send`,
+      {
+        mobile_phone: phoneNumber,
+        message: message,
+        from: '4546',
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log('SMS sent response:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Error sending SMS:', error.response ? error.response.data : error.message);
+  }
+}
+
+// (async () => {
+//   const token = await getToken();
+//   if (token) {
+//     const response = await sendSms(token, '998930540633 ', 'Bu Eskiz dan test');
+//     console.log('SMS Yuborish natijasi:', response);
+//   }
+// })();
+
+
+module.exports = {
+    getSmsToken,
+    sendSms
+}
