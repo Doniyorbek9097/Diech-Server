@@ -9,7 +9,7 @@ const { Base64ToFile } = require("../../utils/base64ToFile");
 const { redisClient } = require("../../config/redisDB");
 const { shopProductModel } = require("../../models/shop.products.model");
 const { checkToken } = require("../../middlewares/authMiddleware")
-
+const { transformAttributes } = require('../../utils/transformAttributes')
 
 // get all products 
 router.get("/products", async (req, res) => {
@@ -52,7 +52,7 @@ router.get("/products", async (req, res) => {
       .sort(matchSorted)
       .limit(limit)
       .skip(page * limit)
-
+  
       const data = {
         data: products,
         message: "success"
@@ -71,19 +71,21 @@ router.get("/products", async (req, res) => {
 
 // one product by slug
 router.get("/product-slug/:slug", async (req, res) => {
+  let variantQuery = [];
+  req.query?.variant && (variantQuery = req.query?.variant?.split('-') || []);
   const {sku = ''} = req.query;
   const {slug = '' } = req.params;
   const {lang = ''} = req.headers;
+
   redisClient.FLUSHALL()
   const cacheKey = `product:${lang}:${slug}:${sku}`;
   const cacheData = await redisClient.get(cacheKey)
   if (cacheData) return res.json(JSON.parse(cacheData))
-
   const searchTerms = req.query.search?.split(",") || [];
 const regexTerms = searchTerms.map(term => new RegExp(term, 'i'));
 
   try {
-    let product = await shopProductModel.findOne({ slug })
+    let product = await productModel.findOne({slug: slug })
       .populate({
         path: "categories",
         select: ['name', 'slug'],
@@ -92,59 +94,61 @@ const regexTerms = searchTerms.map(term => new RegExp(term, 'i'));
           select: ['name', 'slug']
         }
       })
-      .populate("shop", "name slug")
       .populate("brend", "name slug")
       .populate({
-        path:"product",
-        
+        path:"details",
+        populate: [
+          {
+            path:"shop"
+          },
+          {
+            path:"variants.variant",
+          }
+        ]
       })
-      .populate({
-        path:"variants.attributes",
-          populate: [
-              {
-                  path:"option",
-                  select:["label"]
-              },
-              {
-                  path:"value",
-                  select:["label","option_id"]
+      
 
-              },
-          ]
-      })
+//       let user_id = req.headers['user'];
+//     user_id = (user_id === "null") ? null : (user_id === "undefined") ? undefined : user_id;
+// console.log(product.views);
+//     user_id && !product.views.includes(user_id) && (product.views.push(user_id), product.viewsCount++);
+//     await product.save()
 
+const attributes = transformAttributes(product.details.flatMap(item => item?.variants || []));
 
-      let user_id = req.headers['user'];
-    user_id = (user_id === "null") ? null : (user_id === "undefined") ? undefined : user_id;
+const matchesFilter = variant =>
+  variantQuery.every(query =>
+    variant.attributes.some(attr => attr.value === query)
+  );
 
-    user_id && !product.views.includes(user_id) && (product.views.push(user_id), product.viewsCount++);
-    await product.save()
+ let variants;
 
-    const products = await shopProductModel.find({ product: product.product._id, slug: { $ne: product.slug } })
-      .populate('shop', 'name slug')
-      .select('name slug discount orginal_price sale_price reviews')
+//  Filter variants by SKU
+ if (variantQuery.length) {
+  const details = product.details.filter(detail =>
+    detail.variants.some(item => {
+      item.shop = detail.shop;
+      return matchesFilter(item.variant);
+    })
+  );
+
+  variants = details?.flatMap(detail => 
+    detail?.variants
+      .filter(item => (item.shop = detail.shop, matchesFilter(item.variant)))
+  ) ?? [];
+
+} else {
+   details = product.details;
+}
+
 
     const data = {
       data: {
-        _id: product._id,
-      name: product.product.name,
-      discription: product.product.discription,
-      images: product.product.images,
-      properteis: product?.product.properteis,
-      rating: product.rating,
-      reviews: product.reviews,
-      viewsCount: product.viewsCount,
-      orginal_price: product?.orginal_price,
-      sale_price:  product?.sale_price,
-      inStock: product?.inStock,
-      discount: product?.discount,
-      soldOutCount: product?.soldOutCount,
-      attributes: product?.attributes,
-      variants: product?.variants,
-      brend: product?.brend,
-      shop: product?.shop,
-      categories: product.categories,
-      shop_products: products
+        attributes,
+        product,
+        details: product.details,
+        variants,
+        isVariant: !!variants
       },
         message:"success"
     };
@@ -231,6 +235,5 @@ router.post("/delete-review/:id", async (req, res) => {
 })
 
 module.exports = router;
-
 
 

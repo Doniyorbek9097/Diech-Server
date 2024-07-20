@@ -1,52 +1,26 @@
 const router = require("express").Router();
-const { attributeModel, productModel } = require("../../models/product.model")
-
-router.get("/get-product-attribute/:id", async(req, res) => {
+const { attributeModel, variantModel, productModel } = require("../../models/product.model");
+const slugify = require("slugify")
+router.get("/get-product-variants/:product_id", async(req, res) => {
     try {
-        const {id} = req.params;
-        const product = await productModel.findById(id)
-        .populate({
-            path:"attributes",
-            populate: [
-                {
-                    path:"option",
-                },
-                {
-                    path:"options.option",
-                }
-            ]
-        })
+        const { product_id } = req.params;
+        const variants = await variantModel.find({product_id})
 
-        product.attributes = product.attributes.map(attr => {
-            return {
-                _id: attr.option._id,
-                label: attr.option.label,
-                images: attr.option?.images,
-                options: attr.options.map(val => ({
-                    _id:val.option._id,
-                    label: val.option.label,
-                    images: val.images
-                }))
-            }
-        })
-        
-        res.json(product)
+        res.json(variants)
     } catch (error) {
         console.log(error)
     }
 })
 
-router.post("/add-attribute", async(req, res) => {
+router.post("/add-variant", async(req, res) => {
     try {
         for (const attr of req.body) {
-         await attributeModel.updateOne(
-            {option: attr.option},
-            {$set: attr},
-            {upsert: true}
-         )   
+            attr.sku = slugify(`${attr.slug}-${attr.sku}`);
         }
-
+        
+       const variants =  await variantModel.insertMany(req.body)
     res.json({
+        data: variants,
         message: "success updated"
     })
      
@@ -57,23 +31,3 @@ router.post("/add-attribute", async(req, res) => {
 
 
 module.exports = router
-
-
-const categories = [{
-    label:"A",
-    options: [{
-        label:"B",
-        options: [{
-            label:"D",
-            options: [{
-                label:"Z",
-                options:[{
-                    label:"X",
-                    options:[{
-                        label:"V"
-                    }]
-                }]
-            }]
-        }]
-    }]
-}]

@@ -45,29 +45,36 @@ const propertiesSchema = Schema({
 
 
 const attributesSchema = Schema({
-    option: {
-        type: Schema.Types.ObjectId,
-        ref: "Option"
+    label: {
+        type: String,
+        intl: true 
     },
-    options: [{
-        option: {
-            type: Schema.Types.ObjectId,
-            ref: "OptionValues"
-        },
-        images: {
-            type: Array,
-            default: undefined
-        }
-    }],
+    value: {
+        type: String, 
+        intl: true
+    },
+    images: {
+        type: Array,
+        default: undefined
+    },
 
+}, {  toJSON: { virtuals: true } })
+
+
+const variantsSchema = Schema({
     product_id: {
         type: Schema.Types.ObjectId,
-        ref: "Product"
-    }
+        ref: "Product",
+        required: true
+    },
+    slug: String,
+    sku: String,
+    product_name: String,
+    attributes: [attributesSchema],
 })
 
 
-const attributeModel = model("Attribute", attributesSchema)
+const variantModel = model("Variant", variantsSchema)
 
 
 const productSchema = Schema({
@@ -87,7 +94,6 @@ const productSchema = Schema({
     },
 
     images: [],
-
     properteis: [propertiesSchema],
 
     categories: [{
@@ -97,22 +103,11 @@ const productSchema = Schema({
     
     keywords: [],
     barcode: String,
-    
-    parentCategory: {
-        type: Schema.Types.ObjectId,
-        ref: "Category"
-    },
 
-    subCategory: {
-        type: Schema.Types.ObjectId,
-        ref: "Category"
+    method_sale: {
+        type: Boolean,
+        default: false
     },
-
-    childCategory: {
-        type: Schema.Types.ObjectId,
-        ref: "Category"
-    },
-
 
     brend: {
         type: Schema.Types.ObjectId,
@@ -183,16 +178,21 @@ const productSchema = Schema({
 
 );
 
-productSchema.virtual("attributes", {
-    ref: "Attribute",
+productSchema.virtual("variants", {
+    ref: "Variant",
     localField: "_id",
     foreignField: "product_id"
 })
 
+productSchema.virtual("details", {
+    ref:"ShopProducts",
+    localField: "_id",
+    foreignField: "product"
+})
 
 
 
-const deleteShopProducts = async function(next) {
+const deleteDetails = async function(next) {
     try {
         const doc = await this.model.findOne(this.getFilter());
         if (doc) {
@@ -205,8 +205,8 @@ const deleteShopProducts = async function(next) {
 };
 
 
-productSchema.pre('findOneAndDelete', deleteShopProducts);
-productSchema.pre('findByIdAndDelete', deleteShopProducts);
+productSchema.pre('findOneAndDelete', deleteDetails);
+productSchema.pre('findByIdAndDelete', deleteDetails);
 
 const deleteAttributes = async function(next) {
     try {
@@ -227,7 +227,7 @@ productSchema.pre('findByIdAndDelete', deleteAttributes);
 
 const productModel = model("Product", productSchema);
 module.exports = {
-    attributeModel,
+    variantModel,
     productModel,
 }
 

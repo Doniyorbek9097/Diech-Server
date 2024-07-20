@@ -17,10 +17,9 @@ router.post("/product-add", checkToken, async (req, res) => {
     redisClient.FLUSHALL()
     try {
         const {body: products} = req; 
-
+        console.log(products);
         if (Array.isArray(products)) {
             for (const product of products) {
-                product.slug = slugify(`${generateOTP(20)}`)
                 product.discount = parseInt(((product.orginal_price - product.sale_price) / product.orginal_price) * 100);
                 if (isNaN(product.discount)) product.discount = 0;
             }
@@ -95,21 +94,15 @@ router.get("/product-one/:id", checkToken, async (req, res) => {
             .populate({
               path:"product",
               populate: {
-                path:"attributes",
-                populate: [
-                    {
-                        path:"option",
-                        select:["label"]
-                    },
-                    {
-                        path:"options.option",
-                        select:["label", "images"]
-
-                    },
-                   
-                ]
+                path:"variants",
               }   
             })
+            .populate({
+                  path:"variants",
+                  populate: {
+                      path:"variant"
+                  }
+              })
             
         return res.status(200).json(product);
     } catch (error) {
@@ -126,30 +119,17 @@ router.put("/product-edit/:id", checkToken, async (req, res) => {
         redisClient.FLUSHALL()
 
         const { variants } = req.body
-        let product = {};
+        let product = req.body;
         if (variants.length) {
             variants.forEach(item => {
                 item.discount = parseInt(((item.orginal_price - item.sale_price) / item.orginal_price) * 100);
             })
-            product = {
-                ...req.body,
-                orginal_price: variants[0].orginal_price,
-                sale_price: variants[0].sale_price,
-                inStock: variants[0].inStock,
-                discount: variants[0].discount,
-                soldOut: variants[0].soldOut,
-                soldOutCount: variants[0].soldOutCount,
-                returned: variants[0].returned,
-                returnedCount: variants[0].returnedCount
-            };
+        } 
 
-        } else {
-            product = { ...req.body };
-        }
-
+        product.variants = variants;
         product.discount = parseInt(((product.orginal_price - product.sale_price) / product.orginal_price) * 100);
         const updated = await shopProductModel.findByIdAndUpdate(req.params.id, product);
-        await updated.save();
+        
         res.status(200).json(updated);
 
     } catch (error) {

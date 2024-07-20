@@ -1,0 +1,53 @@
+const router = require("express").Router()
+const { catalogModel } = require('../../models/catalog')
+const { redisClient } = require("../../config/redisDB");
+
+
+router.get('/catalog-all', async (req, res) => {
+    try {
+
+        const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
+        const limit = parseInt(req.query.limit, 10) || 8;
+        const search = req.query.search || "";
+        const { lang = "" } = req.headers;
+        redisClient.FLUSHALL()
+        const cacheKey = `catalogs:${lang}:${page}:${limit}:${search}`;
+        const cacheData = await redisClient.get(cacheKey);
+        if (cacheData) {
+            return res.json(JSON.parse(cacheData));
+        }
+
+        const catalogs = await catalogModel.find()
+        .populate({
+            path: "products",
+            select: ['name', 'slug', 'images'],
+            options: { limit, skip: page * limit }, // Apply pagination to shop_products
+            populate: [
+                { 
+                    path: "details",
+                    populate: {
+                        path: "shop", 
+                        select: ['name', 'slug']
+                    }
+                 }
+            ]
+        });
+
+        const totalProducts = catalogs.reduce((acc, catalog) => acc + catalog.products.length, 0);
+        const totalPage = Math.ceil(totalProducts / limit);
+        const data = { totalPage, page: page + 1, limit, catalogs };
+        redisClient.SETEX(cacheKey, 3600, JSON.stringify(data));
+        res.json({
+            data: data,
+            message: "success"
+        })
+
+    } catch (error) {
+        console.log(error)
+        res.status(500).json("Serverda xatolik")
+    }
+})
+
+
+
+module.exports = router

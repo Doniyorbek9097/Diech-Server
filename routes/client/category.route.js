@@ -19,7 +19,7 @@ router.get("/categories", async (req, res) => {
         const limit = parseInt(req.query.limit, 10) || 8;
         const search = req.query.search || "";
         const { lang = "" } = req.headers;
-
+        redisClient.FLUSHALL()
         const cacheKey = `categories:${lang}:${page}:${limit}:${search}`;
         const cacheData = await redisClient.get(cacheKey);
         if (cacheData) {
@@ -45,6 +45,7 @@ router.get("/categories", async (req, res) => {
 
         const totalProducts = categories.reduce((acc, cate) => acc + cate.shop_products.length, 0);
         const totalPage = Math.ceil(totalProducts / limit);
+        
         const data = { totalPage, page: page + 1, limit, categories };
 
         redisClient.SETEX(cacheKey, 3600, JSON.stringify(data));

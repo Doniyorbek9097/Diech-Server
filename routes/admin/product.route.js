@@ -213,8 +213,6 @@ router.delete("/product-delete/:id", checkToken, async (req, res) => {
 
 
 
-
-
 module.exports = router;
 
 

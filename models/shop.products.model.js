@@ -18,57 +18,18 @@ const reviewSchema = Schema(
 
 
 const variantsSchema = Schema({
-    product: {
-        type: Schema.Types.ObjectId,
-        ref: "ShopProducts",
-        required: true
-    },
-    name: String,
-    images: Array,
+    product_id: { type: Schema.Types.ObjectId, ref: "ShopProducts", required: true },
+    variant: { type: Schema.Types.ObjectId, ref:"Variant"},
+    shop: { type: Schema.Types.ObjectId, ref:"Shop" },
+    inStock: { type: Number, default: 1},
+    soldOut: [{ type: Schema.Types.ObjectId, ref: "Order" }],
+    soldOutCount: { type: Number, default: 0},
+    returned: [{ type: Schema.Types.ObjectId, ref: "Order" }],
+    returnedCount: {type: Number, default: 0},
     orginal_price: Number,
     sale_price: Number,
-    inStock: {
-        type: Number,
-        default: 1
-    },
     discount: Number,
     sku: String,
-    skuid: Number,
-    attributes: [{
-        option: {
-            type: Schema.Types.ObjectId,
-            ref: "Option"
-        },
-        value: {
-            type: Schema.Types.ObjectId,
-            ref: "OptionValues"
-        },
-        images: {
-            type: Array,
-            default: undefined
-        }
-    }],
-    
-    soldOut: [{
-        type: Schema.Types.ObjectId,
-        ref: "Order"
-    }],
-
-    soldOutCount: {
-    type: Number,
-    default: 0
-},
-
-    returned: [{
-        type: Schema.Types.ObjectId,
-        ref: "Order"
-    }],
-
-    returnedCount: {
-    type: Number,
-    default: 0
-},
-
 })
 
 
@@ -77,24 +38,11 @@ const shopProductsSchema = Schema({
         type: Schema.Types.ObjectId,
         ref: "Product",
     },
-    slug: String,
+    // slug: String,
     discount: Number,
     orginal_price: Number,
     sale_price: Number,
     inStock: Number,
-    keywords: [],
-    barcode: String,
-    categories: [{
-        type: Schema.Types.ObjectId,
-        ref: "Category",
-        required: true
-    }],
-
-    brend: {
-        type: Schema.Types.ObjectId,
-        ref: "Brend"
-    },
-
     shop: {
         type: Schema.Types.ObjectId,
         ref: "Shop"
@@ -143,11 +91,6 @@ const shopProductsSchema = Schema({
     discount: {
         type: Number,
         default: 1
-    },
-
-    attributes: {
-        type: Array,
-        default: undefined
     },
 
     variants: [variantsSchema]
