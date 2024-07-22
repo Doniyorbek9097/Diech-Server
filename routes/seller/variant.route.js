@@ -1,17 +1,12 @@
 const router = require("express").Router();
-const { shopProductModel, shopVariantsModel } = require("../../models/shop.products.model")
+const { shopProductModel, shopVariantModel } = require("../../models/shop.products.model")
 
 router.get('/get-variants/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const variants = await shopVariantsModel.find({product: id})
+        const variants = await shopVariantModel.find({shopDetail: id})
         .populate({
-            path:"attributes.option",
-            select:['label']
-        })
-        .populate({
-            path:"attributes.value",
-            select:['label']
+            path:"variant",
         })
         
         res.json({
@@ -25,14 +20,25 @@ router.get('/get-variants/:id', async (req, res) => {
 
 router.post('/add-variant', async (req, res) => {
     try {
-        for (const variant of req.body) {
-           const result = await shopVariantsModel.updateOne(
-                { skuid: variant.skuid },
+        const variants = req.body;
+
+        if (!Array.isArray(variants)) {
+            return res.status(400).json({ error: 'Invalid input, expected an array of variants.' });
+        }
+
+        for (const variant of variants) {
+            await shopVariantModel.updateOne(
+                { sku: variant.sku },
                 { $set: variant },
                 { upsert: true }
-            )
-
+            );
         }
+
+        return res.json({
+            data: true,
+            message:"success added"
+        })
+
     } catch (error) {
         console.log(error)
     }
@@ -40,20 +46,3 @@ router.post('/add-variant', async (req, res) => {
 
 
 module.exports = router;
-
-[
-  {
-    label:"Xotira",
-    "_id": "6676c5fb5f1481dcb610fedc",
-    options: [
-        {
-            "label": "8gb",
-            "_id": "6676c6317755b02ed121565b",
-        },
-        {
-            "label": "16gb",
-            "_id": "6676c6317755b02ed121565d",
-        }
-    ]
-  }
-]

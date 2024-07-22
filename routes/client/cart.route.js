@@ -23,7 +23,7 @@ router.post("/add-cart", async (req, res) => {
         // Savatchada mahsulotni qidirish va yangilash yoki yangi mahsulot qo'shish
         let foundProduct = cart.products.find(item => {
             if(item) {
-                return  item?.product_id?.toString() === product_id && variant_id && item?.variant_id?.toString() === variant_id
+                return  item?.product_id?.toString() === product_id || variant_id && item?.variant_id?.toString() === variant_id
             }
         });
 
@@ -33,61 +33,9 @@ router.post("/add-cart", async (req, res) => {
             cart.products.push(req.body.product);
         }
 
+        cart = await cart.save()
 
-
-        let newCart = await cart.save();
-        newCart = await cartModel.findById(newCart._id)
-            .populate({
-                path: 'products.product_id',
-                populate: [
-                    {
-                        path: "product",
-                        select: ["name", "images"]
-                    },
-                    {
-                        path: "shop",
-                        select: "name"
-                    },
-                    {
-                        path: "brend",
-                        select: "name"
-                    },
-
-                    {
-                        path: 'variants.attributes.option',
-                    },
-
-                    {
-                        path: 'variants.attributes.value',
-                    }
-
-                ]
-            })
-
-        const products = newCart.products.flatMap(item => {
-            const variant = item.product_id?.variants.find(variant => variant?._id?.toString() == item?.variant_id?.toString())
-            let product = variant || item.product_id;
-            return {
-                product: {
-                    ...product.toJSON(),
-                    name: item.product_id.product.name,
-                    images: product?.images?.length ? product.images : product?.product?.images,
-                    product_id: item.product_id._id,
-                    variant_id: item.variant_id
-
-                },
-
-                quantity: item.quantity,
-            }
-        })
-
-        const data = {
-            ...newCart.toJSON(),
-            products
-        }
-
-
-        return res.json({ message: "success updated", data });
+        return res.json({ message: "success added", data: cart });
 
     } catch (error) {
         console.error(error);
@@ -105,47 +53,28 @@ router.get("/cart/:id", async (req, res) => {
                     {
                         path: "product",
                         select: ["name", "images"]
-                    },
-                    {
-                        path: "shop",
-                        select: "name"
-                    },
-                    {
-                        path: "brend",
-                        select: "name"
-                    },
-
-                    {
-                        path: 'variants.attributes.option',
-                    },
-
-                    {
-                        path: 'variants.attributes.value',
                     }
-
                 ]
             })
 
-
-        const products = cart?.products?.flatMap(item => {
-            const variant = item.product_id?.variants.find(variant => variant?._id?.toString() == item?.variant_id?.toString())
-            let product = variant || item.product_id;
-            if (product) {
-                return {
-                    product: {
-                        ...product?.toJSON(),
-                        name: item.product_id.product.name,
-                        images: product?.images?.length ? product.images : product?.product?.images,
-                        product_id: item.product_id._id,
-                        variant_id: item.variant_id
-
+            .populate({
+                path: 'products.variant_id',
+                populate: [
+                    {
+                        path: "product",
+                        select: ["name", "images"]
                     },
+                    {
+                        path: "variant",
+                    }
+                ]
+            })
 
-                    quantity: item.quantity,
-                }
-            }
-
-        })
+        const products = cart?.products?.flatMap(item => ({
+            variant: item?.variant_id,
+            product: item?.product_id,
+            quantity: item.quantity 
+         }))
 
         const data = {
             ...cart?.toJSON(),

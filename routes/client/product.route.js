@@ -102,7 +102,10 @@ const regexTerms = searchTerms.map(term => new RegExp(term, 'i'));
             path:"shop"
           },
           {
-            path:"variants.variant",
+            path:"variants",
+            populate:{
+               path:"variant"
+            }
           }
         ]
       })

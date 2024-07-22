@@ -18,20 +18,22 @@ const reviewSchema = Schema(
 
 
 const variantsSchema = Schema({
-    product_id: { type: Schema.Types.ObjectId, ref: "ShopProducts", required: true },
+    product: { type: Schema.Types.ObjectId, ref: "Product", required: true },
+    shopDetail: {type: Schema.Types.ObjectId, ref:"ShopProducts", required: true},
     variant: { type: Schema.Types.ObjectId, ref:"Variant"},
     shop: { type: Schema.Types.ObjectId, ref:"Shop" },
-    inStock: { type: Number, default: 1},
     soldOut: [{ type: Schema.Types.ObjectId, ref: "Order" }],
-    soldOutCount: { type: Number, default: 0},
     returned: [{ type: Schema.Types.ObjectId, ref: "Order" }],
+    soldOutCount: { type: Number, default: 0},
     returnedCount: {type: Number, default: 0},
+    inStock: { type: Number, default: 1},
     orginal_price: Number,
     sale_price: Number,
     discount: Number,
     sku: String,
 })
 
+const shopVariantModel = model("ShopVariant", variantsSchema)
 
 const shopProductsSchema = Schema({
     product: {
@@ -92,8 +94,6 @@ const shopProductsSchema = Schema({
         type: Number,
         default: 1
     },
-
-    variants: [variantsSchema]
 },
 
     {
@@ -103,8 +103,15 @@ const shopProductsSchema = Schema({
 )
 
 
+shopProductsSchema.virtual("variants", {
+    ref: "ShopVariant",
+    localField: "_id",
+    foreignField: "shopDetail"
+})
+
 const shopProductModel = model("ShopProducts", shopProductsSchema);
 
 module.exports = {
     shopProductModel,
+    shopVariantModel
 }
