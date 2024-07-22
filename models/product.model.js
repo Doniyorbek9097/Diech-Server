@@ -208,22 +208,6 @@ const deleteDetails = async function(next) {
 productSchema.pre('findOneAndDelete', deleteDetails);
 productSchema.pre('findByIdAndDelete', deleteDetails);
 
-const deleteAttributes = async function(next) {
-    try {
-        const doc = await this.model.findOne(this.getFilter());
-        if (doc) {
-            await attributeModel.deleteMany({ product_id: doc._id });
-        }
-        next();
-    } catch (err) {
-        next(err);
-    }
-};
-
-productSchema.pre('findOneAndDelete', deleteAttributes);
-productSchema.pre('findByIdAndDelete', deleteAttributes);
-
-
 
 const productModel = model("Product", productSchema);
 module.exports = {
