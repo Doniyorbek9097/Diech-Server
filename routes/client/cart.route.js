@@ -23,7 +23,11 @@ router.post("/add-cart", async (req, res) => {
         // Savatchada mahsulotni qidirish va yangilash yoki yangi mahsulot qo'shish
         let foundProduct = cart.products.find(item => {
             if(item) {
-                return  item?.product_id?.toString() === product_id || variant_id && item?.variant_id?.toString() === variant_id
+                if(variant_id) {
+                    return  item?.variant_id?.toString() === variant_id;
+                } else {
+                    return  item?.product_id?.toString() === product_id;
+                }
             }
         });
 
@@ -35,7 +39,44 @@ router.post("/add-cart", async (req, res) => {
 
         cart = await cart.save()
 
-        return res.json({ message: "success added", data: cart });
+        cart = await cartModel.findOne({ _id: cart.id })
+            .populate({
+                path: 'products.product_id',
+                populate: [
+                    {
+                        path: "product",
+                        select: ["name", "images"]
+                    }
+                ]
+            })
+
+            .populate({
+                path: 'products.variant_id',
+                populate: [
+                    {
+                        path: "product",
+                        select: ["name", "images"]
+                    },
+                    {
+                        path: "variant",
+                    }
+                ]
+            })
+
+        const products = cart?.products?.flatMap(item => ({
+            variant: item?.variant_id,
+            product: item?.product_id,
+            quantity: item.quantity 
+         }))
+
+        const data = {
+            ...cart?.toJSON(),
+            products
+        }
+
+        // res.status(200).json(data);
+
+        return res.json({ message: "success added", data: data });
 
     } catch (error) {
         console.error(error);

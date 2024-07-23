@@ -31,6 +31,50 @@ const variantsSchema = Schema({
     sale_price: Number,
     discount: Number,
     sku: String,
+    reviews: {
+        type: [reviewSchema]
+    },
+
+    views: {
+        type: [Schema.Types.ObjectId],
+        ref: "User"
+    },
+
+    viewsCount: {
+        type: Number,
+        default: 0
+    },
+
+    soldOut: [{
+        type: Schema.Types.ObjectId,
+        ref: "Order"
+    }],
+
+    soldOutCount: {
+        type: Number,
+        default: 0
+    },
+
+    returned: [{
+        type: Schema.Types.ObjectId,
+        ref: "Order"
+    }],
+
+    returnedCount: {
+        type: Number,
+        default: 0
+    },
+
+    rating: {
+        type: Number,
+        required: true,
+        default: 0,
+    },
+
+    discount: {
+        type: Number,
+        default: 1
+    },
 })
 
 const shopVariantModel = model("ShopVariant", variantsSchema)
