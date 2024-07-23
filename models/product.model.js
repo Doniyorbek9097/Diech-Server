@@ -1,5 +1,5 @@
 const { Schema, model } = require("mongoose");
-const { shopProductModel } = require("./shop.products.model")
+const { shopProductModel, shopVariantModel } = require("./shop.products.model")
 
 const reviewSchema = Schema(
     {
@@ -72,6 +72,27 @@ const variantsSchema = Schema({
     product_name: String,
     attributes: [attributesSchema],
 })
+
+
+
+const deleteShopVariants = async function(next) {
+    try {
+        const doc = await this.model.findOne(this.getFilter());
+        if (doc) {
+            await shopVariantModel.deleteMany({ variant: doc._id });
+        }
+        next();
+    } catch (err) {
+        next(err);
+    }
+};
+
+
+variantsSchema.pre('findOneAndDelete', deleteShopVariants);
+variantsSchema.pre('findByIdAndDelete', deleteShopVariants);
+variantsSchema.pre('deleteMany', deleteShopVariants);
+variantsSchema.pre('deleteOne', deleteShopVariants);
+variantsSchema.pre('remove', deleteShopVariants);
 
 
 const variantModel = model("Variant", variantsSchema)
@@ -197,6 +218,7 @@ const deleteDetails = async function(next) {
         const doc = await this.model.findOne(this.getFilter());
         if (doc) {
             await shopProductModel.deleteMany({ product: doc._id });
+            await variantModel.deleteMany({product_id: doc._id});
         }
         next();
     } catch (err) {
@@ -207,7 +229,9 @@ const deleteDetails = async function(next) {
 
 productSchema.pre('findOneAndDelete', deleteDetails);
 productSchema.pre('findByIdAndDelete', deleteDetails);
-
+productSchema.pre('deleteMany', deleteDetails);
+productSchema.pre('deleteOne', deleteDetails);
+productSchema.pre('remove', deleteDetails);
 
 const productModel = model("Product", productSchema);
 module.exports = {

@@ -30,4 +30,33 @@ router.post("/add-variant", async(req, res) => {
 })
 
 
+router.put("/update-variant/:id", async(req, res) => {
+    try {
+        const {id} = req.params;
+       const variant =  await variantModel.findOneAndUpdate({_id: id}, req.body)
+    res.json({
+        data: variant,
+        message: "success updated"
+    })
+     
+    } catch (error) {
+        console.log(error)
+    }
+})
+
+
+router.delete("/variant-delete/:id", async (req, res) => {
+    try {
+        const {id} = req.params;
+        const deleted = await variantModel.findOneAndDelete({_id:id})
+        return res.json({
+            message:"success deleted",
+            data: deleted
+        })
+    } catch (error) {
+        console.log(error)
+    }
+})
+
+
 module.exports = router

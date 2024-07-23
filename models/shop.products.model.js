@@ -153,6 +153,31 @@ shopProductsSchema.virtual("variants", {
     foreignField: "shopDetail"
 })
 
+
+const deleteShopVariants = async function(next) {
+    try {
+        const doc = await this.model.findOne(this.getFilter());
+        if (doc) {
+            await shopVariantModel.deleteMany({shopDetail: doc._id});
+        }
+        next();
+    } catch (err) {
+        next(err);
+    }
+};
+
+
+shopProductsSchema.pre('findOneAndDelete', deleteShopVariants);
+shopProductsSchema.pre('findByIdAndDelete', deleteShopVariants);
+shopProductsSchema.pre('deleteMany', deleteShopVariants);
+shopProductsSchema.pre('deleteOne', deleteShopVariants);
+shopProductsSchema.pre('remove', deleteShopVariants);
+
+
+
+
+
+
 const shopProductModel = model("ShopProducts", shopProductsSchema);
 
 module.exports = {

@@ -118,7 +118,7 @@ const regexTerms = searchTerms.map(term => new RegExp(term, 'i'));
 //     await product.save()
 
 const attributes = transformAttributes(product.details.flatMap(item => item?.variants || []));
-
+console.log(attributes)
 const matchesFilter = variant =>
   variantQuery.every(query =>
     variant.attributes.some(attr => attr.value === query)

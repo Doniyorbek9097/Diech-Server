@@ -26,13 +26,9 @@ router.get('/catalog-all', async (req, res) => {
 
         const catalogs = await catalogModel.find()
         .populate({
-            path: "products",
+            path: "products.product",
             select: ['name', 'slug', 'images', 'orginal_price', 'sale_price', 'discount', 'reviews', 'rating', 'viewsCount', 'attributes'],
             options: { limit, skip: page * limit }, // Apply pagination to shop_products
-            populate: [
-                { path: "product", select: ['name', 'slug', 'images'] },
-                { path: "shop", select: ['name', 'slug'] }
-            ]
         });
 
         res.json({
