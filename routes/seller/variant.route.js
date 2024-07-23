@@ -23,7 +23,7 @@ router.post('/add-variant', async (req, res) => {
         const variants = req.body;
 
         if (!Array.isArray(variants)) {
-            return res.status(400).json({ error: 'Invalid input, expected an array of variants.' });
+            return res.json({ message: 'Invalid input, expected an array of variants.' });
         }
 
         for (const variant of variants) {
