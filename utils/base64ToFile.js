@@ -14,7 +14,7 @@ class Base64ToFile {
     constructor(request, response) {
         this.request = request;
         this.response = response;
-        this._file_name = `image-${generateOTP(10)}.webp`;
+        this._file_name = `image-${generateOTP(10)}.avif`;
         this._file_path = baseDir;
         this._bufferInput = "";
         this._width = "";
@@ -79,7 +79,7 @@ class Base64ToFile {
         if(base64Index !== 7) {
             sharp(imageBuffer)
             .resize({ width: 800 })
-            .toFormat('webp') 
+            .toFormat('avif') 
             .toFile(filePath, (err) => {
                 if (err) throw err;
                 resolve(`${this.request.protocol}://${this.request.headers.host}/uploads/${this._file_name}`);
