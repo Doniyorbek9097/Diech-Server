@@ -14,78 +14,80 @@ const { transformAttributes } = require('../../utils/transformAttributes')
 // get all products 
 router.get("/products", async (req, res) => {
   try {
-
     const page = parseInt(req.query?.page) - 1 || 0;
     const limit = parseInt(req.query.limit) || 10;
     const ratingFilter = req.query.rating;
     const soldFilter = req.query.sold;
     const search = req.query.search || "";
 
-    const matchSorted = {};
-    matchSorted.soldOut = soldFilter;
-    matchSorted.rating = ratingFilter;
-    const {lang = ''} = req.headers;
+    const { lang = '' } = req.headers;
 
     let query = {};
+    
     if (search) {
-        query = {
-            $or: [
-                { 'name.uz': { $regex: search, $options: "i" } },
-                { 'name.ru': { $regex: search, $options: "i" } },
-                { 'barcode': { $regex: search, $options: "i" } },
-                { 'keywords': { $regex: search, $options: "i" } }, // keywords maydoni bo'yicha qidirish
-            ]
-        };
+      const regex = new RegExp(search, 'i');
+      query = {
+        $or: [
+          { 'keywords': { $elemMatch: { $regex: regex } } },
+          { 'name.uz': regex },
+          { 'name.ru': regex },
+          { 'barcode': regex }
+        ]
+      };
     }
 
-    const cacheKey = `product:${lang}:${search}`;
-    const cacheData = await redisClient.get(cacheKey)
-    if (cacheData) return res.json(JSON.parse(cacheData))
+    // Construct matchSorted with conditional checks
+    let matchSorted = {};
+    if (soldFilter) matchSorted.soldOut = soldFilter;
+    if (ratingFilter) matchSorted.rating = ratingFilter;
+    const cacheKey = `product:${lang}:${search}:${page}:${limit}:${ratingFilter}:${soldFilter}`;
+    const cacheData = await redisClient.get(cacheKey);
+    if (cacheData) return res.json(JSON.parse(cacheData));
 
-    let products = await shopProductModel.find(query)
-      .select('name slug images orginal_price sale_price discount reviews rating viewsCount attributes variants')
-      .populate({
-        path:"product",
-        select:["name","slug","images","barcode","keywords"],
+    let products = await productModel.find(query)
+      .select('name slug images')
+      .populate({ 
+          path: "details",
+          populate: {
+              path: "shop", 
+              select: ['name', 'slug']
+          }
       })
-      .populate("shop", "name slug")
       .sort(matchSorted)
       .limit(limit)
-      .skip(page * limit)
-  
-      const data = {
-        data: products,
-        message: "success"
-      }
+      .skip(page * limit);
+    
+    const data = {
+      data: products,
+      message: "success"
+    };
 
-      redisClient.SETEX(cacheKey, 3600, JSON.stringify(data))
-      res.json(data);
-
+    await redisClient.SETEX(cacheKey, 3600, JSON.stringify(data));
+    res.json(data);
   } catch (error) {
-    console.log(error)
-    res.status(500).json(error.message)
+    console.log(error);
+    res.status(500).json({ message: error.message });
   }
 });
-
 
 
 // one product by slug
 router.get("/product-slug/:slug", async (req, res) => {
   let variantQuery = [];
   req.query?.variant && (variantQuery = req.query?.variant?.split('-') || []);
-  const {sku = ''} = req.query;
-  const {slug = '' } = req.params;
-  const {lang = ''} = req.headers;
+  const { sku = '' } = req.query;
+  const { slug = '' } = req.params;
+  const { lang = '' } = req.headers;
 
   redisClient.FLUSHALL()
   const cacheKey = `product:${lang}:${slug}:${sku}`;
   const cacheData = await redisClient.get(cacheKey)
   if (cacheData) return res.json(JSON.parse(cacheData))
   const searchTerms = req.query.search?.split(",") || [];
-const regexTerms = searchTerms.map(term => new RegExp(term, 'i'));
+  const regexTerms = searchTerms.map(term => new RegExp(term, 'i'));
 
   try {
-    let product = await productModel.findOne({slug: slug })
+    let product = await productModel.findOne({ slug: slug })
       .populate({
         path: "categories",
         select: ['name', 'slug'],
@@ -96,53 +98,53 @@ const regexTerms = searchTerms.map(term => new RegExp(term, 'i'));
       })
       .populate("brend", "name slug")
       .populate({
-        path:"details",
+        path: "details",
         populate: [
           {
-            path:"shop"
+            path: "shop"
           },
           {
-            path:"variants",
-            populate:{
-               path:"variant"
+            path: "variants",
+            populate: {
+              path: "variant"
             }
           }
         ]
       })
-      
 
-//       let user_id = req.headers['user'];
-//     user_id = (user_id === "null") ? null : (user_id === "undefined") ? undefined : user_id;
-// console.log(product.views);
-//     user_id && !product.views.includes(user_id) && (product.views.push(user_id), product.viewsCount++);
-//     await product.save()
 
-const attributes = transformAttributes(product.details.flatMap(item => item?.variants || []));
-console.log(attributes)
-const matchesFilter = variant =>
-  variantQuery.every(query =>
-    variant.attributes.some(attr => attr.value === query)
-  );
+    //       let user_id = req.headers['user'];
+    //     user_id = (user_id === "null") ? null : (user_id === "undefined") ? undefined : user_id;
+    // console.log(product.views);
+    //     user_id && !product.views.includes(user_id) && (product.views.push(user_id), product.viewsCount++);
+    //     await product.save()
 
- let variants;
+    const attributes = transformAttributes(product.details.flatMap(item => item?.variants || []));
+    console.log(attributes)
+    const matchesFilter = variant =>
+      variantQuery.every(query =>
+        variant.attributes.some(attr => attr.value === query)
+      );
 
-//  Filter variants by SKU
- if (variantQuery.length) {
-  const details = product.details.filter(detail =>
-    detail.variants.some(item => {
-      item.shop = detail.shop;
-      return matchesFilter(item.variant);
-    })
-  );
+    let variants;
 
-  variants = details?.flatMap(detail => 
-    detail?.variants
-      .filter(item => (item.shop = detail.shop, matchesFilter(item.variant)))
-  ) ?? [];
+    //  Filter variants by SKU
+    if (variantQuery.length) {
+      const details = product.details.filter(detail =>
+        detail.variants.some(item => {
+          item.shop = detail.shop;
+          return matchesFilter(item.variant);
+        })
+      );
 
-} else {
-   details = product.details;
-}
+      variants = details?.flatMap(detail =>
+        detail?.variants
+          .filter(item => (item.shop = detail.shop, matchesFilter(item.variant)))
+      ) ?? [];
+
+    } else {
+      details = product.details;
+    }
 
 
     const data = {
@@ -153,7 +155,7 @@ const matchesFilter = variant =>
         variants,
         isVariant: !!variants
       },
-        message:"success"
+      message: "success"
     };
 
     redisClient.SETEX(cacheKey, 3600, JSON.stringify(data));

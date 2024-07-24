@@ -105,11 +105,18 @@ router.get("/product-all", checkToken, async (req, res) => {
     const limit = parseInt(req.query.limit, 10) || 1;
     const totalDocuments = await productModel.countDocuments().exec()
     const totalPages = Math.ceil(totalDocuments / limit);
-
+    
     let query;
     if (search) {
         const regex = new RegExp(search, 'i'); // 'i' flagi case-insensitive qidiruvni belgilaydi
-        query = { keywords: { $elemMatch: { $regex: regex } } };
+        query = { 
+            $or: [
+                { 'keywords': { $elemMatch: { $regex: regex } } },
+                { 'name.uz': regex },
+                { 'name.ru': regex },
+                { 'barcode': regex }
+            ]
+         };
     }
 
     try {
@@ -118,6 +125,8 @@ router.get("/product-all", checkToken, async (req, res) => {
             .skip(page * limit)
             .limit(limit)
             .sort({ _id: -1 })
+        console.log(products);
+
         products = products.map(product => {
             const sold = product.variants.length ? product.variants.reduce((count, item) => count += item.soldOutCount, 0) : product.soldOutCount;
             const sold_variants = product.variants.reduce((acc, item) => acc.concat({ sku: item.sku, count: item.soldOutCount }), []);
@@ -136,7 +145,6 @@ router.get("/product-all", checkToken, async (req, res) => {
                 views
             }
         })
-
 
         return res.json({
             message: "success get products",
