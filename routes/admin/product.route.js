@@ -79,31 +79,46 @@ router.post("/product-add", checkToken, async (req, res) => {
 
 // get all products 
 router.get("/product-all", checkToken, async (req, res) => {
+    const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
+    const limit = parseInt(req.query.limit, 10) || 1;
+    const totalDocuments = await productModel.countDocuments().exec()
+    const totalPages = Math.ceil(totalDocuments / limit);
+    
     try {
-        let products = await productModel.find();
+        let products = await productModel.find()
+        .populate("variants")
+        .skip(page * limit)
+        .limit(limit)
+        .sort({ _id: -1 })
+        
 
-        // products = products.map(product => {
-        //         const inStock = product.variants.length ? product.variants.reduce((count, item) => count += item.inStock, 0) : product.inStock;
-        //         const inStockVariants = product.variants.reduce((acc, item) => acc.concat({sku: item.sku, count: item.inStock}), []);
-        //         const sold = product.variants.length ? product.variants.reduce((count, item) => count += item.soldOutCount, 0) : product.soldOutCount;
-        //         const sold_variants = product.variants.reduce((acc, item) => acc.concat({sku: item.sku, count: item.soldOutCount}), []);
-        //         const returned = product.variants.length ? product.variants.reduce((count, item) => count += item.returnedCount, 0) : product.returnedCount;
-        //         const returned_variants = product.variants.reduce((acc, item) => acc.concat({sku: item.sku, count: item.returnedCount}), []);
-        //         const views = product.viewsCount;
-        //         return {
-        //             _id: product._id,
-        //             name: product.name,
-        //             inStock,
-        //             inStockVariants,
-        //             sold,
-        //             sold_variants,
-        //             returned,
-        //             returned_variants,
-        //             views
-        //         }
-        //     })
+        products = products.map(product => {
+                const sold = product.variants.length ? product.variants.reduce((count, item) => count += item.soldOutCount, 0) : product.soldOutCount;
+                const sold_variants = product.variants.reduce((acc, item) => acc.concat({sku: item.sku, count: item.soldOutCount}), []);
+                const returned = product.variants.length ? product.variants.reduce((count, item) => count += item.returnedCount, 0) : product.returnedCount;
+                const returned_variants = product.variants.reduce((acc, item) => acc.concat({sku: item.sku, count: item.returnedCount}), []);
+                const views = product.viewsCount;
+                return {
+                    _id: product._id,
+                    image: product?.images?.length ? product?.images[0] : "",
+                    name: product.name,
+                    barcode: product?.barcode,
+                    sold,
+                    sold_variants,
+                    returned,
+                    returned_variants,
+                    views
+                }
+            })
 
-        return res.json(products);
+
+        return res.json({
+            message:"success get products",
+            data: products,
+            limit,
+            page,
+            totalPages
+        });
     } catch (error) {
         console.log(error)
     }
