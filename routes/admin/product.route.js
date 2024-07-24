@@ -79,19 +79,24 @@ router.post("/product-add", checkToken, async (req, res) => {
 
 // get all products 
 router.get("/product-all", checkToken, async (req, res) => {
+    const search = req.query.search || "";
     const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
     const limit = parseInt(req.query.limit, 10) || 1;
     const totalDocuments = await productModel.countDocuments().exec()
     const totalPages = Math.ceil(totalDocuments / limit);
     
+    let query;
+    if (search) {
+        const regex = new RegExp(search, 'i'); // 'i' flagi case-insensitive qidiruvni belgilaydi
+        query = { keywords: { $elemMatch: { $regex: regex } } };
+    }
+    
     try {
-        let products = await productModel.find()
+        let products = await productModel.find(query)
         .populate("variants")
         .skip(page * limit)
         .limit(limit)
         .sort({ _id: -1 })
-        
-
         products = products.map(product => {
                 const sold = product.variants.length ? product.variants.reduce((count, item) => count += item.soldOutCount, 0) : product.soldOutCount;
                 const sold_variants = product.variants.reduce((acc, item) => acc.concat({sku: item.sku, count: item.soldOutCount}), []);
