@@ -51,7 +51,17 @@ router.put("/upload/:id", upload.array('images', 10), async (req, res) => {
 router.post("/product-add", checkToken, async (req, res) => {
     await redisClient.FLUSHALL()
     const { body: products } = req;
+
     for (const product of products) {
+        if (product?.images?.length) {
+            let images = [];
+            for (const image of product.images) {
+                const data = await new Base64ToFile(req).bufferInput(image).save();
+                images.push(data);
+            }
+            product.images = images;
+        }
+
         product.slug = slugify(`${product.name.ru.toLowerCase()}`)
         if (product.barcode) {
             const existsProduct = await productModel.findOne({ barcode: product.barcode })
@@ -72,6 +82,17 @@ router.post("/product-add", checkToken, async (req, res) => {
         });
 
     } catch (error) {
+
+        for (const product of products) {
+            if (product?.images?.length) {
+                for (const image of product?.images) {
+                    const imagePath = path.join(__dirname, `${baseDir}/${path.basename(image)}`);
+                    fs.unlink(imagePath, (err) => err && console.log(err))
+                }
+
+            }
+        }
+
         console.log(error);
         return res.status(500).json("serverda Xatolik")
     }
@@ -84,41 +105,41 @@ router.get("/product-all", checkToken, async (req, res) => {
     const limit = parseInt(req.query.limit, 10) || 1;
     const totalDocuments = await productModel.countDocuments().exec()
     const totalPages = Math.ceil(totalDocuments / limit);
-    
+
     let query;
     if (search) {
         const regex = new RegExp(search, 'i'); // 'i' flagi case-insensitive qidiruvni belgilaydi
         query = { keywords: { $elemMatch: { $regex: regex } } };
     }
-    
+
     try {
         let products = await productModel.find(query)
-        .populate("variants")
-        .skip(page * limit)
-        .limit(limit)
-        .sort({ _id: -1 })
+            .populate("variants")
+            .skip(page * limit)
+            .limit(limit)
+            .sort({ _id: -1 })
         products = products.map(product => {
-                const sold = product.variants.length ? product.variants.reduce((count, item) => count += item.soldOutCount, 0) : product.soldOutCount;
-                const sold_variants = product.variants.reduce((acc, item) => acc.concat({sku: item.sku, count: item.soldOutCount}), []);
-                const returned = product.variants.length ? product.variants.reduce((count, item) => count += item.returnedCount, 0) : product.returnedCount;
-                const returned_variants = product.variants.reduce((acc, item) => acc.concat({sku: item.sku, count: item.returnedCount}), []);
-                const views = product.viewsCount;
-                return {
-                    _id: product._id,
-                    image: product?.images?.length ? product?.images[0] : "",
-                    name: product.name,
-                    barcode: product?.barcode,
-                    sold,
-                    sold_variants,
-                    returned,
-                    returned_variants,
-                    views
-                }
-            })
+            const sold = product.variants.length ? product.variants.reduce((count, item) => count += item.soldOutCount, 0) : product.soldOutCount;
+            const sold_variants = product.variants.reduce((acc, item) => acc.concat({ sku: item.sku, count: item.soldOutCount }), []);
+            const returned = product.variants.length ? product.variants.reduce((count, item) => count += item.returnedCount, 0) : product.returnedCount;
+            const returned_variants = product.variants.reduce((acc, item) => acc.concat({ sku: item.sku, count: item.returnedCount }), []);
+            const views = product.viewsCount;
+            return {
+                _id: product._id,
+                image: product?.images?.length ? product?.images[0] : "",
+                name: product.name,
+                barcode: product?.barcode,
+                sold,
+                sold_variants,
+                returned,
+                returned_variants,
+                views
+            }
+        })
 
 
         return res.json({
-            message:"success get products",
+            message: "success get products",
             data: products,
             limit,
             page,
@@ -177,20 +198,8 @@ router.put("/product-edit/:id", checkToken, async (req, res) => {
     } catch (error) {
 
         for (const image of product?.images) {
-
             const imagePath = path.join(__dirname, `${baseDir}/${path.basename(image)}`);
             fs.unlink(imagePath, (err) => err && console.log(err))
-        }
-
-        if (product?.attributes?.length) {
-            for (const attr of product?.attributes) {
-                for (const child of attr.children) {
-                    for (const image of child.images) {
-                        const imagePath = `${baseDir}/${path.basename(image)}`;
-                        fs.unlink(imagePath, (err) => err && console.log(err))
-                    }
-                }
-            }
         }
 
         console.log(error);
