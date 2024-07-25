@@ -45,7 +45,8 @@ router.get("/products", async (req, res) => {
     if (cacheData) return res.json(JSON.parse(cacheData));
 
     let products = await productModel.find(query)
-      .select('name slug images keywords')
+      .select('name slug images keywords categories')
+      .populate('categories')
       .populate({ 
           path: "details",
           populate: {
@@ -57,21 +58,6 @@ router.get("/products", async (req, res) => {
       .limit(limit)
       .skip(page * limit);
 
-      if (products.length === 0) {
-        query = { $text: { $search: search } };
-        products = await productModel.find(query)
-        .select('name slug images keywords')
-      .populate({ 
-          path: "details",
-          populate: {
-              path: "shop", 
-              select: ['name', 'slug']
-          }
-      })
-      .sort(matchSorted)
-      .limit(limit)
-      .skip(page * limit);
-    }
     
     const data = {
       data: products,
