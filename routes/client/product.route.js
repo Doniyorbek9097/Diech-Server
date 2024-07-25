@@ -25,7 +25,7 @@ router.get("/products", async (req, res) => {
     let query = {};
     
     if (search) {
-      const regex = new RegExp(search, 'i');
+      const regex = new RegExp(`^${search}`, 'i');
       query = {
         $or: [
           { 'keywords': { $elemMatch: { $regex: regex } } },
@@ -45,7 +45,7 @@ router.get("/products", async (req, res) => {
     if (cacheData) return res.json(JSON.parse(cacheData));
 
     let products = await productModel.find(query)
-      .select('name slug images')
+      .select('name slug images keywords')
       .populate({ 
           path: "details",
           populate: {
@@ -56,6 +56,22 @@ router.get("/products", async (req, res) => {
       .sort(matchSorted)
       .limit(limit)
       .skip(page * limit);
+
+      if (products.length === 0) {
+        query = { $text: { $search: search } };
+        products = await productModel.find(query)
+        .select('name slug images keywords')
+      .populate({ 
+          path: "details",
+          populate: {
+              path: "shop", 
+              select: ['name', 'slug']
+          }
+      })
+      .sort(matchSorted)
+      .limit(limit)
+      .skip(page * limit);
+    }
     
     const data = {
       data: products,
@@ -101,7 +117,8 @@ router.get("/product-slug/:slug", async (req, res) => {
         path: "details",
         populate: [
           {
-            path: "shop"
+            path: "shop",
+            select:['slug','name']
           },
           {
             path: "variants",
@@ -113,14 +130,15 @@ router.get("/product-slug/:slug", async (req, res) => {
       })
 
 
-    //       let user_id = req.headers['user'];
-    //     user_id = (user_id === "null") ? null : (user_id === "undefined") ? undefined : user_id;
-    // console.log(product.views);
-    //     user_id && !product.views.includes(user_id) && (product.views.push(user_id), product.viewsCount++);
-    //     await product.save()
+          let user_id = req.headers['user'];
+        user_id = (user_id === "null") ? null : (user_id === "undefined") ? undefined : user_id;
+        if(user_id) {
+          user_id && !product.views.includes(user_id) && (product.views.push(user_id), product.viewsCount++);
+          await product.save()
+        }
 
     const attributes = transformAttributes(product.details.flatMap(item => item?.variants || []));
-    console.log(attributes)
+
     const matchesFilter = variant =>
       variantQuery.every(query =>
         variant.attributes.some(attr => attr.value === query)

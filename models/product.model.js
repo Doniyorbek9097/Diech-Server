@@ -248,6 +248,15 @@ const productSchema = Schema({
 
 );
 
+
+// Matn indeksi yaratish
+productSchema.index({
+    'keywords': 'text',
+    'name.uz': 'text',
+    'name.ru': 'text',
+    'barcode': 'text'
+});
+
 productSchema.virtual("variants", {
     ref: "Variant",
     localField: "_id",
