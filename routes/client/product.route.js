@@ -11,6 +11,62 @@ const { shopProductModel } = require("../../models/shop.products.model");
 const { checkToken } = require("../../middlewares/authMiddleware")
 const { transformAttributes } = require('../../utils/transformAttributes')
 
+
+
+// get all products search
+router.get("/products-search", async (req, res) => {
+  try {
+    const page = parseInt(req.query?.page) - 1 || 0;
+    const limit = parseInt(req.query.limit) || 10;
+    const ratingFilter = req.query.rating;
+    const soldFilter = req.query.sold;
+    const search = req.query.search || "";
+
+    const { lang = '' } = req.headers;
+
+    let query = {};
+    
+    if (search) {
+      const regex = new RegExp(`^${search}`, 'i');
+      query = {
+        $or: [
+          { 'keywords': { $elemMatch: { $regex: regex } } },
+          { 'name.uz': regex },
+          { 'name.ru': regex },
+          { 'barcode': regex }
+        ]
+      };
+    }
+
+    // Construct matchSorted with conditional checks
+    let matchSorted = {};
+    if (soldFilter) matchSorted.soldOut = soldFilter;
+    if (ratingFilter) matchSorted.rating = ratingFilter;
+    const cacheKey = `product:${lang}:${search}:${page}:${limit}:${ratingFilter}:${soldFilter}`;
+    const cacheData = await redisClient.get(cacheKey);
+    if (cacheData) return res.json(JSON.parse(cacheData));
+
+    let products = await productModel.find(query)
+      .select('name slug keywords categories')
+      .populate('categories','slug name')
+      .sort(matchSorted)
+      .limit(limit)
+      .skip(page * limit);
+
+    const data = {
+      data: products,
+      message: "success"
+    };
+
+    await redisClient.SETEX(cacheKey, 3600, JSON.stringify(data));
+    res.json(data);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+
 // get all products 
 router.get("/products", async (req, res) => {
   try {
@@ -93,10 +149,6 @@ router.get("/product-slug/:slug", async (req, res) => {
       .populate({
         path: "categories",
         select: ['name', 'slug'],
-        populate: {
-          path: "children",
-          select: ['name', 'slug']
-        }
       })
       .populate("brend", "name slug")
       .populate({
