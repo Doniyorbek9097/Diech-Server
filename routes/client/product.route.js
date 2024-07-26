@@ -42,6 +42,7 @@ router.get("/products-search", async (req, res) => {
     let matchSorted = {};
     if (soldFilter) matchSorted.soldOut = soldFilter;
     if (ratingFilter) matchSorted.rating = ratingFilter;
+    redisClient.FLUSHALL()
     const cacheKey = `product:${lang}:${search}:${page}:${limit}:${ratingFilter}:${soldFilter}`;
     const cacheData = await redisClient.get(cacheKey);
     if (cacheData) return res.json(JSON.parse(cacheData));
