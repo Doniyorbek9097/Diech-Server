@@ -249,12 +249,14 @@ const productSchema = Schema({
 );
 
 
-// Matn indeksi yaratish
+// Text index yaratish
 productSchema.index({
-    'keywords': 'text',
+    keywords: 'text',
     'name.uz': 'text',
     'name.ru': 'text',
-    'barcode': 'text'
+    barcode: 'text',
+    'description.uz': 'text',
+    'description.ru': 'text'
 });
 
 productSchema.virtual("variants", {
@@ -291,7 +293,20 @@ productSchema.pre('deleteMany', deleteDetails);
 productSchema.pre('deleteOne', deleteDetails);
 productSchema.pre('remove', deleteDetails);
 
+
 const productModel = model("Product", productSchema);
+
+
+// Elasticsearchga ma'lumotlarni indekslash
+// productModel.createMapping((err, mapping) => {
+//     if (err) {
+//       console.log('Mapping creation failed', err);
+//     } else {
+//       console.log('Mapping created', mapping);
+//     }
+//   });
+  
+
 module.exports = {
     variantModel,
     productModel,
