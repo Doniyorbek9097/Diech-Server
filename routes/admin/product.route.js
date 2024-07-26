@@ -11,7 +11,7 @@ const { redisClient } = require("../../config/redisDB");
 const { baseDir } = require("../../config/uploadFolder");
 const { generateOTP } = require("../../utils/otpGenrater");
 const { upload, resizeImages } = require("../../middlewares/upload")
-
+const { esClient } = require("../../config/db")
 // create new Product 
 
 router.get("/upload/:id", async (req, res) => {
@@ -46,6 +46,45 @@ router.put("/upload/:id", upload.array('images', 10), async (req, res) => {
 })
 
 
+
+router.get("/indexed", async (req, res) => {
+    try {
+        async function indexDocument(products) {
+            try {
+            let body = []
+             products.forEach((item, index) => {
+                const product = item.toObject()
+                body.push({
+                    index: {
+                        _index: "products",
+                        _id: item._id.toString()
+                    }
+                })
+
+                body.push({
+                    name_uz: product.name.uz,
+                    name_ru: product.name.ru,
+                    keywords: product.keywords,  // Agar kerak bo'lsa, boshqa maydonlar ham qo'shilishi mumkin
+                    barcode: product.barcode 
+                })
+             })
+             
+              esClient.bulk({refresh: true,  body})
+              console.log("Indeksatsiya qilindi")
+            } catch (error) {
+              console.error('Indeksatsiya xatosi:', error);
+            }
+          }
+    
+
+    const products = await productModel.find()      
+
+        indexDocument(products)
+
+    } catch (error) {
+        console.log(error)
+    }
+})
 
 
 router.post("/product-add", checkToken, async (req, res) => {

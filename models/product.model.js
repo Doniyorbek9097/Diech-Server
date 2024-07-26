@@ -1,6 +1,6 @@
 const { Schema, model } = require("mongoose");
 const { shopProductModel, shopVariantModel } = require("./shop.products.model")
-
+const { esClient } = require('../config/db')
 const reviewSchema = Schema(
     {
         name: { type: String, required: true },
@@ -249,15 +249,6 @@ const productSchema = Schema({
 );
 
 
-// Text index yaratish
-productSchema.index({
-    keywords: 'text',
-    'name.uz': 'text',
-    'name.ru': 'text',
-    barcode: 'text',
-    'description.uz': 'text',
-    'description.ru': 'text'
-});
 
 productSchema.virtual("variants", {
     ref: "Variant",
@@ -294,18 +285,37 @@ productSchema.pre('deleteOne', deleteDetails);
 productSchema.pre('remove', deleteDetails);
 
 
+// async function indexDocument(product) {
+//     try {
+//       const response = await esClient.index({
+//         index: "products",
+//         id: product._id.toString(),
+//         body: {
+//           name: product.name.uz,         // Matn maydoni
+//           keywords: product.keywords, // Matn maydoni
+//           barcode: product.barcode    // Unikal qiymat (keyword)
+//         }
+//       });
+//       console.log('Dokument indekslandi:');
+//       esClient.indices.refresh({index: "products"})
+//     } catch (error) {
+//       console.error('Indeksatsiya xatosi:', error);
+//     }
+//   }
+
+
+// productSchema.pre("findOneAndUpdate",async function(next) {
+//     const doc = await this.model.findOne(this.getFilter());
+//     if (doc) {
+//        await indexDocument(doc)
+//     }
+//     next();
+// })
+
+
 const productModel = model("Product", productSchema);
 
 
-// Elasticsearchga ma'lumotlarni indekslash
-// productModel.createMapping((err, mapping) => {
-//     if (err) {
-//       console.log('Mapping creation failed', err);
-//     } else {
-//       console.log('Mapping created', mapping);
-//     }
-//   });
-  
 
 module.exports = {
     variantModel,

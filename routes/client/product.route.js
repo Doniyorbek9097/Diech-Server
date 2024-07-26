@@ -10,7 +10,7 @@ const { redisClient } = require("../../config/redisDB");
 const { shopProductModel } = require("../../models/shop.products.model");
 const { checkToken } = require("../../middlewares/authMiddleware")
 const { transformAttributes } = require('../../utils/transformAttributes')
-
+const { esClient } = require("../../config/db")
 
 
 // get all products search
@@ -25,18 +25,75 @@ router.get("/products-search", async (req, res) => {
     const { lang = '' } = req.headers;
 
     let query = {};
-    
+    let ids = [];
+
     if (search) {
-      const regex = new RegExp(`^${search}`, 'i');
-      query = {
-        $or: [
-          { 'keywords': { $elemMatch: { $regex: regex } } },
-          { 'name.uz': regex },
-          { 'name.ru': regex },
-          { 'barcode': regex }
-        ]
-      };
-    }
+      // Elasticsearch orqali qidirish
+      const elastic = await esClient.search({
+       index: 'products',
+       body: {
+         query: {
+           bool: {
+             should: [
+               {
+                 fuzzy: {
+                   name_uz: {
+                     value: search,
+                     fuzziness: "AUTO"
+                   }
+                 }
+               },
+
+               {
+                 fuzzy: {
+                   name_ru: {
+                     value: search,
+                     fuzziness: "AUTO"
+                   }
+                 }
+               },
+               {
+                 regexp: {
+                   name_uz: `${search}.*`
+                 }
+               },
+
+               {
+                 regexp: {
+                   name_ru: `${search}.*`
+                 }
+               },
+               {
+                 match: {
+                   name_uz: search
+                 }
+               },
+               {
+                 match: {
+                   name_ru: search
+                 }
+               },
+               {
+                 wildcard: {
+                   name_uz: `${search}*`
+                 }
+               },
+               {
+                 wildcard: {
+                   name_ru: `${search}*`
+                 }
+               }
+             ]
+           }
+         },
+         size: 20, // Qaytariladigan hujjatlar sonini oshirish
+         from: 0
+       }
+     });
+
+     ids.push(...elastic.hits.hits.map(item => item._id))
+     
+   }
 
     // Construct matchSorted with conditional checks
     let matchSorted = {};
@@ -47,13 +104,19 @@ router.get("/products-search", async (req, res) => {
     const cacheData = await redisClient.get(cacheKey);
     if (cacheData) return res.json(JSON.parse(cacheData));
 
-    let products = await productModel.find(query)
+    let products = [];
+    for (const product_id of ids) {
+      const result = await productModel.find({_id: product_id})
       .select('name slug keywords categories')
       .populate('categories','slug name')
       .sort(matchSorted)
       .limit(limit)
-      .skip(page * limit);
+      .skip(page * limit);  
 
+      products.push(...result)
+    }
+    
+    // console.log(products);
     const data = {
       data: products,
       message: "success"
@@ -80,17 +143,74 @@ router.get("/products", async (req, res) => {
     const { lang = '' } = req.headers;
 
     let query = {};
-    
+    let ids = [];
+
     if (search) {
-      const regex = new RegExp(`^${search}`, 'i');
-      query = {
-        $or: [
-          { 'keywords': { $elemMatch: { $regex: regex } } },
-          { 'name.uz': regex },
-          { 'name.ru': regex },
-          { 'barcode': regex }
-        ]
-      };
+       // Elasticsearch orqali qidirish
+       const elastic = await esClient.search({
+        index: 'products',
+        body: {
+          query: {
+            bool: {
+              should: [
+                {
+                  fuzzy: {
+                    name_uz: {
+                      value: search,
+                      fuzziness: "AUTO"
+                    }
+                  }
+                },
+
+                {
+                  fuzzy: {
+                    name_ru: {
+                      value: search,
+                      fuzziness: "AUTO"
+                    }
+                  }
+                },
+                {
+                  regexp: {
+                    name_uz: `${search}.*`
+                  }
+                },
+
+                {
+                  regexp: {
+                    name_ru: `${search}.*`
+                  }
+                },
+                {
+                  match: {
+                    name_uz: search
+                  }
+                },
+                {
+                  match: {
+                    name_ru: search
+                  }
+                },
+                {
+                  wildcard: {
+                    name_uz: `${search}*`
+                  }
+                },
+                {
+                  wildcard: {
+                    name_ru: `${search}*`
+                  }
+                }
+              ]
+            }
+          },
+          size: 20, // Qaytariladigan hujjatlar sonini oshirish
+          from: 0
+        }
+      });
+
+      ids.push(...elastic.hits.hits.map(item => item._id))
+      
     }
 
     // Construct matchSorted with conditional checks
@@ -101,7 +221,10 @@ router.get("/products", async (req, res) => {
     const cacheData = await redisClient.get(cacheKey);
     if (cacheData) return res.json(JSON.parse(cacheData));
 
-    let products = await productModel.find(query)
+
+    let products = [];
+    for (const product_id of ids) {
+      const result = await productModel.find({_id: product_id})
       .select('name slug images keywords categories')
       .populate('categories')
       .populate({ 
@@ -115,6 +238,10 @@ router.get("/products", async (req, res) => {
       .limit(limit)
       .skip(page * limit);
 
+      products.push(...result)
+    }
+
+    console.log(products)
     
     const data = {
       data: products,
