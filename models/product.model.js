@@ -59,6 +59,11 @@ const productSchema = Schema({
     }],
     
     keywords: [],
+    keyword: {
+        uz: [],
+        ru: []
+    },
+    
     barcode: String,
 
     method_sale: {
