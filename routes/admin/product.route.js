@@ -12,8 +12,8 @@ const { baseDir } = require("../../config/uploadFolder");
 const { generateOTP } = require("../../utils/otpGenrater");
 const { upload, resizeImages } = require("../../middlewares/upload")
 const { esClient } = require("../../config/db")
-// create new Product 
 
+// create new Product 
 router.get("/upload/:id", async (req, res) => {
     try {
         const productId = req.params.id; // Replace with your product ID logic
@@ -48,15 +48,18 @@ router.put("/upload/:id", upload.array('images', 10), async (req, res) => {
 
 const indexDocuments = async (products) => {
     try {
-        const body = products.flatMap((item) => [
-            { index: { _index: "products", _id: item._id.toString() } },
-            {
-                name_uz: item.name.uz,
-                name_ru: item.name.ru,
-                keywords: item.keywords,
-                barcode: item.barcode
-            }
-        ]);
+        const body = products.flatMap((item) => {
+        const product = item.toObject()
+            return [
+                { index: { _index: "products", _id: product._id.toString() } },
+                {
+                    name_uz: product.name.uz,
+                    name_ru: product.name.ru,
+                    keywords: product.keywords,
+                    barcode: product.barcode
+                }
+            ]
+        });
 
         await esClient.bulk({ refresh: true, body });
         console.log("Indeksatsiya qilindi");
@@ -127,18 +130,18 @@ router.get("/product-all", checkToken, async (req, res) => {
     const limit = parseInt(req.query.limit, 10) || 1;
     const totalDocuments = await productModel.countDocuments().exec()
     const totalPages = Math.ceil(totalDocuments / limit);
-    
+
     let query;
     if (search) {
         const regex = new RegExp(search, 'i'); // 'i' flagi case-insensitive qidiruvni belgilaydi
-        query = { 
+        query = {
             $or: [
                 { 'keywords': { $elemMatch: { $regex: regex } } },
                 { 'name.uz': regex },
                 { 'name.ru': regex },
                 { 'barcode': regex }
             ]
-         };
+        };
     }
 
     try {
@@ -147,7 +150,6 @@ router.get("/product-all", checkToken, async (req, res) => {
             .skip(page * limit)
             .limit(limit)
             .sort({ _id: -1 })
-        console.log(products);
 
         products = products.map(product => {
             const sold = product.variants.length ? product.variants.reduce((count, item) => count += item.soldOutCount, 0) : product.soldOutCount;
