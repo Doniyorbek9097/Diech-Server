@@ -24,10 +24,19 @@ const searchProducts = async (search) => {
             { fuzzy: { name_ru: { value: search, fuzziness: "AUTO" } } },
             { regexp: { name_uz: `^${search}.*` } },
             { regexp: { name_ru: `^${search}.*` } },
-            { match: { name_uz: search } },
-            { match: { name_ru: search } },
+            { match: { name_uz: { query:search, boost: 2 }  } },
+            { match: { name_ru: {query: search, boost: 2 } } },
             { wildcard: { name_uz: `${search}*` } },
-            { wildcard: { name_ru: `${search}*` } }
+            { wildcard: { name_ru: `${search}*` } },
+            
+            { fuzzy: { keywords_uz: { value: search, fuzziness: "AUTO" } } },
+            { fuzzy: { keywords_ru: { value: search, fuzziness: "AUTO" } } },
+            { regexp: { keywords_uz: `^${search}.*` } },
+            { regexp: { keywords_ru: `^${search}.*` } },
+            { match: { keywords_uz: {query: search, boost: 2} } },
+            { match: { keywords_ru: {query: search, boost: 2} } },
+            { wildcard: { keywords_uz: `${search}*` } },
+            { wildcard: { keywords_ru: `${search}*` } }
           ]
         }
       },
@@ -93,7 +102,8 @@ router.get("/products", async (req, res) => {
           .limit(limit)
           .skip(page * limit)
       : [];
-    
+      
+    console.log(products);
     const data = { data: products, message: "success" };
     await redisClient.SETEX(cacheKey, 3600, JSON.stringify(data));
     res.json(data);

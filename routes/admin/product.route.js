@@ -47,6 +47,8 @@ router.put("/upload/:id", upload.array('images', 10), async (req, res) => {
 
 
 const indexDocuments = async (products) => {
+    const response = await esClient.indices.delete({ index: 'products' });
+        console.log("Indeks o'chirildi:", response);
     try {
         const body = products.flatMap((item) => {
         const product = item.toObject()
@@ -55,7 +57,8 @@ const indexDocuments = async (products) => {
                 {
                     name_uz: product.name.uz,
                     name_ru: product.name.ru,
-                    keywords: product.keywords,
+                    keywords_uz: product.keyword.uz,
+                    keywords_ru: product.keyword.ru,
                     barcode: product.barcode
                 }
             ]
@@ -67,7 +70,6 @@ const indexDocuments = async (products) => {
         console.error('Indeksatsiya xatosi:', error);
     }
 };
-
 
 
 router.post("/product-add", checkToken, async (req, res) => {
@@ -90,7 +92,7 @@ router.post("/product-add", checkToken, async (req, res) => {
             if (product.barcode) {
                 const existsProduct = await productModel.findOne({ barcode: product.barcode });
                 if (existsProduct) {
-                    return res.json({ message: "Bunday mahsulot mavjud!" });
+                    throw new Error("Bunday mahsulot mavjud!"); // Throw an error to handle in catch block
                 }
             }
 
@@ -101,8 +103,7 @@ router.post("/product-add", checkToken, async (req, res) => {
         const newProducts = await productModel.insertMany(processedProducts);
 
         // Elasticsearch'ga mahsulotlarni indeksatsiya qilish
-        const productsData = await productModel.find();
-        await indexDocuments(productsData);
+        await indexDocuments(newProducts);
 
         res.json({ data: newProducts, message: "success added" });
     } catch (error) {
@@ -125,11 +126,17 @@ router.post("/product-add", checkToken, async (req, res) => {
 
 // get all products 
 router.get("/product-all", checkToken, async (req, res) => {
+
+
+    // await productModel.updateMany(
+    //     {},
+    //     { $unset: { keywords: "" } }
+    // );
+
     const search = req.query.search || "";
     const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
     const limit = parseInt(req.query.limit, 10) || 1;
-    const totalDocuments = await productModel.countDocuments().exec()
-    const totalPages = Math.ceil(totalDocuments / limit);
+    
 
     let query;
     if (search) {
@@ -143,6 +150,9 @@ router.get("/product-all", checkToken, async (req, res) => {
             ]
         };
     }
+
+    const totalDocuments = await productModel.countDocuments(query).exec()
+    const totalPages = Math.ceil(totalDocuments / limit);
 
     try {
         let products = await productModel.find(query)

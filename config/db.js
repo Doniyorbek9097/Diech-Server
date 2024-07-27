@@ -35,7 +35,13 @@ async function createIndex() {
                 search_analyzer: 'standard' // Qidiruv uchun standart analizator
               },
 
-              keywords: { 
+              keywords_uz: { 
+                type: 'text',
+                analyzer: 'keyword', // Kalit so'zlarni tahlil qilish
+                search_analyzer: 'keyword' // Qidiruv uchun kalit so'z analizatori
+              },
+
+              keywords_ru: { 
                 type: 'text',
                 analyzer: 'keyword', // Kalit so'zlarni tahlil qilish
                 search_analyzer: 'keyword' // Qidiruv uchun kalit so'z analizatori
