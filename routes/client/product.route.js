@@ -108,8 +108,11 @@ router.get("/products", async (req, res) => {
           .skip(page * limit)
       : [];
 
-    console.log(products);
-    const data = { data: products, message: "success" };
+    // Mahsulotlarni `ids` tartibida qayta tartiblash
+const productsMap = new Map(products.map(product => [product._id.toString(), product]));
+const sortedProducts = ids.map(id => productsMap.get(id.toString())).filter(Boolean);
+
+    const data = { data: sortedProducts, message: "success" };
     await redisClient.SETEX(cacheKey, 3600, JSON.stringify(data));
     res.json(data);
   } catch (error) {
