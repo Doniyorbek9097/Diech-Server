@@ -50,7 +50,7 @@ const searchProducts = async (search) => {
     }
   });
 
-  return hits.hits;
+  return hits.hits.map(item => item._id);
 }
 
 
@@ -109,8 +109,8 @@ router.get("/products", async (req, res) => {
       : [];
 
     // Mahsulotlarni `ids` tartibida qayta tartiblash
-const productsMap = new Map(products.map(product => [product._id.toString(), product]));
-const sortedProducts = ids.map(id => productsMap.get(id.toString())).filter(Boolean);
+  const productsMap = new Map(products.map(product => [product._id.toString(), product]));
+  const sortedProducts = ids.map(id => productsMap.get(id.toString())).filter(Boolean);
 
     const data = { data: sortedProducts, message: "success" };
     await redisClient.SETEX(cacheKey, 3600, JSON.stringify(data));
