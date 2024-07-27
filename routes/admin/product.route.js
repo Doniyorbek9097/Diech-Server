@@ -72,6 +72,26 @@ const indexDocuments = async (products) => {
 };
 
 
+router.get("/products-index", async (req, res) => {
+    // const response = await esClient.search({
+    //     index: 'products',
+    //     body: {
+    //         from: 0,
+    //         size: 20,
+    //         query: {
+    //             match_all: {} // You can customize this query as needed
+    //         }
+    //     }
+    // });
+
+    // console.log(response.hits.hits);
+    const products = await productModel.find()
+
+    await indexDocuments(products);
+    res.send("mahsulotlar indexlandi")
+
+})
+
 router.post("/product-add", checkToken, async (req, res) => {
     try {
         // Redis'ni tozalash
@@ -126,8 +146,7 @@ router.post("/product-add", checkToken, async (req, res) => {
 
 // get all products 
 router.get("/product-all", checkToken, async (req, res) => {
-
-
+    
     // await productModel.updateMany(
     //     {},
     //     { $unset: { keywords: "" } }

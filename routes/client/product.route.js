@@ -102,7 +102,7 @@ router.get("/products", async (req, res) => {
           .limit(limit)
           .skip(page * limit)
       : [];
-      
+
     console.log(products);
     const data = { data: products, message: "success" };
     await redisClient.SETEX(cacheKey, 3600, JSON.stringify(data));
