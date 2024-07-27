@@ -46,15 +46,9 @@ router.get("/products-search", async (req, res) => {
   try {
     const page = parseInt(req.query.page) - 1 || 0;
     const limit = parseInt(req.query.limit) || 10;
-    const { rating: ratingFilter, sold: soldFilter, search = "" } = req.query;
-    const { lang = '' } = req.headers;
+    const { search = "" } = req.query;
 
     let ids = search ? await searchProducts(search) : [];
-    const matchSorted = { ...(soldFilter && { soldOut: soldFilter }), ...(ratingFilter && { rating: ratingFilter }) };
-    const cacheKey = `product:${lang}:${search}:${page}:${limit}:${ratingFilter}:${soldFilter}`;
-    const cacheData = await redisClient.get(cacheKey);
-
-    if (cacheData) return res.json(JSON.parse(cacheData));
 
     const products = ids.length 
       ? await productModel.find({ _id: { $in: ids } })
@@ -66,8 +60,8 @@ router.get("/products-search", async (req, res) => {
       : [];
     
     const data = { data: products, message: "success" };
-    await redisClient.SETEX(cacheKey, 3600, JSON.stringify(data));
     res.json(data);
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: error.message });
@@ -80,12 +74,11 @@ router.get("/products", async (req, res) => {
   try {
     const page = parseInt(req.query.page) - 1 || 0;
     const limit = parseInt(req.query.limit) || 10;
-    const { rating: ratingFilter, sold: soldFilter, search = "" } = req.query;
+    const { search = "" } = req.query;
     const { lang = '' } = req.headers;
 
     let ids = search ? await searchProducts(search) : [];
-    const matchSorted = { ...(soldFilter && { soldOut: soldFilter }), ...(ratingFilter && { rating: ratingFilter }) };
-    const cacheKey = `product:${lang}:${search}:${page}:${limit}:${ratingFilter}:${soldFilter}`;
+    const cacheKey = `product:${lang}:${search}:${page}:${limit}`;
     const cacheData = await redisClient.get(cacheKey);
 
     if (cacheData) return res.json(JSON.parse(cacheData));
