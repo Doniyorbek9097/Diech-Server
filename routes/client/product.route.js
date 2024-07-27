@@ -54,7 +54,6 @@ router.get("/products-search", async (req, res) => {
       ? await productModel.find({ _id: { $in: ids } })
           .select('name slug images keywords categories')
           .populate('categories','slug name')
-          .sort(matchSorted)
           .limit(limit)
           .skip(page * limit)
       : [];
@@ -91,7 +90,6 @@ router.get("/products", async (req, res) => {
             path: "details",
             populate: { path: "shop", select: ['name', 'slug'] }
           })
-          .sort(matchSorted)
           .limit(limit)
           .skip(page * limit)
       : [];
