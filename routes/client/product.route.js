@@ -20,33 +20,38 @@ const searchProducts = async (search) => {
       query: {
         bool: {
           should: [
-            { fuzzy: { name_uz: { value: search, fuzziness: "AUTO" } } },
-            { fuzzy: { name_ru: { value: search, fuzziness: "AUTO" } } },
-            { regexp: { name_uz: `^${search}.*` } },
-            { regexp: { name_ru: `^${search}.*` } },
-            { match: { name_uz: { query:search, boost: 2 }  } },
-            { match: { name_ru: {query: search, boost: 2 } } },
-            { wildcard: { name_uz: `${search}*` } },
-            { wildcard: { name_ru: `${search}*` } },
+            // match qidiruvlar yuqori ustuvorlik
+            { match: { name_uz: { query: search, boost: 2 } } },
+            { match: { name_ru: { query: search, boost: 2 } } },
+            { match: { keywords_uz: { query: search, boost: 2 } } },
+            { match: { keywords_ru: { query: search, boost: 2 } } },
             
-            { fuzzy: { keywords_uz: { value: search, fuzziness: "AUTO" } } },
-            { fuzzy: { keywords_ru: { value: search, fuzziness: "AUTO" } } },
+            // fuzzy qidiruvlar o'rtacha ustuvorlik
+            { fuzzy: { name_uz: { value: search, fuzziness: "AUTO", boost: 1 } } },
+            { fuzzy: { name_ru: { value: search, fuzziness: "AUTO", boost: 1 } } },
+            { fuzzy: { keywords_uz: { value: search, fuzziness: "AUTO", boost: 1 } } },
+            { fuzzy: { keywords_ru: { value: search, fuzziness: "AUTO", boost: 1 } } },
+            
+            // regexp qidiruvlar pastroq ustuvorlik
+            { regexp: { name_uz: `^${search}.*` } },
+            { regexp: { name_ru: `^${search}.*`} },
             { regexp: { keywords_uz: `^${search}.*` } },
             { regexp: { keywords_ru: `^${search}.*` } },
-            { match: { keywords_uz: {query: search, boost: 2} } },
-            { match: { keywords_ru: {query: search, boost: 2} } },
+            
+            // wildcard qidiruvlar eng pastroq ustuvorlik
+            { wildcard: { name_uz: `${search}*` } },
+            { wildcard: { name_ru: `${search}*` } },
             { wildcard: { keywords_uz: `${search}*` } },
             { wildcard: { keywords_ru: `${search}*` } }
-          ]
+          ],
+          minimum_should_match: 1
         }
-      },
-      size: 20,
-      from: 0
+      }
     }
   });
 
-  return hits.hits.map(item => item._id);
-};
+  return hits.hits;
+}
 
 
 
