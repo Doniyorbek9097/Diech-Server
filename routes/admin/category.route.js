@@ -1,11 +1,8 @@
 const router = require("express").Router();
 const slugify = require("slugify");
 const mongoose = require("mongoose");
-const { categoryModel } = require("../../models/category.model");
-const langReplace = require("../../utils/langReplace");
-const nestedCategories = require("../../utils/nestedCategories");
+const categoryModel = require("../../models/category.model");
 const { Base64ToFile } = require("../../utils/base64ToFile");
-const { isEqual } = require("../../utils/isEqual");
 const { checkToken } = require("../../middlewares/authMiddleware")
 const { redisClient } = require("../../config/redisDB");
 const { generateOTP } = require("../../utils/otpGenrater")

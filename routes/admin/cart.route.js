@@ -1,7 +1,6 @@
 const cartModel = require("../../models/cart.model");
 const router = require("express").Router();
 const mongoose = require("mongoose")
-const langReplace = require("../../utils/langReplace");
 const { checkToken } = require('../../middlewares/authMiddleware');
 
 router.post("/add-cart", async (req, res) => {

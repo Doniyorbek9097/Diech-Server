@@ -16,4 +16,5 @@ const Schema = new mongooose.Schema({
 }
 );
 
-module.exports = mongooose.model("Carousel", Schema);
+const carouselModel = mongooose.model("Carousel", Schema);
+module.exports = carouselModel

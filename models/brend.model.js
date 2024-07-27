@@ -68,4 +68,6 @@ brendSchema.virtual("carousel", {
     foreignField: "brends",
 })
 
-module.exports = mongoose.model("Brend", brendSchema);
+const brendModel = mongoose.model("Brend", brendSchema);
+
+module.exports = brendModel

@@ -1,7 +1,6 @@
 const slugify = require("slugify");
 const brendModel = require("../../models/brend.model");
 const router = require("express").Router();
-const langReplace  = require("../../utils/langReplace"); 
 const { Base64ToFile } = require("../../utils/base64ToFile");
 const fs = require("fs");
 const path = require("path");

@@ -19,5 +19,5 @@ const Schema = mongooose.Schema({
 
 },{timestamps:true});
 
-
-module.exports = mongooose.model("Otp", Schema);
+const otpModel = mongooose.model("Otp", Schema);
+module.exports = otpModel

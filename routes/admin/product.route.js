@@ -1,5 +1,5 @@
 const router = require("express").Router();
-const { productModel } = require("../../models/product.model");
+const productModel = require("../../models/product.model");
 const cartModel = require("../../models/cart.model")
 const slugify = require("slugify");
 const sharp = require('sharp')
@@ -46,96 +46,79 @@ router.put("/upload/:id", upload.array('images', 10), async (req, res) => {
 })
 
 
-
-router.get("/indexed", async (req, res) => {
+const indexDocuments = async (products) => {
     try {
-        async function indexDocument(products) {
-            try {
-            let body = []
-             products.forEach((item, index) => {
-                const product = item.toObject()
-                body.push({
-                    index: {
-                        _index: "products",
-                        _id: item._id.toString()
-                    }
-                })
-
-                body.push({
-                    name_uz: product.name.uz,
-                    name_ru: product.name.ru,
-                    keywords: product.keywords,  // Agar kerak bo'lsa, boshqa maydonlar ham qo'shilishi mumkin
-                    barcode: product.barcode 
-                })
-             })
-             
-              esClient.bulk({refresh: true,  body})
-              console.log("Indeksatsiya qilindi")
-            } catch (error) {
-              console.error('Indeksatsiya xatosi:', error);
+        const body = products.flatMap((item) => [
+            { index: { _index: "products", _id: item._id.toString() } },
+            {
+                name_uz: item.name.uz,
+                name_ru: item.name.ru,
+                keywords: item.keywords,
+                barcode: item.barcode
             }
-          }
-    
+        ]);
 
-    const products = await productModel.find()      
-
-        indexDocument(products)
-
+        await esClient.bulk({ refresh: true, body });
+        console.log("Indeksatsiya qilindi");
     } catch (error) {
-        console.log(error)
+        console.error('Indeksatsiya xatosi:', error);
     }
-})
+};
+
 
 
 router.post("/product-add", checkToken, async (req, res) => {
-    await redisClient.FLUSHALL()
-    const { body: products } = req;
-
-    for (const product of products) {
-        if (product?.images?.length) {
-            let images = [];
-            for (const image of product.images) {
-                const data = await new Base64ToFile(req).bufferInput(image).save();
-                images.push(data);
-            }
-            product.images = images;
-        }
-
-        product.slug = slugify(`${product.name.ru.toLowerCase()}`)
-        if (product.barcode) {
-            const existsProduct = await productModel.findOne({ barcode: product.barcode })
-            if (existsProduct) {
-                return res.json({
-                    message: "Bunday mahsulot mavjud!"
-                })
-            }
-        }
-    }
-
-
     try {
-        let newProduct = await productModel.insertMany(products);
-        return res.json({
-            data: newProduct,
-            message: "success added"
-        });
+        // Redis'ni tozalash
+        await redisClient.FLUSHALL();
 
-    } catch (error) {
+        const { body: products } = req;
 
-        for (const product of products) {
+        const processedProducts = await Promise.all(products.map(async (product) => {
             if (product?.images?.length) {
-                for (const image of product?.images) {
-                    const imagePath = path.join(__dirname, `${baseDir}/${path.basename(image)}`);
-                    fs.unlink(imagePath, (err) => err && console.log(err))
-                }
+                product.images = await Promise.all(product.images.map(async (image) => {
+                    const data = await new Base64ToFile(req).bufferInput(image).save();
+                    return data;
+                }));
+            }
 
+            product.slug = slugify(`${product.name.ru.toLowerCase()}`);
+
+            if (product.barcode) {
+                const existsProduct = await productModel.findOne({ barcode: product.barcode });
+                if (existsProduct) {
+                    return res.json({ message: "Bunday mahsulot mavjud!" });
+                }
+            }
+
+            return product;
+        }));
+
+        // Mahsulotlarni saqlash
+        const newProducts = await productModel.insertMany(processedProducts);
+
+        // Elasticsearch'ga mahsulotlarni indeksatsiya qilish
+        const productsData = await productModel.find();
+        await indexDocuments(productsData);
+
+        res.json({ data: newProducts, message: "success added" });
+    } catch (error) {
+        console.error(error);
+
+        // Mahsulotlar o'chirilishi
+        for (const product of req.body) {
+            if (product?.images?.length) {
+                await Promise.all(product.images.map(async (image) => {
+                    const imagePath = path.join(__dirname, `${baseDir}/${path.basename(image)}`);
+                    fs.unlink(imagePath, (err) => err && console.log(err));
+                }));
             }
         }
 
-        console.log(error);
-        return res.status(500).json("serverda Xatolik")
+        res.status(500).json("serverda Xatolik");
     }
 });
+
 
 // get all products 
 router.get("/product-all", checkToken, async (req, res) => {

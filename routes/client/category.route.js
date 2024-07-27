@@ -1,15 +1,13 @@
 const router = require("express").Router();
 const slugify = require("slugify");
 const mongoose = require("mongoose");
-const { categoryModel } = require("../../models/category.model");
+const categoryModel = require("../../models/category.model");
 const { Base64ToFile } = require("../../utils/base64ToFile");
-const { isEqual } = require("../../utils/isEqual");
 const path = require("path");
 const fs = require("fs");
 const { redisClient } = require("../../config/redisDB");
-const { message } = require("telegraf/filters");
 const _ = require('lodash');
-const { shopProductModel } = require("../../models/shop.products.model");
+const { shopProductModel } = require("../../models/shop.product.model");
 
 
 // Get prent all category

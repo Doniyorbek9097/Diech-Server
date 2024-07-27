@@ -1,10 +1,6 @@
 const cartModel = require("../../models/cart.model");
 const router = require("express").Router();
 const mongoose = require("mongoose")
-const langReplace = require("../../utils/langReplace");
-const { checkToken } = require('../../middlewares/authMiddleware');
-const { isEqual } = require("../../utils/isEqual");
-const { populate } = require("../../models/user.model");
 
 router.post("/add-cart", async (req, res) => {
     try {

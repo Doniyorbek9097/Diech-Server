@@ -1,5 +1,5 @@
 const router = require("express").Router();
-const { attributeModel, variantModel, productModel } = require("../../models/product.model");
+const productVariantModel = require("../../models/product.varinat.model");
 const slugify = require("slugify")
 const path = require("path")
 const fs = require("fs")
@@ -10,7 +10,7 @@ const { Base64ToFile } = require("../../utils/base64ToFile")
 router.get("/get-product-variants/:product_id", async (req, res) => {
     try {
         const { product_id } = req.params;
-        const variants = await variantModel.find({ product_id })
+        const variants = await productVariantModel.find({ product_id })
 
         res.json(variants)
     } catch (error) {
@@ -21,7 +21,7 @@ router.get("/get-product-variants/:product_id", async (req, res) => {
 router.post("/add-variant", async (req, res) => {
     try {
         
-        const variants = await variantModel.insertMany(req.body)
+        const variants = await productVariantModel.insertMany(req.body)
         res.json({
             data: variants,
             message: "success updated"
@@ -52,7 +52,7 @@ router.put("/update-variant/:id", async (req, res) => {
     }
 
     try {
-        const updated = await variantModel.findOneAndUpdate({ _id: id }, req.body)
+        const updated = await productVariantModel.findOneAndUpdate({ _id: id }, req.body)
         res.json({
             data: updated,
             message: "success updated"
@@ -78,7 +78,7 @@ router.put("/update-variant/:id", async (req, res) => {
 router.delete("/variant-delete/:id", async (req, res) => {
     try {
         const { id } = req.params;
-        const deleted = await variantModel.findOneAndDelete({ _id: id })
+        const deleted = await productVariantModel.findOneAndDelete({ _id: id })
         for (const attr of deleted.attributes) {
             if (attr?.images?.length) {
                 for (const image of attr?.images) {

@@ -91,5 +91,5 @@ const orderSchema = new Schema({
 
 }, { timestamps: true });
 
-
-module.exports = model("Order", orderSchema);
+const orderModel = model("Order", orderSchema);
+module.exports = orderModel

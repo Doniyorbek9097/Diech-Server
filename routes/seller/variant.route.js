@@ -1,10 +1,10 @@
 const router = require("express").Router();
-const { shopProductModel, shopVariantModel } = require("../../models/shop.products.model")
+const shopProductVariantModel = require("../../models/shop.product.variant.model")
 
 router.get('/get-variants/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const variants = await shopVariantModel.find({shopDetail: id})
+        const variants = await shopProductVariantModel.find({shopDetail: id})
         .populate({
             path:"variant",
         })
@@ -29,7 +29,7 @@ router.post('/add-variant', async (req, res) => {
         for (const variant of variants) {
             variant.discount = parseInt(((variant.orginal_price - variant.sale_price) / variant.orginal_price) * 100);
             if (isNaN(variant.discount)) variant.discount = 0;
-            await shopVariantModel.updateOne(
+            await shopProductVariantModel.updateOne(
                 { sku: variant.sku },
                 { $set: variant },
                 { upsert: true }

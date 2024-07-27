@@ -1,14 +1,9 @@
 const router = require("express").Router();
-const { productModel } = require("../../models/product.model");
-const { shopProductModel, shopVariantsModel, attributeModel } = require("../../models/shop.products.model");
-const categoryModel = require("../../models/category.model")
-const slugify = require("slugify");
-const path = require("path")
-const fs = require("fs");
-const { Base64ToFile } = require("../../utils/base64ToFile");
+const productModel = require("../../models/product.model");
+const shopProductModel = require("../../models/shop.product.model");
+const shopProductVariantModel = require("../../models/shop.product.variant.model")
 const { checkToken } = require("../../middlewares/authMiddleware");
 const { redisClient } = require("../../config/redisDB");
-const { generateOTP } = require("../../utils/otpGenrater");
 
 
 
@@ -147,7 +142,7 @@ router.delete("/product-delete/:id", checkToken, async (req, res) => {
 
         const deleted = await shopProductModel.findByIdAndDelete(req.params.id).populate('variants')
         for (const variant of deleted.variants) {
-           await shopVariantsModel.deleteMany({_id: variant._id})
+           await shopProductVariantModel.deleteMany({_id: variant._id})
         }
         
         return res.status(200).json({ message: "success deleted!", data: deleted });

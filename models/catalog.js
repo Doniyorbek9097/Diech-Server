@@ -23,6 +23,4 @@ const catalogSchema = Schema({
 
 const catalogModel = model("Catalog", catalogSchema)
 
-module.exports = {
-    catalogModel
-}
+module.exports = catalogModel

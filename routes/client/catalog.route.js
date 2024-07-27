@@ -1,5 +1,5 @@
 const router = require("express").Router()
-const { catalogModel } = require('../../models/catalog')
+const catalogModel  = require('../../models/catalog')
 const { redisClient } = require("../../config/redisDB");
 
 

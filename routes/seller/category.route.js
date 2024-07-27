@@ -1,14 +1,5 @@
 const router = require("express").Router();
-const slugify = require("slugify");
-const mongoose = require("mongoose");
-const { categoryModel } = require("../../models/category.model");
-const langReplace = require("../../utils/langReplace");
-const nestedCategories = require("../../utils/nestedCategories");
-const { Base64ToFile } = require("../../utils/base64ToFile");
-const { isEqual } = require("../../utils/isEqual");
-const path = require("path");
-const fs = require("fs");
-const { productModel } = require("../../models/product.model");
+const categoryModel = require("../../models/category.model");
 
 
 // Get prent all category

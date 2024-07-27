@@ -19,6 +19,4 @@ const pointSchema = Schema({
 
 const pointModel = model("Point", pointSchema); 
 
-module.exports = {
-    pointModel
-}
+module.exports = pointModel

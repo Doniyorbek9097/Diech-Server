@@ -4,9 +4,9 @@ const router = require("express").Router();
 const { sendSms } = require("../../utils/sendSms");
 const { generateOTP } = require("../../utils/otpGenrater");
 const bcrypt = require("bcrypt");
-const { productModel } = require("../../models/product.model")
+const productModel = require("../../models/product.model")
 const { checkToken } = require("../../middlewares/authMiddleware");
-const { shopProductModel } = require("../../models/shop.products.model")
+const shopProductModel = require("../../models/shop.product.model")
 
 router.get('/order-all', checkToken, async (req, res) => {
     try {

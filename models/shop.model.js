@@ -102,6 +102,7 @@ shopSchema.virtual("orders", {
 
 
 
+const shopModel = mongoose.model("Shop", shopSchema);
+module.exports = shopModel
 
-module.exports = mongoose.model("Shop", shopSchema);
 

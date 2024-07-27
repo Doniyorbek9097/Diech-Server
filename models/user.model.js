@@ -135,5 +135,5 @@ userSchema.index(
 )
 
 
-
-module.exports = mongooose.model("User", userSchema);
+const userModel = mongooose.model("User", userSchema);
+module.exports = userModel

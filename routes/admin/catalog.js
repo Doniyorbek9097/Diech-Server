@@ -1,5 +1,5 @@
 const router = require("express").Router()
-const { catalogModel } = require('../../models/catalog')
+const catalogModel = require('../../models/catalog')
 
 
 router.post('/catalog-add', async (req, res) => {

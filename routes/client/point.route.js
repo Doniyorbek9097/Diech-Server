@@ -1,5 +1,5 @@
 const router = require("express").Router();
-const { pointModel } = require("../../models/point.model");
+const pointModel = require("../../models/point.model");
 
 router.get("/point-all", async (req, res) => {
     try {

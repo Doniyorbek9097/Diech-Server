@@ -1,7 +1,5 @@
 const router = require("express").Router();
-const slugify = require("slugify");
 const shopModel = require("../../models/shop.model");
-const { generateToken } = require("../../utils/generateToken");
 
 
 router.get("/shops/:user_id", async(req,res) => {

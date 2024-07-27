@@ -1,4 +1,4 @@
-const { Schema, model, models } = require("mongoose");
+const { Schema, model } = require("mongoose");
 
 
 const categorySchema = new Schema({
@@ -89,6 +89,4 @@ categorySchema.pre(['find','findOne','findById'], function(next) {
 
 const categoryModel = model("Category", categorySchema);
 
-module.exports = {
-    categoryModel
-}
+module.exports = categoryModel
