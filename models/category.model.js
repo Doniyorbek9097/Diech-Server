@@ -40,6 +40,7 @@ const categorySchema = new Schema({
         type: Schema.Types.ObjectId,
     },
 
+    fields: [String],
 
     createdBy: {
         type: Schema.Types.ObjectId,

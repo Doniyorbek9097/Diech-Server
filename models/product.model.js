@@ -71,10 +71,7 @@ const productSchema = Schema({
         default: false
     },
 
-    brend: {
-        type: Schema.Types.ObjectId,
-        ref: "Brend",
-    },
+    
 
     reviews: {
         type: [reviewSchema]
@@ -125,6 +122,25 @@ const productSchema = Schema({
         type: Number,
         default: 0
     },
+
+    brend: {
+        type: Schema.Types.ObjectId,
+        ref: "Brend",
+    },
+
+    status: String,
+    model: {
+        type: String,
+    },
+    weight: {
+        type: Boolean,
+        default: false
+    },
+    color: String,
+    size: String,
+    memory: String,
+    ram_memory: String,
+    length: String,
 
     type: {
         type: String,
