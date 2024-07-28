@@ -25,24 +25,37 @@ const searchProducts = async (search) => {
             { match: { name_ru: { query: search, boost: 2 } } },
             { match: { keywords_uz: { query: search, boost: 2 } } },
             { match: { keywords_ru: { query: search, boost: 2 } } },
+            { match: { variant_uz: { query: search, boost: 2 } } },
+            { match: { variant_ru: { query: search, boost: 2 } } },
+
+
             
             // fuzzy qidiruvlar o'rtacha ustuvorlik
             { fuzzy: { name_uz: { value: search, fuzziness: "AUTO", boost: 1 } } },
             { fuzzy: { name_ru: { value: search, fuzziness: "AUTO", boost: 1 } } },
             { fuzzy: { keywords_uz: { value: search, fuzziness: "AUTO", boost: 1 } } },
             { fuzzy: { keywords_ru: { value: search, fuzziness: "AUTO", boost: 1 } } },
-            
+            { fuzzy: { variant_uz: { value: search, fuzziness: "AUTO", boost: 1 } } },
+            { fuzzy: { variant_ru: { value: search, fuzziness: "AUTO", boost: 1 } } },
+
             // regexp qidiruvlar pastroq ustuvorlik
             { regexp: { name_uz: `^${search}.*` } },
             { regexp: { name_ru: `^${search}.*`} },
             { regexp: { keywords_uz: `^${search}.*` } },
             { regexp: { keywords_ru: `^${search}.*` } },
+            { regexp: { variant_uz: `^${search}.*` } },
+            { regexp: { variant_ru: `^${search}.*` } },
+
+
             
             // wildcard qidiruvlar eng pastroq ustuvorlik
             { wildcard: { name_uz: `${search}*` } },
             { wildcard: { name_ru: `${search}*` } },
             { wildcard: { keywords_uz: `${search}*` } },
-            { wildcard: { keywords_ru: `${search}*` } }
+            { wildcard: { keywords_ru: `${search}*` } },
+            { wildcard: { variant_uz: `${search}*` } },
+            { wildcard: { variant_ru: `${search}*` } },
+
           ],
           minimum_should_match: 1
         }

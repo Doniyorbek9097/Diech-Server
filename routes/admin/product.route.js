@@ -11,7 +11,8 @@ const { redisClient } = require("../../config/redisDB");
 const { baseDir } = require("../../config/uploadFolder");
 const { generateOTP } = require("../../utils/otpGenrater");
 const { upload, resizeImages } = require("../../middlewares/upload")
-const { esClient } = require("../../config/db")
+const { esClient } = require("../../config/db");
+const { populate } = require("../../models/category.model");
 
 // create new Product 
 router.get("/upload/:id", async (req, res) => {
@@ -51,15 +52,19 @@ const indexDocuments = async (products) => {
     //     console.log("Indeks o'chirildi:", response);
     try {
         const body = products.flatMap((item) => {
-        const product = item.toObject()
+        const variant_uz = item.variants.flatMap(variant => variant.attributes.flatMap(attr => attr.value?.uz || []))
+        const variant_ru = item.variants.flatMap(variant => variant.attributes.flatMap(attr => attr.value?.ru || []))
+
             return [
-                { index: { _index: "products", _id: product._id.toString() } },
+                { index: { _index: "products", _id: item._id.toString() } },
                 {
-                    name_uz: product.name.uz,
-                    name_ru: product.name.ru,
-                    keywords_uz: product.keyword.uz,
-                    keywords_ru: product.keyword.ru,
-                    barcode: product.barcode
+                    name_uz: item.name.uz,
+                    name_ru: item.name.ru,
+                    keywords_uz: item.keyword.uz,
+                    keywords_ru: item.keyword.ru,
+                    variant_uz: variant_uz,
+                    variant_ru: variant_ru,
+                    barcode: item.barcode
                 }
             ]
         });
@@ -86,6 +91,9 @@ router.get("/products-index", async (req, res) => {
 
     // console.log(response.hits.hits);
     const products = await productModel.find()
+    .populate({
+        path:"variants",
+    }).lean()
 
     await indexDocuments(products);
     res.send("mahsulotlar indexlandi")
@@ -121,11 +129,8 @@ router.post("/product-add", checkToken, async (req, res) => {
 
         // Mahsulotlarni saqlash
         const newProducts = await productModel.insertMany(processedProducts);
-
-        // Elasticsearch'ga mahsulotlarni indeksatsiya qilish
-        await indexDocuments(newProducts);
-
         res.json({ data: newProducts, message: "success added" });
+
     } catch (error) {
         console.error(error);
 

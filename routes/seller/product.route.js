@@ -12,7 +12,6 @@ router.post("/product-add", checkToken, async (req, res) => {
     redisClient.FLUSHALL()
     try {
         const {body: products} = req; 
-        console.log(products);
         if (Array.isArray(products)) {
             for (const product of products) {
                 product.discount = parseInt(((product.orginal_price - product.sale_price) / product.orginal_price) * 100);
@@ -74,7 +73,7 @@ router.get('/custom-product', async (req, res) => {
     const barcode = req.query?.barcode;
     const product = await productModel.findOne({barcode});
     if(!product) return res.json({message:"Mahsulot topilmadi"})
-    console.log(product)
+
     return res.json({
         data:product,
         message:"Success"

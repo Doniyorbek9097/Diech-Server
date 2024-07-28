@@ -5,6 +5,7 @@ const { Client } = require('@elastic/elasticsearch');
 const esClient = new Client(
   { 
     node: 'https://elasticsearch-7-17-0.onrender.com',
+    requestTimeout: 30000,
     // ssl: {
     //   rejectUnauthorized: false,
     // },
@@ -16,7 +17,7 @@ const esClient = new Client(
 async function createIndex() {
   try {
     const indexExists = await esClient.indices.exists({ index: 'products' });
-
+    console.log(indexExists);
     if (!indexExists) {
       const response = await esClient.indices.create({
         index: 'products',

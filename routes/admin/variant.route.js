@@ -20,7 +20,6 @@ router.get("/get-product-variants/:product_id", async (req, res) => {
 
 router.post("/add-variant", async (req, res) => {
     try {
-        
         const variants = await productVariantModel.insertMany(req.body)
         res.json({
             data: variants,

@@ -112,29 +112,22 @@ router.get("/category-slug/:slug", async (req, res) => {
             ]
         })
 
-        console.log(category.products);
-        return
         if (!category) {
             return res.json({ error: 'Category not found' });
         }
 
-        const categories = _.uniqWith(_.flatMap(category.shop_products, 'categories'),_.isEqual);
-        const { price = '' } = req.query;
-        const [minPrice = 0, maxPrice = Number.MAX_VALUE] = price ? price.split(',').map(Number) : [];
-        let products = await shopProductModel.find({categories:{$in: category._id}, orginal_price: { $gte: minPrice, $lte: maxPrice }}).populate("product")
-
-        if (products.length) {
-            category.shop_products = products;
-        } else {
-            category.shop_products = [];
-        }
+        // const categories = _.uniqWith(_.flatMap(category.products, 'categories'),_.isEqual);
+        // const { price = '' } = req.query;
+        // const [minPrice = 0, maxPrice = Number.MAX_VALUE] = price ? price.split(',').map(Number) : [];
+        // let products = await shopProductModel.find({categories:{$in: category._id}, orginal_price: { $gte: minPrice, $lte: maxPrice }}).populate("product")
+        
 
         const data = {
-            totalPage: Math.ceil(category.shop_products.length / limit),
+            totalPage: Math.ceil(category.products.length / limit),
             page: page + 1,
             limit,
             category,
-            categories
+            // categories
         }
 
         redisClient.SETEX(cacheKey, 3600, JSON.stringify(data))
