@@ -52,8 +52,8 @@ const indexDocuments = async (products) => {
     //     console.log("Indeks o'chirildi:", response);
     try {
         const body = products.flatMap((item) => {
-        const variant_uz = item.variants.flatMap(variant => variant.attributes.flatMap(attr => attr.value?.uz || []))
-        const variant_ru = item.variants.flatMap(variant => variant.attributes.flatMap(attr => attr.value?.ru || []))
+        const variant_uz = item?.variants?.flatMap(variant => variant?.attributes?.flatMap(attr => attr.value?.uz || [])) || [];
+        const variant_ru = item?.variants?.flatMap(variant => variant?.attributes?.flatMap(attr => attr.value?.ru || [])) || [];
 
             return [
                 { index: { _index: "products", _id: item._id.toString() } },
