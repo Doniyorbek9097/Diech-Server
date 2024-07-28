@@ -47,8 +47,8 @@ router.put("/upload/:id", upload.array('images', 10), async (req, res) => {
 
 
 const indexDocuments = async (products) => {
-    const response = await esClient.indices.delete({ index: 'products' });
-        console.log("Indeks o'chirildi:", response);
+    // const response = await esClient.indices.delete({ index: 'products' });
+    //     console.log("Indeks o'chirildi:", response);
     try {
         const body = products.flatMap((item) => {
         const product = item.toObject()
@@ -112,7 +112,7 @@ router.post("/product-add", checkToken, async (req, res) => {
             if (product.barcode) {
                 const existsProduct = await productModel.findOne({ barcode: product.barcode });
                 if (existsProduct) {
-                    throw new Error("Bunday mahsulot mavjud!"); // Throw an error to handle in catch block
+                    throw new Error(`Bunday mahsulot mavjud! Barcode: ${product.barcode}`); // Throw an error to handle in catch block
                 }
             }
 
@@ -139,7 +139,7 @@ router.post("/product-add", checkToken, async (req, res) => {
             }
         }
 
-        res.status(500).json("serverda Xatolik");
+        res.status(500).json({ message: "serverda Xatolik", error: error.message });
     }
 });
 

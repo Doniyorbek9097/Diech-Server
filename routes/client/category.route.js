@@ -102,48 +102,18 @@ router.get("/category-slug/:slug", async (req, res) => {
 
         let category = await categoryModel.findOne({ slug })
         .populate({
-            path: "children",
-            populate: {
-                path: "children"
-            }
-        })
-        .populate({
-            path: "parent",
+            path: "products",
+            select: ['name', 'slug', 'images'],
             populate: [
                 {
-                    path: "parent"
-                },
-
-                {
-                    path: "children"
+                    path: "details",
+                    select: ['orginal_price', 'sale_price','discount','reviews', 'rating', 'viewsCount']
                 }
             ]
         })
 
-        .populate({
-            path: "shop_products",
-            select: ['name', 'slug', 'images', 'orginal_price', 'sale_price','discount','reviews', 'rating', 'viewsCount', 'attributes','variants'],
-            populate: [
-                {
-                    path:"categories",
-                    select: ['name', 'slug']
-                },
-                {
-                    path:"product",
-                    select: ['name', 'slug', 'images']
-                },
-                {
-                    path:"brend",
-                    select: ['name', 'slug']
-                },
-                {
-                    path:"shop",
-                    select: ['name', 'slug']
-                }
-            ]
-        })
-
-        
+        console.log(category.products);
+        return
         if (!category) {
             return res.json({ error: 'Category not found' });
         }
