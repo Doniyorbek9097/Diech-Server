@@ -17,7 +17,6 @@ const esClient = new Client(
 async function createIndex() {
   try {
     const indexExists = await esClient.indices.exists({ index: 'products' });
-    console.log(indexExists);
     if (!indexExists) {
       const response = await esClient.indices.create({
         index: 'products',

@@ -71,7 +71,8 @@ const searchProducts = async (search) => {
           ],
           minimum_should_match: 1
         }
-      }
+      },
+      size: 1000
     }
   });
 
