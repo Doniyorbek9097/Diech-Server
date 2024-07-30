@@ -1,4 +1,6 @@
 const { Schema, model } = require("mongoose");
+const mongooseIntl = require("mongoose-intl")
+
 const shopProductModel = require("./shop.product.model")
 const productVariantModel = require("./product.varinat.model")
 const reviewSchema = require("./review.model")
@@ -13,9 +15,28 @@ const propertyOptionsSchema = Schema({
         intl: true
     }
 },
-{  toJSON: { virtuals: true } }
+    { toJSON: { virtuals: true } }
 
 )
+
+
+const attributesSchema = Schema({
+    label: {
+        type: String,
+        intl: true
+    },
+
+    value: {
+        type: String,
+        intl: true
+    },
+
+    values: [{
+        type: Schema.Types.Mixed,
+        intl: true
+      }]
+    
+})
 
 
 const propertiesSchema = Schema({
@@ -25,7 +46,7 @@ const propertiesSchema = Schema({
     },
     options: [propertyOptionsSchema]
 },
-{  toJSON: { virtuals: true } }
+    { toJSON: { virtuals: true } }
 );
 
 
@@ -57,13 +78,13 @@ const productSchema = Schema({
         type: Schema.Types.ObjectId,
         ref: "Category"
     }],
-    
+
     keywords: [],
     keyword: {
         uz: [],
         ru: []
     },
-    
+
     barcode: String,
 
     method_sale: {
@@ -71,7 +92,7 @@ const productSchema = Schema({
         default: false
     },
 
-    
+
 
     reviews: {
         type: [reviewSchema]
@@ -128,19 +149,12 @@ const productSchema = Schema({
         ref: "Brend",
     },
 
-    status: String,
-    model: {
-        type: String,
-    },
     weight: {
         type: Boolean,
         default: false
     },
-    color: String,
-    size: String,
-    memory: String,
-    ram_memory: String,
-    length: String,
+
+    attributes: [attributesSchema],
 
     type: {
         type: String,
@@ -165,19 +179,19 @@ productSchema.virtual("variants", {
 })
 
 productSchema.virtual("details", {
-    ref:"ShopProducts",
+    ref: "ShopProducts",
     localField: "_id",
     foreignField: "product"
 })
 
 
 
-const deleteDetails = async function(next) {
+const deleteDetails = async function (next) {
     try {
         const doc = await this.model.findOne(this.getFilter());
         if (doc) {
             await shopProductModel.deleteMany({ product: doc._id });
-            await productVariantModel.deleteMany({product_id: doc._id});
+            await productVariantModel.deleteMany({ product_id: doc._id });
         }
         next();
     } catch (err) {

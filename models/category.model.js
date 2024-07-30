@@ -40,7 +40,10 @@ const categorySchema = new Schema({
         type: Schema.Types.ObjectId,
     },
 
-    fields: [String],
+    fields: [{
+        type: Schema.Types.ObjectId,
+        ref:"Field"
+    }],
 
     createdBy: {
         type: Schema.Types.ObjectId,
@@ -83,6 +86,7 @@ categorySchema.virtual("shop_products", {
 
 categorySchema.pre(['find','findOne','findById'], function(next) {
     this.populate("children");
+    this.populate("fields")
     next();
 });
 

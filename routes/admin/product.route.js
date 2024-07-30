@@ -54,7 +54,11 @@ const indexDocuments = async (products) => {
         const body = products.flatMap((item) => {
         const variant_uz = item?.variants?.flatMap(variant => variant?.attributes?.flatMap(attr => attr.value?.uz || [])) || [];
         const variant_ru = item?.variants?.flatMap(variant => variant?.attributes?.flatMap(attr => attr.value?.ru || [])) || [];
-
+        const attribute_uz = item?.attributes?.flatMap(attr => attr.value?.uz)
+        const attribute_ru = item?.attributes?.flatMap(attr => attr.value?.ru) 
+        const attributes_uz = item?.attributes?.flatMap(attr => attr?.values.flatMap(item => item.uz))
+        const attributes_ru = item?.attributes?.flatMap(attr => attr?.values.flatMap(item => item.ru)) 
+    
             return [
                 { index: { _index: "products", _id: item._id.toString() } },
                 {
@@ -64,6 +68,10 @@ const indexDocuments = async (products) => {
                     keywords_ru: item.keyword.ru,
                     variant_uz: variant_uz,
                     variant_ru: variant_ru,
+                    attribute_uz: attribute_uz,
+                    attribute_ru: attribute_ru,
+                    attributes_uz,
+                    attributes_ru,
                     barcode: item.barcode
                 }
             ]
@@ -281,21 +289,11 @@ router.delete("/product-delete/:id", checkToken, async (req, res) => {
         const deleted = await productModel.findOneAndDelete({ _id: req.params.id });
         const { images } = deleted;
 
-        (images.length > 0) && images.forEach(item => {
-
-            const imagePath = `${baseDir}/${path.basename(item)}`;
-            fs.unlink(imagePath, (err) => err && console.log(err))
-        })
-
-        if (deleted?.attributes?.length) {
-            for (const attr of deleted?.attributes) {
-                for (const child of attr.children) {
-                    for (const image of child.images) {
-                        const imagePath = path.join(__dirname, `${baseDir}/${path.basename(image)}`);
-                        fs.unlink(imagePath, (err) => err && console.log(err))
-                    }
-                }
-            }
+        if (images && images?.length > 0) {
+            images?.forEach(item => {
+                const imagePath = `${baseDir}/${path.basename(item)}`;
+                fs.unlink(imagePath, (err) => err && console.log(err))
+            })
         }
 
         return res.status(200).json({ result: deleted });

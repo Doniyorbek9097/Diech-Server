@@ -27,6 +27,10 @@ const searchProducts = async (search) => {
             { match: { keywords_ru: { query: search, boost: 2 } } },
             { match: { variant_uz: { query: search, boost: 2 } } },
             { match: { variant_ru: { query: search, boost: 2 } } },
+            { match: { attributes_uz: { query: search, boost: 2 } } },
+            { match: { attributes_ru: { query: search, boost: 2 } } },
+            { match: { attribute_uz: { query: search, boost: 2 } } },
+            { match: { attribute_ru: { query: search, boost: 2 } } },
 
 
             
@@ -37,6 +41,11 @@ const searchProducts = async (search) => {
             { fuzzy: { keywords_ru: { value: search, fuzziness: "AUTO", boost: 1 } } },
             { fuzzy: { variant_uz: { value: search, fuzziness: "AUTO", boost: 1 } } },
             { fuzzy: { variant_ru: { value: search, fuzziness: "AUTO", boost: 1 } } },
+            { fuzzy: { attributes_uz: { value: search, fuzziness: "AUTO", boost: 1 } } },
+            { fuzzy: { attributes_ru: { value: search, fuzziness: "AUTO", boost: 1 } } },
+            { fuzzy: { attribute_uz: { value: search, fuzziness: "AUTO", boost: 1 } } },
+            { fuzzy: { attribute_ru: { value: search, fuzziness: "AUTO", boost: 1 } } },
+
 
             // regexp qidiruvlar pastroq ustuvorlik
             { regexp: { name_uz: `^${search}.*` } },
@@ -45,8 +54,8 @@ const searchProducts = async (search) => {
             { regexp: { keywords_ru: `^${search}.*` } },
             { regexp: { variant_uz: `^${search}.*` } },
             { regexp: { variant_ru: `^${search}.*` } },
-
-
+            { regexp: { attributes_uz: `^${search}.*` } },
+            { regexp: { attributes_ru: `^${search}.*` } },
             
             // wildcard qidiruvlar eng pastroq ustuvorlik
             { wildcard: { name_uz: `${search}*` } },
@@ -55,6 +64,9 @@ const searchProducts = async (search) => {
             { wildcard: { keywords_ru: `${search}*` } },
             { wildcard: { variant_uz: `${search}*` } },
             { wildcard: { variant_ru: `${search}*` } },
+            { wildcard: { attributes_uz: `${search}*` } },
+            { wildcard: { attributes_ru: `${search}*` } },
+            
 
           ],
           minimum_should_match: 1

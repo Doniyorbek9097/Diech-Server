@@ -129,7 +129,6 @@ router.put("/category-edit/:id", checkToken, async (req, res) => {
 
 
     try {
-            console.log(req.body);
         const upadted = await categoryModel.findByIdAndUpdate(req.params.id, req.body);
 
         return res.status(200).json(upadted);
