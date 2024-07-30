@@ -3,7 +3,6 @@ const fieldModel = require("../../models/field.model")
 
 router.post('/add-field', async (req, res) => {
     try {
-        console.log(req.body)
         const newField = await new fieldModel(req.body).save()
         res.json({
             data: newField,

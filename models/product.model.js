@@ -23,17 +23,32 @@ const propertyOptionsSchema = Schema({
 const attributesSchema = Schema({
     label: {
         type: String,
-        intl: true
+        intl: true,
+        validate: {
+            validator: function(value) {
+              // Agar label object bo'lsa va {uz: "", ru: ""} ga teng bo'lsa, noto'g'ri qiymat qaytarish
+              return !(typeof value === 'object' && value.uz === "" && value.ru === "");
+            },
+            message: props => `${props.value} label qabul qilinmaydi.`
+          }
     },
 
     value: {
         type: String,
-        intl: true
+        intl: true,
+        validate: {
+            validator: function(value) {
+              // Agar label object bo'lsa va {uz: "", ru: ""} ga teng bo'lsa, noto'g'ri qiymat qaytarish
+              return !(typeof value === 'object' && value.uz === "" && value.ru === "");
+            },
+            message: props => `${props.value} label qabul qilinmaydi.`
+          }
     },
 
     values: [{
         type: Schema.Types.Mixed,
-        intl: true
+        intl: true,
+        default: undefined
       }]
     
 })
