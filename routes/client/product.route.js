@@ -93,8 +93,8 @@ router.get("/products-search", async (req, res) => {
       ? await productModel.find({ _id: { $in: ids } })
           .select('name slug images keywords categories')
           .populate('categories','slug name')
-          .limit(limit)
-          .skip(page * limit)
+          // .limit(limit)
+          // .skip(page * limit)
       : [];
     
     const data = { data: products, message: "success" };
@@ -114,7 +114,7 @@ router.get("/products", async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const { search = "" } = req.query;
     const { lang = '' } = req.headers;
-
+    redisClient.FLUSHALL()
     let ids = search ? await searchProducts(search) : [];
     const cacheKey = `product:${lang}:${search}:${page}:${limit}`;
     const cacheData = await redisClient.get(cacheKey);
