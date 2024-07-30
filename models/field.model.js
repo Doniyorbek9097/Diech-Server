@@ -5,9 +5,7 @@ const fieldSchema = Schema({
         uz: String,
         ru: String
     },
-    name: {
-        type: String,
-    },
+    
     type: {
         type: String,
         enum:['select','checkbox','radio','input'],

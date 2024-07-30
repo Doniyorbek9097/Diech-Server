@@ -121,13 +121,12 @@ router.get("/category-slug/:slug", async (req, res) => {
         // const [minPrice = 0, maxPrice = Number.MAX_VALUE] = price ? price.split(',').map(Number) : [];
         // let products = await shopProductModel.find({categories:{$in: category._id}, orginal_price: { $gte: minPrice, $lte: maxPrice }}).populate("product")
         
-        console.log(category.products);
         const data = {
+            message:"success",
             totalPage: Math.ceil(category.products.length / limit),
             page: page + 1,
             limit,
-            category,
-            // categories
+            data:category,
         }
 
         redisClient.SETEX(cacheKey, 3600, JSON.stringify(data))
