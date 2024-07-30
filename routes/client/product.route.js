@@ -16,6 +16,7 @@ const { esClient } = require("../../config/db")
 const searchProducts = async (search) => {
   const { hits } = await esClient.search({
     index: 'products',
+    size: 100,
     body: {
       query: {
         bool: {
@@ -71,8 +72,7 @@ const searchProducts = async (search) => {
           ],
           minimum_should_match: 1
         }
-      },
-      size: 50
+      }
     }
   });
 
