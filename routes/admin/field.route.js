@@ -1,6 +1,6 @@
 const router = require("express").Router()
 const fieldModel = require("../../models/field.model")
-
+const categoryModel = require("../../models/category.model")
 router.post('/add-field', async (req, res) => {
     try {
         const newField = await new fieldModel(req.body).save()
@@ -41,14 +41,24 @@ router.put('/edit-field/:id', async (req, res) => {
     }
 })
 
+
 router.delete('/delete-field/:id', async (req, res) => {
     try {
-        const field = await fieldModel.findByIdAndDelete(req.params.id)
-        res.json(field)
+        const deleted = await fieldModel.findByIdAndDelete(req.params.id)
+        if (!deleted) {
+            return res.status(404).json({ message: 'Field not found' })
+        }
+        await categoryModel.updateMany(
+            { fields: req.params.id },
+            { $pull: { fields: req.params.id } }
+        )
+        res.json(deleted)
     } catch (error) {
         console.log(error)
+        res.status(500).json({ message: 'Internal server error' })
     }
 })
+
 
 
 module.exports = router
