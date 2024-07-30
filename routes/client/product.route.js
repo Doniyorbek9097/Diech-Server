@@ -129,8 +129,8 @@ router.get("/products", async (req, res) => {
             path: "details",
             populate: { path: "shop", select: ['name', 'slug'] }
           })
-          .limit(limit)
-          .skip(page * limit)
+          // .limit(limit)
+          // .skip(page * limit)
       : [];
 
     // Mahsulotlarni `ids` tartibida qayta tartiblash

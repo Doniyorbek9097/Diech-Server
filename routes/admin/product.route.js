@@ -62,8 +62,8 @@ const indexDocuments = async (products) => {
             return [
                 { index: { _index: "products", _id: item._id.toString() } },
                 {
-                    name_uz: item.name.uz,
-                    name_ru: item.name.ru,
+                    name_uz: item?.name?.uz,
+                    name_ru: item?.name?.ru,
                     keywords_uz: item?.keyword?.uz,
                     keywords_ru: item?.keyword?.ru,
                     variant_uz: variant_uz,
@@ -72,7 +72,7 @@ const indexDocuments = async (products) => {
                     attribute_ru: attribute_ru,
                     attributes_uz,
                     attributes_ru,
-                    barcode: item.barcode
+                    barcode: item?.barcode
                 }
             ]
         });
