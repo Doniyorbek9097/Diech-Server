@@ -64,8 +64,8 @@ const indexDocuments = async (products) => {
                 {
                     name_uz: item.name.uz,
                     name_ru: item.name.ru,
-                    keywords_uz: item.keyword.uz,
-                    keywords_ru: item.keyword.ru,
+                    keywords_uz: item?.keyword?.uz,
+                    keywords_ru: item?.keyword?.ru,
                     variant_uz: variant_uz,
                     variant_ru: variant_ru,
                     attribute_uz: attribute_uz,
