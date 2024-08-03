@@ -28,6 +28,7 @@ router.post("/signup", async (req, res) => {
             message: `${email} allaqachon ro'yxatdan o'tgan!`,
         });
 
+    
         const saltPassword = await bcrypt.genSalt(10);
         req.body.password = await bcrypt.hash(req.body.password, saltPassword);
         user = await new userModel(req.body).save();

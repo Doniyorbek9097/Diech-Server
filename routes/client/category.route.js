@@ -103,7 +103,7 @@ router.get("/category-slug/:slug", async (req, res) => {
         let category = await categoryModel.findOne({ slug })
         .populate({
             path: "products",
-            select: ['name', 'slug', 'images'],
+            select: ['name', 'slug', 'images', 'attributes'],
             populate: [
                 {
                     path: "details",

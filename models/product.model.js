@@ -33,6 +33,10 @@ const attributesSchema = Schema({
           }
     },
 
+    type: {
+        type: String
+    },
+
     value: {
         type: String,
         intl: true,
@@ -51,7 +55,7 @@ const attributesSchema = Schema({
         default: undefined
       }]
     
-})
+}, { toJSON: { virtuals: true } })
 
 
 const propertiesSchema = Schema({

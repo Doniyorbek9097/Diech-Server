@@ -1,6 +1,8 @@
 const mongooose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const bcrypt  = require("bcrypt");
+const {  generateOTP } = require("../utils/otpGenrater");
+const slugify = require("slugify")
 
 
 const addressSchema = mongooose.Schema({
@@ -125,6 +127,13 @@ userSchema.virtual("saller-orders", {
     ref: "Order",
     localField: "_id",
     foreignField: "seller"
+})
+
+
+userSchema.pre("save", function(next) {
+    if(this.firstname) {
+        this.username = slugify(`${this.firstname}_${generateOTP(5)}`)
+    }
 })
 
 
