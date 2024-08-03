@@ -47,7 +47,7 @@ router.put("/upload/:id", upload.array('images', 10), async (req, res) => {
 })
 
 
-const indexDocuments = async (products) => {
+const indexDocuments = async () => {
     const response = await esClient.indices.delete({ index: 'products' });
         console.log("Indeks o'chirildi:", response);
 
