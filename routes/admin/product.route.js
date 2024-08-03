@@ -88,7 +88,7 @@ const indexDocuments = async () => {
     }
 };
 
-
+indexDocuments()
 
 router.post("/product-add", checkToken, async (req, res) => {
     try {
@@ -120,7 +120,6 @@ router.post("/product-add", checkToken, async (req, res) => {
         // Mahsulotlarni saqlash
         const newProducts = await productModel.insertMany(processedProducts);
         res.json({ data: newProducts, message: "success added" });
-        indexDocuments()
 
     } catch (error) {
         console.error(error);
@@ -253,7 +252,6 @@ router.put("/product-edit/:id", checkToken, async (req, res) => {
         }
 
         res.json(updated);
-        indexDocuments()
 
     } catch (error) {
 
