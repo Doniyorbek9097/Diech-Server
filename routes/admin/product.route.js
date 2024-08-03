@@ -47,22 +47,18 @@ router.put("/upload/:id", upload.array('images', 10), async (req, res) => {
 })
 
 
-const indexDocuments = async () => {
+const indexDocuments = async (products) => {
     const response = await esClient.indices.delete({ index: 'products' });
         console.log("Indeks o'chirildi:", response);
-
-    const products = await productModel.find()
-        .populate({ path: "variants" }).lean()
-
     try {
         const body = products.flatMap((item) => {
-            const variant_uz = item?.variants?.flatMap(variant => variant?.attributes?.flatMap(attr => attr.value?.uz || [])) || [];
-            const variant_ru = item?.variants?.flatMap(variant => variant?.attributes?.flatMap(attr => attr.value?.ru || [])) || [];
-            const attribute_uz = item?.attributes?.flatMap(attr => attr.value?.uz)
-            const attribute_ru = item?.attributes?.flatMap(attr => attr.value?.ru)
-            const attributes_uz = item?.attributes?.flatMap(attr => attr?.values.flatMap(item => item.uz))
-            const attributes_ru = item?.attributes?.flatMap(attr => attr?.values.flatMap(item => item.ru))
-
+        const variant_uz = item?.variants?.flatMap(variant => variant?.attributes?.flatMap(attr => attr.value?.uz || [])) || [];
+        const variant_ru = item?.variants?.flatMap(variant => variant?.attributes?.flatMap(attr => attr.value?.ru || [])) || [];
+        const attribute_uz = item?.attributes?.flatMap(attr => attr.value?.uz)
+        const attribute_ru = item?.attributes?.flatMap(attr => attr.value?.ru) 
+        const attributes_uz = item?.attributes?.flatMap(attr => attr?.values.flatMap(item => item.uz))
+        const attributes_ru = item?.attributes?.flatMap(attr => attr?.values.flatMap(item => item.ru)) 
+    
             return [
                 { index: { _index: "products", _id: item._id.toString() } },
                 {
@@ -88,7 +84,29 @@ const indexDocuments = async () => {
     }
 };
 
-indexDocuments()
+
+router.get("/products-index", async (req, res) => {
+    // const response = await esClient.search({
+    //     index: 'products',
+    //     body: {
+    //         from: 0,
+    //         size: 20,
+    //         query: {
+    //             match_all: {} // You can customize this query as needed
+    //         }
+    //     }
+    // });
+
+    // console.log(response.hits.hits);
+    const products = await productModel.find()
+    .populate({
+        path:"variants",
+    }).lean()
+
+    await indexDocuments(products);
+    res.send("mahsulotlar indexlandi")
+
+})
 
 router.post("/product-add", checkToken, async (req, res) => {
     try {
@@ -141,7 +159,7 @@ router.post("/product-add", checkToken, async (req, res) => {
 
 // get all products 
 router.get("/product-all", checkToken, async (req, res) => {
-
+    
     // await productModel.updateMany(
     //     {},
     //     { $unset: { keywords: "" } }
@@ -150,7 +168,7 @@ router.get("/product-all", checkToken, async (req, res) => {
     const search = req.query.search || "";
     const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
     const limit = parseInt(req.query.limit, 10) || 1;
-
+    
 
     let query;
     if (search) {
@@ -251,7 +269,7 @@ router.put("/product-edit/:id", checkToken, async (req, res) => {
             });
         }
 
-        res.json(updated);
+        return res.json(updated);
 
     } catch (error) {
 
