@@ -56,6 +56,7 @@ router.post("/signup", async (req, res) => {
 router.post("/signup/verify", async (req, res) => {
     try {
         const { phone_number, code } = req.body;
+        console.log(req.body)
         const otpHoder = await otpModel.find({ phone_number: phone_number });
         if (otpHoder.length == 0) return res.json({
             message: "Tasdiqlash kodi xato yoki muddati tugagan!",

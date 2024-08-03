@@ -24,17 +24,14 @@ const userSchema = new mongooose.Schema({
     telegramAccount: telegamSchema,
     firstname: {
         type:String,
-        default:""
     },
     lastname: {
         type:String,
-        default:""
     },
 
     
     fathername: {
         type:String,
-        default:""
     },
 
     avatar: {
@@ -44,7 +41,6 @@ const userSchema = new mongooose.Schema({
 
     username: {
         type: String,
-        unique: true,
     },
 
     gender: {
@@ -54,7 +50,6 @@ const userSchema = new mongooose.Schema({
 
     birthday: {
         type:String,
-        default:""
     },
 
     phone_number: {
@@ -131,8 +126,8 @@ userSchema.virtual("saller-orders", {
 
 
 userSchema.pre("save", function(next) {
-    if(this.firstname) {
-        this.username = slugify(`${this.firstname}_${generateOTP(5)}`)
+    if(this.firstname && this.phone_number) {
+        this.username = slugify(`${this.firstname}_${this.phone_number.split(" ").join("").slice(-4)}`)
     }
 
     next()

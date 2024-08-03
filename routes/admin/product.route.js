@@ -189,6 +189,7 @@ router.get("/product-all", checkToken, async (req, res) => {
     try {
         let products = await productModel.find(query)
             .populate("variants")
+            .populate("owner")
             .skip(page * limit)
             .limit(limit)
             .sort({ _id: -1 })
@@ -208,7 +209,8 @@ router.get("/product-all", checkToken, async (req, res) => {
                 sold_variants,
                 returned,
                 returned_variants,
-                views
+                views,
+                owner: product?.owner
             }
         })
 

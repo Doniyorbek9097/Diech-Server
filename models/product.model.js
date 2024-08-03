@@ -174,7 +174,10 @@ const productSchema = Schema({
     },
 
     attributes: [attributesSchema],
-
+    owner: {
+        type:Schema.Types.ObjectId,
+        ref:"User"
+    },
     type: {
         type: String,
         enum: ["product"],
