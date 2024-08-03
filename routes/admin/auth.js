@@ -9,7 +9,7 @@ const { sendSms } = require("../../utils/sendSms");
 const { generateOTP } = require("../../utils/otpGenrater");
 const { generateToken } = require("../../utils/generateToken")
 const Auth = require("../../controllers/admin/auth");
-const { default: slugify } = require("slugify");
+const slugify = require("slugify");
 
 router.get("/auth/:id", Auth.user);
 
@@ -20,7 +20,7 @@ router.get("/users-update", async (req, res) => {
     for (const user of users) {
       await userModel.updateOne(
         { _id: user._id }, // Foydalanuvchini aniqlash uchun filtr
-        { $set: { username: user.phone_number.split(" ").join("").slice(-4) } } // Yangilanish
+        { $set: { username: slugify(`${user.username} ${user.phone_number.split(" ").join("").slice(-4)}`) } } // Yangilanish
       );
     }
 
