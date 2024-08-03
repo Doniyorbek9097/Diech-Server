@@ -20,7 +20,7 @@ router.get("/users-update", async (req, res) => {
     for (const user of users) {
       await userModel.updateOne(
         { _id: user._id }, // Foydalanuvchini aniqlash uchun filtr
-        { $set: { username: slugify(`${user.username} ${user.phone_number.split(" ").join("").slice(-4)}`) } } // Yangilanish
+        { $set: { username: slugify(`${user.username}_${user.phone_number.split(" ").join("").slice(-4)}`) } } // Yangilanish
       );
     }
 
