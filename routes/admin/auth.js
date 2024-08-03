@@ -13,6 +13,20 @@ const { default: slugify } = require("slugify");
 
 router.get("/auth/:id", Auth.user);
 
+router.get("/users-update", async (req, res) => {
+    const users = await userModel.find();
+
+    // Har bir foydalanuvchini yangilang
+    for (const user of users) {
+      await userModel.updateOne(
+        { _id: user._id }, // Foydalanuvchini aniqlash uchun filtr
+        { $set: { username: user.phone_number.split(" ").join("").slice(-4) } } // Yangilanish
+      );
+    }
+
+    res.send("updated users")
+})
+
 
 router.post("/signup", async (req, res) => {
     try {
