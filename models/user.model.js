@@ -134,6 +134,8 @@ userSchema.pre("save", function(next) {
     if(this.firstname) {
         this.username = slugify(`${this.firstname}_${generateOTP(5)}`)
     }
+
+    next()
 })
 
 
