@@ -10,95 +10,75 @@ const { redisClient } = require("../../config/redisDB");
 const shopProductModel = require("../../models/shop.product.model");
 const { checkToken } = require("../../middlewares/authMiddleware")
 const { transformAttributes } = require('../../utils/transformAttributes')
-const { esClient } = require("../../config/db")
+
+const algoliasearch = require('algoliasearch')
+
+const client = algoliasearch("RMBB59LLYA", "e7e37b7c84e383ccdca3273d784c4867");
+const index = client.initIndex("products");
+
+// const Indexed = async () => {
+//    try {
+
+//     const products = await productModel.find()
+//     await index.saveObjects(products, { autoGenerateObjectIDIfNotExist: true })
+
+//    } catch (error) {
+//       console.log(error)
+//    }
+// }
 
 
-const searchProducts = async (search) => {
-  const { hits } = await esClient.search({
-    index: 'products',
-    size: 100,
-    body: {
-      query: {
-        bool: {
-          should: [
-            // match qidiruvlar yuqori ustuvorlik
-            { match: { name_uz: { query: search, boost: 2 } } },
-            { match: { name_ru: { query: search, boost: 2 } } },
-            { match: { keywords_uz: { query: search, boost: 2 } } },
-            { match: { keywords_ru: { query: search, boost: 2 } } },
-            { match: { variant_uz: { query: search, boost: 2 } } },
-            { match: { variant_ru: { query: search, boost: 2 } } },
-            { match: { attributes_uz: { query: search, boost: 2 } } },
-            { match: { attributes_ru: { query: search, boost: 2 } } },
-            { match: { attribute_uz: { query: search, boost: 2 } } },
-            { match: { attribute_ru: { query: search, boost: 2 } } },
+
+// const searchProducts = async (search) => {
+//     const { hits } =  await index.search('samsung')
+
+// }
 
 
-            
-            // fuzzy qidiruvlar o'rtacha ustuvorlik
-            { fuzzy: { name_uz: { value: search, fuzziness: "AUTO", boost: 1 } } },
-            { fuzzy: { name_ru: { value: search, fuzziness: "AUTO", boost: 1 } } },
-            { fuzzy: { keywords_uz: { value: search, fuzziness: "AUTO", boost: 1 } } },
-            { fuzzy: { keywords_ru: { value: search, fuzziness: "AUTO", boost: 1 } } },
-            { fuzzy: { variant_uz: { value: search, fuzziness: "AUTO", boost: 1 } } },
-            { fuzzy: { variant_ru: { value: search, fuzziness: "AUTO", boost: 1 } } },
-            { fuzzy: { attributes_uz: { value: search, fuzziness: "AUTO", boost: 1 } } },
-            { fuzzy: { attributes_ru: { value: search, fuzziness: "AUTO", boost: 1 } } },
-            { fuzzy: { attribute_uz: { value: search, fuzziness: "AUTO", boost: 1 } } },
-            { fuzzy: { attribute_ru: { value: search, fuzziness: "AUTO", boost: 1 } } },
+const checkIndexExists = async (indexName, data) => {
+  try {
 
+    const result = await index.saveObjects(data, { autoGenerateObjectIDIfNotExist: true })
+    if (result) console.log(`${indexName} yaratildi`)
+    else console.log(`${indexName} yaratishda xatolik`)
 
-            // regexp qidiruvlar pastroq ustuvorlik
-            { regexp: { name_uz: `^${search}.*` } },
-            { regexp: { name_ru: `^${search}.*`} },
-            { regexp: { keywords_uz: `^${search}.*` } },
-            { regexp: { keywords_ru: `^${search}.*` } },
-            { regexp: { variant_uz: `^${search}.*` } },
-            { regexp: { variant_ru: `^${search}.*` } },
-            { regexp: { attributes_uz: `^${search}.*` } },
-            { regexp: { attributes_ru: `^${search}.*` } },
-            
-            // wildcard qidiruvlar eng pastroq ustuvorlik
-            { wildcard: { name_uz: `${search}*` } },
-            { wildcard: { name_ru: `${search}*` } },
-            { wildcard: { keywords_uz: `${search}*` } },
-            { wildcard: { keywords_ru: `${search}*` } },
-            { wildcard: { variant_uz: `${search}*` } },
-            { wildcard: { variant_ru: `${search}*` } },
-            { wildcard: { attributes_uz: `${search}*` } },
-            { wildcard: { attributes_ru: `${search}*` } },
-            
-
-          ],
-          minimum_should_match: 1
-        }
-      }
-    }
-  });
-
-  return hits.hits.map(item => item._id);
+  } catch (error) {
+    console.log(error)
+  }
 }
 
+
+router.get("/indexed", async (req, res) => {
+  const products = await productModel.find()
+    .select('name slug images keywords categories')
+    .populate('categories')
+    .populate({
+      path: "details",
+      populate: { path: "shop", select: ['name', 'slug'] }
+    })
+  checkIndexExists('products', products)
+})
 
 
 // get all products search
 router.get("/products-search", async (req, res) => {
   try {
+
+
+
     const page = parseInt(req.query.page) - 1 || 0;
     const limit = parseInt(req.query.limit) || 10;
     const { search = "" } = req.query;
 
-    let ids = search ? await searchProducts(search) : [];
+    // const products =  await productModel.find()
+    //       .select('name slug images keywords categories')
+    //       .populate('categories','slug name')
+    // .limit(limit)
+    // .skip(page * limit)
 
-    const products = ids.length 
-      ? await productModel.find({ _id: { $in: ids } })
-          .select('name slug images keywords categories')
-          .populate('categories','slug name')
-          .limit(limit)
-          .skip(page * limit)
-      : [];
-    
-    const data = { data: products, message: "success" };
+    const { hits } = await index.search(search)
+
+    const data = { data: hits, message: "success" };
     res.json(data);
 
   } catch (error) {
@@ -116,29 +96,28 @@ router.get("/products", async (req, res) => {
     const { search = "" } = req.query;
     const { lang = '' } = req.headers;
 
-    let ids = search ? await searchProducts(search) : [];
     const cacheKey = `product:${lang}:${search}:${page}:${limit}`;
     const cacheData = await redisClient.get(cacheKey);
+    redisClient.FLUSHALL();
 
     if (cacheData) return res.json(JSON.parse(cacheData));
 
-    const products = ids.length 
-      ? await productModel.find({ _id: { $in: ids } })
-          .select('name slug images keywords categories')
-          .populate('categories')
-          .populate({ 
-            path: "details",
-            populate: { path: "shop", select: ['name', 'slug'] }
-          })
-          // .limit(limit)
-          // .skip(page * limit)
-      : [];
+    // const products = await productModel.find()
+    //   .select('name slug images keywords categories')
+    //   .populate('categories')
+    //   .populate({
+    //     path: "details",
+    //     populate: { path: "shop", select: ['name', 'slug'] }
+    //   })
+    //   .limit(limit)
+    //   .skip(page * limit)
 
     // Mahsulotlarni `ids` tartibida qayta tartiblash
-  const productsMap = new Map(products.map(product => [product._id.toString(), product]));
-  const sortedProducts = ids.map(id => productsMap.get(id.toString())).filter(Boolean);
-
-    const data = { data: sortedProducts, message: "success" };
+    // const productsMap = new Map(products.map(product => [product._id.toString(), product]));
+    // const sortedProducts = ids.map(id => productsMap.get(id.toString())).filter(Boolean);
+    const { hits } = await index.search(search)
+    
+    const data = { data: hits, message: "success" };
     await redisClient.SETEX(cacheKey, 3600, JSON.stringify(data));
     res.json(data);
   } catch (error) {
@@ -156,6 +135,7 @@ router.get("/product-slug/:slug", async (req, res) => {
   const { slug = '' } = req.params;
   const { lang = '' } = req.headers;
 
+  redisClient.FLUSHALL()
   const cacheKey = `product:${lang}:${slug}:${sku}`;
   const cacheData = await redisClient.get(cacheKey)
   if (cacheData) return res.json(JSON.parse(cacheData))
@@ -174,7 +154,7 @@ router.get("/product-slug/:slug", async (req, res) => {
         populate: [
           {
             path: "shop",
-            select:['slug','name']
+            select: ['slug', 'name']
           },
           {
             path: "variants",
@@ -186,12 +166,12 @@ router.get("/product-slug/:slug", async (req, res) => {
       })
 
 
-          let user_id = req.headers['user'];
-        user_id = (user_id === "null") ? null : (user_id === "undefined") ? undefined : user_id;
-        if(user_id) {
-          user_id && !product.views.includes(user_id) && (product.views.push(user_id), product.viewsCount++);
-          await product.save()
-        }
+    let user_id = req.headers['user'];
+    user_id = (user_id === "null") ? null : (user_id === "undefined") ? undefined : user_id;
+    if (user_id) {
+      user_id && !product.views.includes(user_id) && (product.views.push(user_id), product.viewsCount++);
+      await product.save()
+    }
 
     const attributes = transformAttributes(product.details.flatMap(item => item?.variants || []));
 

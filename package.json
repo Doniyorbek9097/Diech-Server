@@ -17,6 +17,7 @@
     "@infobip-api/sdk": "^0.3.2",
     "@types/express": "^4.17.21",
     "@types/node": "^20.10.5",
+    "algoliasearch": "^4.24.0",
     "bcrypt": "^5.1.0",
     "body-parser": "^1.20.2",
     "cloudinary": "^1.36.1",
