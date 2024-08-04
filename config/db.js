@@ -60,7 +60,7 @@ async function createIndex() {
   }
 }
 
-createIndex();
+// createIndex();
 
 
 // async function testConnection() {
