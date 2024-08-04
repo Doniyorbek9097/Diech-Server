@@ -37,33 +37,30 @@ const index = client.initIndex("products");
 
 const checkIndexExists = async (indexName, data) => {
   try {
-
-    const result = await index.saveObjects(data, { autoGenerateObjectIDIfNotExist: true })
-    if (result) return result
-    throw new Error(`${indexName} yaratishda xatolik`)
-
+    const result = await index.saveObjects(data);
+    if (result) return result;
+    throw new Error(`${indexName} yaratishda xatolik`);
   } catch (error) {
-    console.log(error)
+    console.log(error);
   }
 }
 
-
 router.get("/indexed", async (req, res) => {
   try {
-    const products = await productModel.find()
-    .select('name slug images keywords categories')
-    .populate('categories')
-    .populate({
-      path: "details",
-      populate: { path: "shop", select: ['name', 'slug'] }
-    })
- 
-   await checkIndexExists('products', products)
-   res.send("success indexed")
+    let products = await productModel.find().lean();
+    products = products.map(item => ({
+      objectID: item._id.toString(),  // objectID ni _id dan olish
+      name: item.name,
+      keyword_uz: item.keyword?.uz,
+      keyword_ru: item.keyword?.ru,
+    }));
+
+    await checkIndexExists('products', products);
+    res.send("success indexed");
   } catch (error) {
-    console.log(error)
+    console.log(error);
   }
-})
+});
 
 
 // get all products search
@@ -76,15 +73,17 @@ router.get("/products-search", async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const { search = "" } = req.query;
 
-    // const products =  await productModel.find()
-    //       .select('name slug images keywords categories')
-    //       .populate('categories','slug name')
-    // .limit(limit)
-    // .skip(page * limit)
-
     const { hits } = await index.search(search)
+    const ids = hits.map(item => item.objectID)
 
-    const data = { data: hits, message: "success" };
+    const products = await productModel.find({ _id: { $in: ids } })
+          .select('name slug images keywords categories')
+          .populate('categories','slug name')
+    .limit(limit)
+    .skip(page * limit)
+
+
+    const data = { data: products, message: "success" };
     res.json(data);
 
   } catch (error) {
@@ -108,22 +107,24 @@ router.get("/products", async (req, res) => {
 
     if (cacheData) return res.json(JSON.parse(cacheData));
 
-    // const products = await productModel.find()
-    //   .select('name slug images keywords categories')
-    //   .populate('categories')
-    //   .populate({
-    //     path: "details",
-    //     populate: { path: "shop", select: ['name', 'slug'] }
-    //   })
-    //   .limit(limit)
-    //   .skip(page * limit)
+    const { hits } = await index.search(search, {hitsPerPage: 50})
+    const ids = hits.map(item => item.objectID)
+
+    const products = await productModel.find({ _id: { $in: ids } })
+      .select('name slug images keywords categories')
+      .populate('categories')
+      .populate({
+        path: "details",
+        populate: { path: "shop", select: ['name', 'slug'] }
+      })
+      // .limit(limit)
+      // .skip(page * limit)
 
     // Mahsulotlarni `ids` tartibida qayta tartiblash
-    // const productsMap = new Map(products.map(product => [product._id.toString(), product]));
-    // const sortedProducts = ids.map(id => productsMap.get(id.toString())).filter(Boolean);
-    const { hits } = await index.search(search)
+    const productsMap = new Map(products.map(product => [product._id.toString(), product]));
+    const sortedProducts = ids.map(id => productsMap.get(id.toString())).filter(Boolean);
     
-    const data = { data: hits, message: "success" };
+    const data = { data: sortedProducts, message: "success" };
     await redisClient.SETEX(cacheKey, 3600, JSON.stringify(data));
     res.json(data);
   } catch (error) {
