@@ -10,7 +10,6 @@ router.get('/catalog-all', async (req, res) => {
         const limit = parseInt(req.query.limit, 10) || 8;
         const search = req.query.search || "";
         const { lang = "" } = req.headers;
-        redisClient.FLUSHALL()
         const cacheKey = `catalogs:${lang}:${page}:${limit}:${search}`;
         const cacheData = await redisClient.get(cacheKey);
         if (cacheData) {

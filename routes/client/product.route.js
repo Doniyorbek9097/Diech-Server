@@ -156,7 +156,6 @@ router.get("/product-slug/:slug", async (req, res) => {
   const { slug = '' } = req.params;
   const { lang = '' } = req.headers;
 
-  redisClient.FLUSHALL()
   const cacheKey = `product:${lang}:${slug}:${sku}`;
   const cacheData = await redisClient.get(cacheKey)
   if (cacheData) return res.json(JSON.parse(cacheData))
