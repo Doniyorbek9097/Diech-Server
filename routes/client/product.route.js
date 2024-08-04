@@ -39,8 +39,8 @@ const checkIndexExists = async (indexName, data) => {
   try {
 
     const result = await index.saveObjects(data, { autoGenerateObjectIDIfNotExist: true })
-    if (result) console.log(`${indexName} yaratildi`)
-    else console.log(`${indexName} yaratishda xatolik`)
+    if (result) return result
+    throw new Error(`${indexName} yaratishda xatolik`)
 
   } catch (error) {
     console.log(error)
@@ -49,14 +49,20 @@ const checkIndexExists = async (indexName, data) => {
 
 
 router.get("/indexed", async (req, res) => {
-  const products = await productModel.find()
+  try {
+    const products = await productModel.find()
     .select('name slug images keywords categories')
     .populate('categories')
     .populate({
       path: "details",
       populate: { path: "shop", select: ['name', 'slug'] }
     })
-  checkIndexExists('products', products)
+ 
+   await checkIndexExists('products', products)
+   res.send("success indexed")
+  } catch (error) {
+    console.log(error)
+  }
 })
 
 
