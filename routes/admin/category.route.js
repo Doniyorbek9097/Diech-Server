@@ -169,16 +169,6 @@ router.put("/category-edit/:id", checkToken, async (req, res) => {
 });
 
 
-router.get("/categories-update", async (req, res) => {
-    let categories = await categoryModel.find()
-    const n =  categories.map(async cate => {
-        const slug = slugify(`${cate.toObject().name.ru.toLowerCase()}-${generateOTP(5)}`)
-       return await categoryModel.updateOne({_id: cate._id}, {$set:{slug: slug}})
-    })
-
-    res.json("success")
-
-})
 
 // Delete Category 
 router.delete("/category-delete/:id", checkToken, async (req, res) => {
