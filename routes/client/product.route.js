@@ -73,10 +73,10 @@ router.get("/products-search", async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const { search = "" } = req.query;
 
-    const { hits } = await index.search(search)
-    const ids = hits.map(item => item.objectID)
+    // const { hits } = await index.search(search)
+    // const ids = hits.map(item => item.objectID)
 
-    const products = await productModel.find({ _id: { $in: ids } })
+    const products = await productModel.find()
           .select('name slug images keywords categories')
           .populate('categories','slug name')
     .limit(limit)
@@ -107,18 +107,18 @@ router.get("/products", async (req, res) => {
 
     if (cacheData) return res.json(JSON.parse(cacheData));
 
-    const { hits } = await index.search(search, {hitsPerPage: 20})
-    const ids = hits.map(item => item.objectID)
+    // const { hits } = await index.search(search, {hitsPerPage: 20})
+    // const ids = hits.map(item => item.objectID)
 
-    const products = await productModel.find({ _id: { $in: ids } })
+    const products = await productModel.find()
       .select('name slug images keywords categories')
       .populate('categories')
       .populate({
         path: "details",
         populate: { path: "shop", select: ['name', 'slug'] }
       })
-      // .limit(limit)
-      // .skip(page * limit)
+      .limit(limit)
+      .skip(page * limit)
 
     // Mahsulotlarni `ids` tartibida qayta tartiblash
     const productsMap = new Map(products.map(product => [product._id.toString(), product]));
