@@ -16,24 +16,6 @@ const algoliasearch = require('algoliasearch')
 const client = algoliasearch("RMBB59LLYA", "e7e37b7c84e383ccdca3273d784c4867");
 const index = client.initIndex("products");
 
-// const Indexed = async () => {
-//    try {
-
-//     const products = await productModel.find()
-//     await index.saveObjects(products, { autoGenerateObjectIDIfNotExist: true })
-
-//    } catch (error) {
-//       console.log(error)
-//    }
-// }
-
-
-
-// const searchProducts = async (search) => {
-//     const { hits } =  await index.search('samsung')
-
-// }
-
 
 const checkIndexExists = async (indexName, data) => {
   try {
@@ -74,7 +56,7 @@ router.get("/products-search", async (req, res) => {
     const { hits } = await index.search(search)
     const ids = hits.map(item => item.objectID)
 
-    const products = await productModel.find()
+    const products = await productModel.find({ _id: { $in: ids } })
           .select('name slug images keywords categories')
           .populate('categories','slug name')
     .limit(limit)
@@ -105,27 +87,25 @@ router.get("/products", async (req, res) => {
 
     if (cacheData) return res.json(JSON.parse(cacheData));
 
-    const { hits } = await index.search(search, {hitsPerPage: 20})
+    const { hits } = await index.search(search, {hitsPerPage: 50})
     const ids = hits.map(item => item.objectID)
 
-    const products = await productModel.find()
+    const products = await productModel.find({ _id: { $in: ids } })
       .select('name slug images keywords categories')
       .populate('categories')
       .populate({
         path: "details",
         populate: { path: "shop", select: ['name', 'slug'] }
       })
-      .limit(limit)
-      .skip(page * limit)
+      // .limit(limit)
+      // .skip(page * limit)
 
     // Mahsulotlarni `ids` tartibida qayta tartiblash
     const productsMap = new Map(products.map(product => [product._id.toString(), product]));
     const sortedProducts = ids.map(id => productsMap.get(id.toString())).filter(Boolean);
     
-    const data = { data: products, message: "success" };
-
+    const data = { data: sortedProducts, message: "success" };
     await redisClient.SETEX(cacheKey, 3600, JSON.stringify(data));
-
     res.json(data);
   } catch (error) {
     console.error(error);
@@ -146,7 +126,6 @@ router.get("/product-slug/:slug", async (req, res) => {
   const cacheKey = `product:${lang}:${slug}:${sku}`;
   const cacheData = await redisClient.get(cacheKey)
   if (cacheData) return res.json(JSON.parse(cacheData))
-
   const searchTerms = req.query.search?.split(",") || [];
   const regexTerms = searchTerms.map(term => new RegExp(term, 'i'));
 
