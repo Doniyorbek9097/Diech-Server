@@ -71,8 +71,8 @@ router.get("/products-search", async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const { search = "" } = req.query;
 
-    // const { hits } = await index.search(search)
-    // const ids = hits.map(item => item.objectID)
+    const { hits } = await index.search(search)
+    const ids = hits.map(item => item.objectID)
 
     const products = await productModel.find()
           .select('name slug images keywords categories')
@@ -105,8 +105,8 @@ router.get("/products", async (req, res) => {
 
     if (cacheData) return res.json(JSON.parse(cacheData));
 
-    // const { hits } = await index.search(search, {hitsPerPage: 20})
-    // const ids = hits.map(item => item.objectID)
+    const { hits } = await index.search(search, {hitsPerPage: 20})
+    const ids = hits.map(item => item.objectID)
 
     const products = await productModel.find()
       .select('name slug images keywords categories')
@@ -119,8 +119,8 @@ router.get("/products", async (req, res) => {
       .skip(page * limit)
 
     // Mahsulotlarni `ids` tartibida qayta tartiblash
-    // const productsMap = new Map(products.map(product => [product._id.toString(), product]));
-    // const sortedProducts = ids.map(id => productsMap.get(id.toString())).filter(Boolean);
+    const productsMap = new Map(products.map(product => [product._id.toString(), product]));
+    const sortedProducts = ids.map(id => productsMap.get(id.toString())).filter(Boolean);
     
     const data = { data: products, message: "success" };
     // await redisClient.SETEX(cacheKey, 3600, JSON.stringify(data));
@@ -140,10 +140,11 @@ router.get("/product-slug/:slug", async (req, res) => {
   const { slug = '' } = req.params;
   const { lang = '' } = req.headers;
 
-  redisClient.FLUSHALL()
-  const cacheKey = `product:${lang}:${slug}:${sku}`;
-  const cacheData = await redisClient.get(cacheKey)
-  if (cacheData) return res.json(JSON.parse(cacheData))
+  // redisClient.FLUSHALL()
+  // const cacheKey = `product:${lang}:${slug}:${sku}`;
+  // const cacheData = await redisClient.get(cacheKey)
+  // if (cacheData) return res.json(JSON.parse(cacheData))
+
   const searchTerms = req.query.search?.split(",") || [];
   const regexTerms = searchTerms.map(term => new RegExp(term, 'i'));
 
@@ -217,7 +218,7 @@ router.get("/product-slug/:slug", async (req, res) => {
       message: "success"
     };
 
-    redisClient.SETEX(cacheKey, 3600, JSON.stringify(data));
+    // redisClient.SETEX(cacheKey, 3600, JSON.stringify(data));
     return res.json(data);
 
   } catch (error) {
