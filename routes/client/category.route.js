@@ -82,12 +82,14 @@ router.get("/category-slug/:slug", async (req, res) => {
         let limit = parseInt(req.query?.limit) || 8;
         let {search = ""} = req.query;
         const {lang = ""} = req.headers;
+        redisClient.FLUSHALL()
 
         const cacheKey = `category-slug:${lang}:${slug}:${page}:${limit}:${search}`;
         const cacheData = await redisClient.get(cacheKey)
         if(cacheData) return res.json(JSON.parse(cacheData))
 
         let category = await categoryModel.findOne({ slug })
+        .populate("children")
         .populate({
             path: "products",
             select: ['name', 'slug', 'images', 'attributes'],

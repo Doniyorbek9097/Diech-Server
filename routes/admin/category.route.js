@@ -34,20 +34,28 @@ router.post("/category-add", checkToken, async (req, res) => {
 
 
 // Get all category
-router.get("/category-all", async (req, res) => {
+router.get("/category-all/:id", async (req, res) => {
     try {
 
         let page = parseInt(req.query.page) - 1 || 0;
         let limit = parseInt(req.query.limit) || 1;
         let search = req.query.search || "";
+        const { id } = req.params;
 
-        let categories = await categoryModel.find({ parent: undefined })
-        .populate("products")
+        const query = {};
+        if(id && id !== "undefined") query.parent = id;
+        else query.parent = undefined;
 
-        const products = categories.flatMap(cate => cate.products);
+        let categories = await categoryModel.find(query)
+        .populate({
+            path: "children",
+        })
+        .populate({
+            path: "fields",
+        })
+
 
         return res.status(200).json({
-            totalPage: Math.ceil(products.length / limit),
             page: page + 1,
             limit,
             categories
@@ -72,7 +80,12 @@ router.get("/category-one/:id", checkToken, async (req, res) => {
         }
 
         let category = await categoryModel.findById(req.params.id)
-        .populate("products")
+        .populate({
+            path: "children",
+        })
+        .populate({
+            path: "fields",
+        })
         
         if (!category) return res.status(404).send("Category topilmadi");
         return res.status(200).json(category);
@@ -93,9 +106,6 @@ router.get("/category/:id", checkToken, async (req, res) => {
         let category = await categoryModel.findById(req.params.id)
         .populate({
             path: "children",
-            populate: {
-                path: "children"
-            }
         })
 
         if (!category) return res.status(404).send("Category topilmadi");

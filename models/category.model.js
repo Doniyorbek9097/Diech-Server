@@ -84,11 +84,11 @@ categorySchema.virtual("shop_products", {
 
 
 
-categorySchema.pre(['find','findOne','findById'], function(next) {
-    this.populate("children");
-    // this.populate("fields")
-    next();
-});
+// categorySchema.pre(['find'], function(next) {
+//     this.populate("children");
+//     this.populate("fields")
+//     next();
+// });
 
 
 
