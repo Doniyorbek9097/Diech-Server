@@ -107,7 +107,7 @@ router.get("/products", async (req, res) => {
 
     if (cacheData) return res.json(JSON.parse(cacheData));
 
-    const { hits } = await index.search(search, {hitsPerPage: 50})
+    const { hits } = await index.search(search, {hitsPerPage: 20})
     const ids = hits.map(item => item.objectID)
 
     const products = await productModel.find({ _id: { $in: ids } })

@@ -6,11 +6,11 @@ const { redisClient } = require("../../config/redisDB");
 router.get('/catalog-all', async (req, res) => {
     try {
 
+        redisClient.FLUSHALL()
         const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
         const limit = parseInt(req.query.limit, 10) || 8;
         const search = req.query.search || "";
         const { lang = "" } = req.headers;
-        redisClient.FLUSHALL()
         const cacheKey = `catalogs:${lang}:${page}:${limit}:${search}`;
         const cacheData = await redisClient.get(cacheKey);
         if (cacheData) {
