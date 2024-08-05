@@ -53,15 +53,15 @@ router.get("/products-search", async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const { search = "" } = req.query;
 
-    const { hits } = await index.search(search)
-    const ids = hits.map(item => item.objectID)
+    // const { hits } = await index.search(search)
+    // const ids = hits.map(item => item.objectID)
 
-    const products = await productModel.find({ _id: { $in: ids } })
+    const products = await productModel.find()
           .select('name slug images keywords categories')
           .populate('categories','slug name')
     .limit(limit)
     .skip(page * limit)
-
+    
 
     const data = { data: products, message: "success" };
     res.json(data);
@@ -77,35 +77,35 @@ router.get("/products-search", async (req, res) => {
 router.get("/products", async (req, res) => {
   try {
     const page = parseInt(req.query.page) - 1 || 0;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = parseInt(5) || 5;
     const { search = "" } = req.query;
     const { lang = '' } = req.headers;
 
-    const cacheKey = `product:${lang}:${search}:${page}:${limit}`;
-    const cacheData = await redisClient.get(cacheKey);
-    redisClient.FLUSHALL();
+    // const cacheKey = `product:${lang}:${search}:${page}:${limit}`;
+    // const cacheData = await redisClient.get(cacheKey);
+    // redisClient.FLUSHALL();
 
-    if (cacheData) return res.json(JSON.parse(cacheData));
+    // if (cacheData) return res.json(JSON.parse(cacheData));
 
-    const { hits } = await index.search(search, {hitsPerPage: 50})
-    const ids = hits.map(item => item.objectID)
+    // const { hits } = await index.search(search, {hitsPerPage: 50})
+    // const ids = hits.map(item => item.objectID)
 
-    const products = await productModel.find({ _id: { $in: ids } })
+    const products = await productModel.find()
       .select('name slug images keywords categories')
       .populate('categories')
       .populate({
         path: "details",
         populate: { path: "shop", select: ['name', 'slug'] }
       })
-      // .limit(limit)
-      // .skip(page * limit)
+      .limit(limit)
+      .skip(page * limit)
 
     // Mahsulotlarni `ids` tartibida qayta tartiblash
-    const productsMap = new Map(products.map(product => [product._id.toString(), product]));
-    const sortedProducts = ids.map(id => productsMap.get(id.toString())).filter(Boolean);
+    // const productsMap = new Map(products.map(product => [product._id.toString(), product]));
+    // const sortedProducts = ids.map(id => productsMap.get(id.toString())).filter(Boolean);
     
-    const data = { data: sortedProducts, message: "success" };
-    await redisClient.SETEX(cacheKey, 3600, JSON.stringify(data));
+    const data = { data: products, message: "success" };
+    // await redisClient.SETEX(cacheKey, 3600, JSON.stringify(data));
     res.json(data);
   } catch (error) {
     console.error(error);
