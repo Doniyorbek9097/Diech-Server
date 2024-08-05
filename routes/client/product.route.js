@@ -103,7 +103,7 @@ router.get("/products", async (req, res) => {
     // const cacheData = await redisClient.get(cacheKey);
     // redisClient.FLUSHALL();
 
-    if (cacheData) return res.json(JSON.parse(cacheData));
+    // if (cacheData) return res.json(JSON.parse(cacheData));
 
     const { hits } = await index.search(search, {hitsPerPage: 20})
     const ids = hits.map(item => item.objectID)
@@ -123,7 +123,9 @@ router.get("/products", async (req, res) => {
     const sortedProducts = ids.map(id => productsMap.get(id.toString())).filter(Boolean);
     
     const data = { data: products, message: "success" };
+
     // await redisClient.SETEX(cacheKey, 3600, JSON.stringify(data));
+
     res.json(data);
   } catch (error) {
     console.error(error);
