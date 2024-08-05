@@ -18,12 +18,12 @@ router.get("/categories", async (req, res) => {
         const search = req.query.search || "";
         const { lang = "" } = req.headers;
 
-        // redisClient.FLUSHALL()
-        // const cacheKey = `categories:${lang}:${page}:${limit}:${search}`;
-        // const cacheData = await redisClient.get(cacheKey);
-        // if (cacheData) {
-        //     return res.json(JSON.parse(cacheData));
-        // }
+        redisClient.FLUSHALL()
+        const cacheKey = `categories:${lang}:${page}:${limit}:${search}`;
+        const cacheData = await redisClient.get(cacheKey);
+        if (cacheData) {
+            return res.json(JSON.parse(cacheData));
+        }
 
         const categories = await categoryModel.find({ parent: undefined })
             .populate({
@@ -47,7 +47,7 @@ router.get("/categories", async (req, res) => {
         
         const data = { totalPage, page: page + 1, limit, categories };
 
-        // redisClient.SETEX(cacheKey, 3600, JSON.stringify(data));
+        redisClient.SETEX(cacheKey, 3600, JSON.stringify(data));
 
         return res.status(200).json(data);
     } catch (err) {
@@ -63,17 +63,17 @@ router.get("/categories", async (req, res) => {
 router.get("/category-all", async (req, res) => {
     try {
         let search = req.query.search || "";
-        // const cacheKey = `category-all:${search}`;
-        // const cacheData = await redisClient.get(cacheKey)
-        // if(cacheData) return res.json({
-        //     categories: JSON.parse(cacheData),
-        //     message:"success"
-        // })
+        const cacheKey = `category-all:${search}`;
+        const cacheData = await redisClient.get(cacheKey)
+        if(cacheData) return res.json({
+            categories: JSON.parse(cacheData),
+            message:"success"
+        })
 
         let categories = await categoryModel.find({ slug:{ $regex: search, $options: "i" } },)
         .limit(3)
         
-        // redisClient.SETEX(cacheKey, 3600, JSON.stringify(categories));
+        redisClient.SETEX(cacheKey, 3600, JSON.stringify(categories));
         return res.status(200).json(categories);
 
     } catch (err) {
@@ -97,9 +97,9 @@ router.get("/category-slug/:slug", async (req, res) => {
         let {search = ""} = req.query;
         const {lang = ""} = req.headers;
 
-        // const cacheKey = `category-slug:${lang}:${slug}:${page}:${limit}:${search}`;
-        // const cacheData = await redisClient.get(cacheKey)
-        // if(cacheData) return res.json(JSON.parse(cacheData))
+        const cacheKey = `category-slug:${lang}:${slug}:${page}:${limit}:${search}`;
+        const cacheData = await redisClient.get(cacheKey)
+        if(cacheData) return res.json(JSON.parse(cacheData))
 
         let category = await categoryModel.findOne({ slug })
         .populate({

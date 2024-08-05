@@ -99,11 +99,11 @@ router.get("/products", async (req, res) => {
     const { search = "" } = req.query;
     const { lang = '' } = req.headers;
 
-    // const cacheKey = `product:${lang}:${search}:${page}:${limit}`;
-    // const cacheData = await redisClient.get(cacheKey);
-    // redisClient.FLUSHALL();
+    const cacheKey = `product:${lang}:${search}:${page}:${limit}`;
+    const cacheData = await redisClient.get(cacheKey);
+    redisClient.FLUSHALL();
 
-    // if (cacheData) return res.json(JSON.parse(cacheData));
+    if (cacheData) return res.json(JSON.parse(cacheData));
 
     const { hits } = await index.search(search, {hitsPerPage: 20})
     const ids = hits.map(item => item.objectID)
@@ -124,7 +124,7 @@ router.get("/products", async (req, res) => {
     
     const data = { data: products, message: "success" };
 
-    // await redisClient.SETEX(cacheKey, 3600, JSON.stringify(data));
+    await redisClient.SETEX(cacheKey, 3600, JSON.stringify(data));
 
     res.json(data);
   } catch (error) {
@@ -142,10 +142,10 @@ router.get("/product-slug/:slug", async (req, res) => {
   const { slug = '' } = req.params;
   const { lang = '' } = req.headers;
 
-  // redisClient.FLUSHALL()
-  // const cacheKey = `product:${lang}:${slug}:${sku}`;
-  // const cacheData = await redisClient.get(cacheKey)
-  // if (cacheData) return res.json(JSON.parse(cacheData))
+  redisClient.FLUSHALL()
+  const cacheKey = `product:${lang}:${slug}:${sku}`;
+  const cacheData = await redisClient.get(cacheKey)
+  if (cacheData) return res.json(JSON.parse(cacheData))
 
   const searchTerms = req.query.search?.split(",") || [];
   const regexTerms = searchTerms.map(term => new RegExp(term, 'i'));
@@ -220,7 +220,7 @@ router.get("/product-slug/:slug", async (req, res) => {
       message: "success"
     };
 
-    // redisClient.SETEX(cacheKey, 3600, JSON.stringify(data));
+    redisClient.SETEX(cacheKey, 3600, JSON.stringify(data));
     return res.json(data);
 
   } catch (error) {

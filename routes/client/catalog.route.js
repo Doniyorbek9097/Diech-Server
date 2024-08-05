@@ -6,16 +6,16 @@ const { redisClient } = require("../../config/redisDB");
 router.get('/catalog-all', async (req, res) => {
     try {
 
-        // redisClient.FLUSHALL()
+        redisClient.FLUSHALL()
         const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
         const limit = parseInt(req.query.limit, 10) || 8;
         const search = req.query.search || "";
         const { lang = "" } = req.headers;
-        // const cacheKey = `catalogs:${lang}:${page}:${limit}:${search}`;
-        // const cacheData = await redisClient.get(cacheKey);
-        // if (cacheData) {
-        //     return res.json(JSON.parse(cacheData));
-        // }
+        const cacheKey = `catalogs:${lang}:${page}:${limit}:${search}`;
+        const cacheData = await redisClient.get(cacheKey);
+        if (cacheData) {
+            return res.json(JSON.parse(cacheData));
+        }
 
         const catalogs = await catalogModel.find()
         .populate({
@@ -37,7 +37,7 @@ router.get('/catalog-all', async (req, res) => {
         const totalPage = Math.ceil(totalProducts / limit);
         const data = { totalPage, page: page + 1, limit, catalogs };
 
-        // redisClient.SETEX(cacheKey, 3600, JSON.stringify(data));
+        redisClient.SETEX(cacheKey, 3600, JSON.stringify(data));
         
         res.json({
             data: data,
