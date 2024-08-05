@@ -67,8 +67,6 @@ router.get("/indexed", async (req, res) => {
 router.get("/products-search", async (req, res) => {
   try {
 
-
-
     const page = parseInt(req.query.page) - 1 || 0;
     const limit = parseInt(req.query.limit) || 10;
     const { search = "" } = req.query;
