@@ -83,12 +83,13 @@ categorySchema.virtual("shop_products", {
 })
 
 
+categorySchema.methods.getChildren = function() {
+    return this.populate('children');
+}
 
-categorySchema.pre(['find','findOne','findById'], function(next) {
-    this.populate("children");
-    this.populate("fields")
-    next();
-});
+categorySchema.methods.getFields = function() {
+    return this.populate('fields');
+}
 
 
 

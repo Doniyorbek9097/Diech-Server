@@ -57,8 +57,7 @@ router.get("/products-search", async (req, res) => {
     const ids = hits.map(item => item.objectID)
 
     const products = await productModel.find({ _id: { $in: ids } })
-          .select('name slug images keywords categories')
-          .populate('categories','slug name')
+    .select('name slug images keywords')
     .limit(limit)
     .skip(page * limit)
 

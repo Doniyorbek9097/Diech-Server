@@ -42,10 +42,15 @@ router.get("/categories", async (req, res) => {
                 ]
             });
 
+
+            const populatedCategories = await Promise.all(categories.map(async (category) => {
+                return await category.getChildren();
+            }));
+
         const totalProducts = categories.reduce((acc, cate) => acc + cate.shop_products.length, 0);
         const totalPage = Math.ceil(totalProducts / limit);
         
-        const data = { totalPage, page: page + 1, limit, categories };
+        const data = { totalPage, page: page + 1, limit, categories:populatedCategories };
 
         redisClient.SETEX(cacheKey, 3600, JSON.stringify(data));
 
