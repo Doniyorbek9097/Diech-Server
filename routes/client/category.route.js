@@ -26,31 +26,9 @@ router.get("/categories", async (req, res) => {
         }
 
         const categories = await categoryModel.find({ parent: undefined })
-            .populate({
-                path: "parent",
-                populate: {
-                    path: "parent"
-                }
-            })
-            .populate({
-                path: "shop_products",
-                select: ['name', 'slug', 'images', 'orginal_price', 'sale_price', 'discount', 'reviews', 'rating', 'viewsCount', 'attributes'],
-                options: { limit, skip: page * limit }, // Apply pagination to shop_products
-                populate: [
-                    { path: "product", select: ['name', 'slug', 'images'] },
-                    { path: "shop", select: ['name', 'slug'] }
-                ]
-            });
 
-
-            const populatedCategories = await Promise.all(categories.map(async (category) => {
-                return await category.getChildren();
-            }));
-
-        const totalProducts = categories.reduce((acc, cate) => acc + cate.shop_products.length, 0);
-        const totalPage = Math.ceil(totalProducts / limit);
         
-        const data = { totalPage, page: page + 1, limit, categories:populatedCategories };
+        const data = { totalPage, page: page + 1, limit, categories:categories };
 
         redisClient.SETEX(cacheKey, 3600, JSON.stringify(data));
 

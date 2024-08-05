@@ -86,7 +86,7 @@ router.get("/products", async (req, res) => {
 
     if (cacheData) return res.json(JSON.parse(cacheData));
 
-    const { hits } = await index.search(search, {hitsPerPage: 20})
+    const { hits } = await index.search(search, {hitsPerPage: 100})
     const ids = hits.map(item => item.objectID)
 
     const products = await productModel.find({ _id: { $in: ids } })
@@ -95,8 +95,8 @@ router.get("/products", async (req, res) => {
         path: "details",
         populate: { path: "shop", select: ['name', 'slug'] }
       })
-      .limit(limit)
-      .skip(page * limit)
+      // .limit(limit)
+      // .skip(page * limit)
 
     // Mahsulotlarni `ids` tartibida qayta tartiblash
     const productsMap = new Map(products.map(product => [product._id.toString(), product]));
@@ -133,7 +133,6 @@ router.get("/product-slug/:slug", async (req, res) => {
         path: "categories",
         select: ['name', 'slug'],
       })
-      .populate("brend", "name slug")
       .populate({
         path: "details",
         populate: [
