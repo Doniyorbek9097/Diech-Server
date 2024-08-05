@@ -13,6 +13,7 @@ const { shopProductModel } = require("../../models/shop.product.model");
 // Get prent all category
 router.get("/categories", async (req, res) => {
     try {
+
         const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
         const limit = parseInt(req.query.limit, 10) || 8;
         const search = req.query.search || "";
@@ -26,15 +27,17 @@ router.get("/categories", async (req, res) => {
         }
 
         const categories = await categoryModel.find({ parent: undefined })
-
+        .select("name slug")
         
-        const data = { totalPage, page: page + 1, limit, categories:categories };
+
+
+        const data = { page: page + 1, limit, categories };
 
         redisClient.SETEX(cacheKey, 3600, JSON.stringify(data));
 
-        return res.status(200).json(data);
+        return res.status(200).json(categories);
     } catch (err) {
-        console.error(err);
+        console.log(err);
         res.status(500).json({ message: "Server is not working" });
     }
 });
