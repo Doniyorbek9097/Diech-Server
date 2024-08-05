@@ -121,10 +121,10 @@ router.get("/products", async (req, res) => {
       .skip(page * limit)
 
     // Mahsulotlarni `ids` tartibida qayta tartiblash
-    const productsMap = new Map(products.map(product => [product._id.toString(), product]));
-    const sortedProducts = ids.map(id => productsMap.get(id.toString())).filter(Boolean);
+    // const productsMap = new Map(products.map(product => [product._id.toString(), product]));
+    // const sortedProducts = ids.map(id => productsMap.get(id.toString())).filter(Boolean);
     
-    const data = { data: sortedProducts, message: "success" };
+    const data = { data: products, message: "success" };
     await redisClient.SETEX(cacheKey, 3600, JSON.stringify(data));
     res.json(data);
   } catch (error) {
