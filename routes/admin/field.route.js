@@ -8,27 +8,21 @@ router.post('/add-field', fieldController.create)
 
 
 router.get('/get-fields', async (req, res) => {
-    const categories = await categoryModel.find().populate("fields")
-    for (const cate of categories) {
-        if(cate?.fields?.length) {
-            for (const id of cate.fields) {
-               await fieldModel.updateMany({_id: id}, {$set: {category_id: cate._id} } )
-            }
+    const fields = await fieldModel.find()
+    for (const field of fields) {
+        if(field?.category_id) {
+            await categoryModel.updateMany({_id: field?.category_id}, {$push: {fields: field._id} } )
         }
     }
 
-    await categoryModel.updateMany({}, {$unset: {fields: ""}})
-
-
+    res.send("success push")
 })
 
 
 
 router.get('/get-field-del', async (req, res) => {
-    
-    await categoryModel.updateMany({}, {$unset: {fields: ""}})
-    fieldModel.deleteMany({'label.uz':"Mahsulot tarkibi"})
-
+    await fieldModel.updateMany({}, {$unset: {category_id: ""}})
+    res.send("success del")
 })
 
 router.get('/get-field/:id', async (req, res) => {

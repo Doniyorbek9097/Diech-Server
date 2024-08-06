@@ -40,6 +40,11 @@ const categorySchema = new Schema({
         type: Schema.Types.ObjectId,
     },
 
+    fields: [{
+        type: Schema.Types.ObjectId,
+        ref:"Field"
+    }],
+
     createdBy: {
         type: Schema.Types.ObjectId,
         ref: "User"
@@ -65,11 +70,6 @@ categorySchema.virtual("children", {
     foreignField: "parent",
 })
 
-categorySchema.virtual("fields", {
-    ref: "Field",
-    localField: "_id",
-    foreignField: "category_id",
-})
 
 categorySchema.virtual("products", {
     ref: "Product",
