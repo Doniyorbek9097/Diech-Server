@@ -1,9 +1,9 @@
 const slugify = require("slugify");
 const mongoose = require("mongoose");
-const categoryModel = require("../models/category.model");
-const { Base64ToFile } = require("../utils/base64ToFile");
-const { redisClient } = require("../config/redisDB");
-const { generateOTP } = require("../utils/otpGenrater")
+const categoryModel = require("../../models/category.model");
+const { Base64ToFile } = require("../../utils/base64ToFile");
+const { redisClient } = require("../../config/redisDB");
+const { generateOTP } = require("../../utils/otpGenrater")
 const path = require("path");
 const fs = require("fs");
 
@@ -30,16 +30,24 @@ class Category {
     }
 
 
-    async getAllByParentId(req, res) {
+    async getAll(req, res) {
         try {
-            let page = parseInt(req.query.page) - 1 || 0;
-            let limit = parseInt(req.query.limit) || 1;
-            let search = req.query.search || "";
-            const { id } = req.params;
+            const search = req.query.search || "";
+            const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
+            const limit = parseInt(req.query.limit, 10) || 100;
+            
+            let query = {parent: undefined};
 
-            const query = {};
-            if (id && id !== "undefined") query.parent = id;
-            else query.parent = undefined;
+            if (search) {
+                const regex = new RegExp(search, 'i');
+                query.$or =  [
+                    { 'name.uz': regex },
+                    { 'name.ru': regex }
+                ]
+            }
+    
+            const totalDocuments = await categoryModel.countDocuments(query).exec()
+            const totalPages = Math.ceil(totalDocuments / limit);
 
             let categories = await categoryModel.find(query)
                 .populate({
@@ -48,15 +56,62 @@ class Category {
                 .populate({
                     path: "fields",
                 })
-                .limit(limit)
                 .skip(page * limit)
+                .limit(limit)
+                .sort({ _id: 1 })
 
+                return res.json({
+                    message: "success get products",
+                    data: categories,
+                    limit,
+                    page,
+                    totalPages
+                });
 
-            return res.status(200).json({
-                page: page + 1,
-                limit,
-                categories
-            });
+        } catch (error) {
+            console.log(error)
+            res.status(500).json(error.message)
+        }
+    }
+
+    async getAllByParentId(req, res) {
+        try {
+            const { id } = req.params;
+            const search = req.query.search || "";
+            const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
+            const limit = parseInt(req.query.limit, 10) || 2;
+            
+            let query = {parent: id};
+
+            if (search) {
+                const regex = new RegExp(search, 'i');
+                query.$or =  [
+                    { 'name.uz': regex },
+                    { 'name.ru': regex }
+                ]
+            }
+    
+            const totalDocuments = await categoryModel.countDocuments(query).exec()
+            const totalPages = Math.ceil(totalDocuments / limit);
+
+            let categories = await categoryModel.find(query)
+                .populate({
+                    path: "children",
+                })
+                .populate({
+                    path: "fields",
+                })
+                .skip(page * limit)
+                .limit(limit)
+                .sort({ _id: -1 })
+
+                return res.json({
+                    message: "success get products",
+                    data: categories,
+                    limit,
+                    page,
+                    totalPages
+                });
 
         } catch (error) {
             console.log(error)

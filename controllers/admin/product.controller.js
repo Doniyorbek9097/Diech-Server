@@ -1,10 +1,10 @@
 const slugify = require("slugify");
 const path = require("path")
 const fs = require("fs");
-const { Base64ToFile } = require("../utils/base64ToFile");
-const { redisClient } = require("../config/redisDB");
-const { baseDir } = require("../config/uploadFolder");
-const productModel = require("../models/product.model")
+const { Base64ToFile } = require("../../utils/base64ToFile");
+const { redisClient } = require("../../config/redisDB");
+const { baseDir } = require("../../config/uploadFolder");
+const productModel = require("../../models/product.model")
 
 const algoliasearch = require('algoliasearch')
 

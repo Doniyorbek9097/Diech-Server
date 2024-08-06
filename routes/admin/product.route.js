@@ -13,7 +13,7 @@ const { generateOTP } = require("../../utils/otpGenrater");
 const { upload, resizeImages } = require("../../middlewares/upload")
 const { esClient } = require("../../config/db");
 const { populate } = require("../../models/category.model");
-const productController = require("../../controllers/product.controller")
+const productController = require("../../controllers/admin/product.controller")
 
 // create new Product 
 router.get("/upload/:id", async (req, res) => {
