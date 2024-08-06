@@ -58,7 +58,7 @@ class Category {
                 })
                 .skip(page * limit)
                 .limit(limit)
-                .sort({ _id: 1 })
+                .sort({ _id: -1 })
 
                 return res.json({
                     message: "success get products",

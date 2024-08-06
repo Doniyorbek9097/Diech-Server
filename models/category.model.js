@@ -70,6 +70,7 @@ categorySchema.virtual("children", {
     foreignField: "parent",
 })
 
+
 categorySchema.virtual("products", {
     ref: "Product",
     localField: "_id",

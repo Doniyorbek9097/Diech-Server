@@ -10,7 +10,8 @@ const { redisClient } = require("../../config/redisDB");
 const shopProductModel = require("../../models/shop.product.model");
 const { checkToken } = require("../../middlewares/authMiddleware")
 const { transformAttributes } = require('../../utils/transformAttributes')
-
+const { algolia } = require("../../config/algolia")
+const productsIndex = algolia.initIndex("products");
 
 // get all products search
 router.get("/products-search", async (req, res) => {
@@ -20,7 +21,7 @@ router.get("/products-search", async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const { search = "" } = req.query;
 
-    const { hits } = await index.search(search)
+    const { hits } = await productsIndex.search(search)
     const ids = hits.map(item => item.objectID)
 
     const products = await productModel.find({ _id: { $in: ids } })
@@ -43,7 +44,7 @@ router.get("/products-search", async (req, res) => {
 router.get("/products", async (req, res) => {
   try {
     const page = parseInt(req.query.page) - 1 || 0;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = parseInt(req.query.limit, 10) || 10;
     const { search = "" } = req.query;
     const { lang = '' } = req.headers;
 
@@ -53,8 +54,11 @@ router.get("/products", async (req, res) => {
 
     if (cacheData) return res.json(JSON.parse(cacheData));
 
-    const { hits } = await index.search(search, {hitsPerPage: 100})
+    const { hits } = await productsIndex.search(search, {hitsPerPage: 100})
     const ids = hits.map(item => item.objectID)
+
+    const totalDocuments = await categoryModel.countDocuments(query).exec()
+    const totalPages = Math.ceil(totalDocuments / limit);
 
     const products = await productModel.find({ _id: { $in: ids } })
       .select('name slug images keywords')

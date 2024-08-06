@@ -1,26 +1,34 @@
 const router = require("express").Router()
 const fieldModel = require("../../models/field.model")
 const categoryModel = require("../../models/category.model")
-router.post('/add-field', async (req, res) => {
-    try {
-        const newField = await new fieldModel(req.body).save()
-        res.json({
-            data: newField,
-            message: "success added"
-        })
-    } catch (error) {
-        console.log(error)
-    }
-})
+
+const fieldController = require("../../controllers/admin/field.controller")
+
+router.post('/add-field', fieldController.create)
 
 
 router.get('/get-fields', async (req, res) => {
-    try {
-        const fields = await fieldModel.find()
-        res.json(fields)
-    } catch (error) {
-        console.log(error)
+    const categories = await categoryModel.find().populate("fields")
+    for (const cate of categories) {
+        if(cate?.fields?.length) {
+            for (const id of cate.fields) {
+               await fieldModel.updateMany({_id: id}, {$set: {category_id: cate._id} } )
+            }
+        }
     }
+
+    await categoryModel.updateMany({}, {$unset: {fields: ""}})
+
+
+})
+
+
+
+router.get('/get-field-del', async (req, res) => {
+    
+    await categoryModel.updateMany({}, {$unset: {fields: ""}})
+    fieldModel.deleteMany({'label.uz':"Mahsulot tarkibi"})
+
 })
 
 router.get('/get-field/:id', async (req, res) => {

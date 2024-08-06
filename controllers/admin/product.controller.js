@@ -5,12 +5,8 @@ const { Base64ToFile } = require("../../utils/base64ToFile");
 const { redisClient } = require("../../config/redisDB");
 const { baseDir } = require("../../config/uploadFolder");
 const productModel = require("../../models/product.model")
-
-const algoliasearch = require('algoliasearch')
-
-const client = algoliasearch("RMBB59LLYA", "e7e37b7c84e383ccdca3273d784c4867");
-const productsIndex = client.initIndex("products");
-
+const { algolia } = require("../../config/algolia")
+const productsIndex = algolia.initIndex("products");
 
 class Product {
 
@@ -43,6 +39,7 @@ class Product {
 
             // Mahsulotlarni saqlash
             const newProducts = await productModel.insertMany(processedProducts);
+
             res.json({ data: newProducts, message: "success added" });
 
         } catch (error) {

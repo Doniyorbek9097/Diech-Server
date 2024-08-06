@@ -1,6 +1,11 @@
 const { Schema, model } = require("mongoose")
 
 const fieldSchema = Schema({
+    category_id: {
+        type: Schema.Types.ObjectId,
+        ref:"Category"
+    },
+
     label: {
         uz: String,
         ru: String
