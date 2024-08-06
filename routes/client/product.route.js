@@ -11,39 +11,6 @@ const shopProductModel = require("../../models/shop.product.model");
 const { checkToken } = require("../../middlewares/authMiddleware")
 const { transformAttributes } = require('../../utils/transformAttributes')
 
-const algoliasearch = require('algoliasearch')
-
-const client = algoliasearch("RMBB59LLYA", "e7e37b7c84e383ccdca3273d784c4867");
-const index = client.initIndex("products");
-
-
-const checkIndexExists = async (indexName, data) => {
-  try {
-    const result = await index.saveObjects(data);
-    if (result) return result;
-    throw new Error(`${indexName} yaratishda xatolik`);
-  } catch (error) {
-    console.log(error);
-  }
-}
-
-router.get("/indexed", async (req, res) => {
-  try {
-    let products = await productModel.find().lean();
-    products = products.map(item => ({
-      objectID: item._id.toString(),  // objectID ni _id dan olish
-      name: item.name,
-      keyword_uz: item.keyword?.uz,
-      keyword_ru: item.keyword?.ru,
-    }));
-
-    await checkIndexExists('products', products);
-    res.send("success indexed");
-  } catch (error) {
-    console.log(error);
-  }
-});
-
 
 // get all products search
 router.get("/products-search", async (req, res) => {

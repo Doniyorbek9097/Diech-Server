@@ -8,10 +8,10 @@ const sendEmail = require("../../utils/sendEmail");
 const { sendSms } = require("../../utils/sendSms");
 const { generateOTP } = require("../../utils/otpGenrater");
 const { generateToken } = require("../../utils/generateToken")
-const Auth = require("../../controllers/admin/auth");
+const auth = require("../../controllers/admin/auth.controller");
 const slugify = require("slugify");
 
-router.get("/auth/:id", Auth.user);
+router.get("/auth/:id", auth.user);
 
 router.get("/users-update", async (req, res) => {
     const users = await userModel.find();
