@@ -9,13 +9,7 @@ router.post('/add-field', fieldController.create)
 
 router.get('/get-fields', async (req, res) => {
     const fields = await fieldModel.find()
-    for (const field of fields) {
-        if(field?.category_id) {
-            await categoryModel.updateMany({_id: field?.category_id}, {$push: {fields: field._id} } )
-        }
-    }
-
-    res.send("success push")
+    res.json(fields)
 })
 
 
