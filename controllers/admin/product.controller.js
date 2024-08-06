@@ -225,8 +225,8 @@ class Product {
             });
 
             await productsIndex.saveObjects(body);
-            console.log("Indeksatsiya qilindi");
-
+            res.send("Indeksatsiya qilindi")
+            
         } catch (error) {
             console.error('Indeksatsiya xatosi:', error);
         }

@@ -129,8 +129,7 @@ class Category {
                 .populate({
                     path: "children",
                 })
-                .populate("fields")
-            console.log(category.fields)
+            
             if (!category) return res.status(404).send("Category topilmadi");
             return res.status(200).json(category.toObject());
 

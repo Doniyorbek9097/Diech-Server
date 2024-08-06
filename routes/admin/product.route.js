@@ -11,8 +11,6 @@ const { redisClient } = require("../../config/redisDB");
 const { baseDir } = require("../../config/uploadFolder");
 const { generateOTP } = require("../../utils/otpGenrater");
 const { upload, resizeImages } = require("../../middlewares/upload")
-const { esClient } = require("../../config/db");
-const { populate } = require("../../models/category.model");
 const productController = require("../../controllers/admin/product.controller")
 
 // create new Product 
@@ -64,7 +62,7 @@ router.put("/product-edit/:id", checkToken, productController.updateById);
 //delete by id
 router.delete("/product-delete/:id", checkToken, productController.deleteById);
 
-router.get("/product-all-indexed", checkToken, productController.indexed)
+router.get("/product-all-indexed", productController.indexed)
 
 
 module.exports = router;

@@ -17,21 +17,31 @@ const productsIndex = algolia.initIndex("products");
 router.get("/products-search", async (req, res) => {
   try {
 
-    const page = parseInt(req.query.page) - 1 || 0;
-    const limit = parseInt(req.query.limit) || 10;
-    const { search = "" } = req.query;
+    const search = req.query.search || "";
+    const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
+    const limit = parseInt(req.query.limit, 10) || 5;
 
-    const { hits } = await productsIndex.search(search)
+    const options = { page: page, hitsPerPage: limit };
+    const { hits } = await productsIndex.search(search, options)
+
     const ids = hits.map(item => item.objectID)
+    const query = { _id: { $in: ids } };
+    
+    const totalDocuments = await productModel.countDocuments(query).exec()
+    const totalPages = Math.ceil(totalDocuments / limit);
 
-    const products = await productModel.find({ _id: { $in: ids } })
-    .select('name slug images keywords')
-    .limit(limit)
-    .skip(page * limit)
+    const products = await productModel.find(query)
+    .populate('categories', 'name slug')
+    .select('name slug images keywords category')
 
-
-    const data = { data: products, message: "success" };
-    res.json(data);
+    const data = {
+      message: "success get products",
+      data: products,
+      limit,
+      page,
+      totalPages
+    };
+    return res.json(data);
 
   } catch (error) {
     console.error(error);
@@ -43,9 +53,10 @@ router.get("/products-search", async (req, res) => {
 
 router.get("/products", async (req, res) => {
   try {
-    const page = parseInt(req.query.page) - 1 || 0;
-    const limit = parseInt(req.query.limit, 10) || 10;
-    const { search = "" } = req.query;
+    
+    const search = req.query.search || "";
+    const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
+    const limit = parseInt(req.query.limit, 10) || 5;
     const { lang = '' } = req.headers;
 
     const cacheKey = `product:${lang}:${search}:${page}:${limit}`;
@@ -54,28 +65,35 @@ router.get("/products", async (req, res) => {
 
     if (cacheData) return res.json(JSON.parse(cacheData));
 
-    const { hits } = await productsIndex.search(search, {hitsPerPage: 100})
-    const ids = hits.map(item => item.objectID)
 
-    const totalDocuments = await categoryModel.countDocuments(query).exec()
+    const options = { page: page, hitsPerPage: limit };
+    const { hits } = await productsIndex.search(search, options)
+    const ids = hits.map(item => item.objectID)
+    const query = { _id: { $in: ids } };
+    
+    const totalDocuments = await productModel.countDocuments(query).exec()
     const totalPages = Math.ceil(totalDocuments / limit);
 
-    const products = await productModel.find({ _id: { $in: ids } })
-      .select('name slug images keywords')
-      .populate({
-        path: "details",
-        populate: { path: "shop", select: ['name', 'slug'] }
-      })
-      // .limit(limit)
-      // .skip(page * limit)
+    const products = await productModel.find(query)
+    .populate('details')
+    .select('name slug images keywords')
+
 
     // Mahsulotlarni `ids` tartibida qayta tartiblash
     const productsMap = new Map(products.map(product => [product._id.toString(), product]));
     const sortedProducts = ids.map(id => productsMap.get(id.toString())).filter(Boolean);
     
-    const data = { data: sortedProducts, message: "success" };
+    const data = {
+      message: "success get products",
+      data: sortedProducts,
+      limit,
+      page,
+      totalPages
+    };
+
     await redisClient.SETEX(cacheKey, 3600, JSON.stringify(data));
-    res.json(data);
+    return res.json(data);
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: error.message });
