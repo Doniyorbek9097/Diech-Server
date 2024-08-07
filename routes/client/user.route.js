@@ -25,8 +25,8 @@ router.post("/signup", async (req, res) => {
 
         const txt = `Diech market Tasdiqlash kodi ${otpCode}\nKodni hech kimga bermang.\nFiribgarlardan saqlaning.\nKompaniya Diech.uz`
         const getsmstoken = getSmsToken()
-        const respon = await sendSms(getsmstoken, phone_number, txt);
-        console.log(respon);
+        // const respon = await sendSms(getsmstoken, phone_number, txt);
+        // console.log(respon);
         return res.json({
             message: `Diech market Tasdiqlash kodi ${phone_number} ga yuborildi`,
             data: otpCode
@@ -44,6 +44,7 @@ router.post("/signup", async (req, res) => {
 router.post("/signup/verify", async (req, res) => {
     try {
         let { phone_number, otp } = req.body;
+
         const otpHoder = await otpModel.find({ phone_number: phone_number });
 
         if (otpHoder.length == 0) return res.json({

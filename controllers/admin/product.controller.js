@@ -7,6 +7,7 @@ const { baseDir } = require("../../config/uploadFolder");
 const productModel = require("../../models/product.model")
 const { algolia } = require("../../config/algolia")
 const productsIndex = algolia.initIndex("products");
+const fileService = require("../../services/file.service")
 
 class Product {
 
@@ -18,11 +19,9 @@ class Product {
             const { body: products } = req;
 
             const processedProducts = await Promise.all(products.map(async (product) => {
+
                 if (product?.images?.length) {
-                    product.images = await Promise.all(product.images.map(async (image) => {
-                        const data = await new Base64ToFile(req).bufferInput(image).save();
-                        return data;
-                    }));
+                    product.images = await fileService.upload(req, product?.images)
                 }
 
                 product.slug = slugify(`${product.name.ru.toLowerCase()}`);
@@ -48,10 +47,7 @@ class Product {
             // Mahsulotlar o'chirilishi
             for (const product of req.body) {
                 if (product?.images?.length) {
-                    await Promise.all(product.images.map(async (image) => {
-                        const imagePath = path.join(__dirname, `${baseDir}/${path.basename(image)}`);
-                        fs.unlink(imagePath, (err) => err && console.log(err));
-                    }));
+                    await fileService.remove(product?.images)
                 }
             }
 
@@ -139,36 +135,15 @@ class Product {
         await redisClient.FLUSHALL()
 
         const { body: product } = req;
-
-        if (product.images.length) {
-            let images = [];
-            for (const image of product.images) {
-                const data = await new Base64ToFile(req).bufferInput(image).save();
-                images.push(data);
-            }
-            product.images = images;
-        }
+        product?.images?.length && (product.images = await fileService.upload(req, product.images))
 
         try {
-
             const updated = await productModel.findByIdAndUpdate(req.params.id, product);
-            if (product?.deletedImages?.length > 0) {
-                product.deletedImages.forEach(element => {
-                    let imagePath;
-                    element && (imagePath = `${baseDir}/${path.basename(element)}`);
-                    fs.unlink(imagePath, (err) => err && console.log(err))
-                });
-            }
-
+            product?.deletedImages?.length && await fileService.remove(product?.deletedImages)
             return res.json(updated);
 
         } catch (error) {
-
-            for (const image of product?.images) {
-                const imagePath = path.join(__dirname, `${baseDir}/${path.basename(image)}`);
-                fs.unlink(imagePath, (err) => err && console.log(err))
-            }
-
+            product?.images?.length && await fileService.remove(images)
             console.log(error);
             res.status(500).send("Server Xatosi: " + error);
         }
@@ -181,12 +156,7 @@ class Product {
             const deleted = await productModel.findOneAndDelete({ _id: req.params.id });
             const { images } = deleted;
 
-            if (images && images?.length > 0) {
-                images?.forEach(item => {
-                    const imagePath = `${baseDir}/${path.basename(item)}`;
-                    fs.unlink(imagePath, (err) => err && console.log(err))
-                })
-            }
+            images?.length && await fileService.remove(images)
 
             return res.status(200).json({ result: deleted });
 
@@ -226,7 +196,7 @@ class Product {
 
             await productsIndex.saveObjects(body);
             res.send("Indeksatsiya qilindi")
-            
+
         } catch (error) {
             console.error('Indeksatsiya xatosi:', error);
         }

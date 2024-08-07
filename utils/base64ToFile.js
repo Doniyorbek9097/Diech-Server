@@ -1,12 +1,11 @@
 const path = require("path")
 const fs = require("fs")
-const { generateOTP } = require("./otpGenrater");
-const sharp = require("sharp");
-const mkdirp = require("mkdirp")
 const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
+const mkdirp = require("mkdirp")
+const sharp = require("sharp");
+const { generateOTP } = require("./otpGenrater");
 const ffmpeg = require('fluent-ffmpeg');
 ffmpeg.setFfmpegPath(ffmpegPath);
-
 const { baseDir } = require("../config/uploadFolder");
 
 
@@ -52,21 +51,21 @@ class Base64ToFile {
             if(!fs.existsSync(this._file_path)) {
                 mkdirp.sync(this._file_path)
             }
-            // if(Array.isArray(this._bufferInput) && this._bufferInput !== null) {
-            //     const filePaths = [];
-            //     for (const file of this._bufferInput) {
-            //     if(typeof file !== 'string' || !file.includes("base64")) return;
-            //         const filePath = path.join(this._file_path, this._file_name);
-            //         const matches = file.toString().match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
-            //         fs.writeFile(
-            //             filePath, 
-            //             Buffer.from(matches[2], 'base64'),
-            //             (err) => err ? rejact(err) : filePaths.push(`${this.request.protocol}://${this.request.headers.host}/uploads/${this._file_name}`)
-            //         );
-            //     }
+            if(Array.isArray(this._bufferInput) && this._bufferInput !== null) {
+                const filePaths = [];
+                for (const file of this._bufferInput) {
+                if(typeof file !== 'string' || !file.includes("base64")) return;
+                    const filePath = path.join(this._file_path, this._file_name);
+                    const matches = file.toString().match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+                    fs.writeFile(
+                        filePath, 
+                        Buffer.from(matches[2], 'base64'),
+                        (err) => err ? rejact(err) : filePaths.push(`${this.request.protocol}://${this.request.headers.host}/uploads/${this._file_name}`)
+                    );
+                }
         
-            //     resolve(filePaths)
-            // }
+                resolve(filePaths)
+            }
         
 
         if(typeof this._bufferInput !== 'string' || this._bufferInput.includes("base64") == false)

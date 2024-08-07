@@ -13,28 +13,7 @@ const categorySchema = new Schema({
 
     icon: String,
     image: String,
-
-    left_banner: {
-        image: {
-            type: String,
-            intl: true,
-        },
-        slug: {
-            type: String
-        }
-    },
     
-    top_banner: {
-        image: {
-            type: String,
-            intl: true,
-        },
-        slug: {
-            type: String
-        }
-    },
-
-
     parent: {
         ref: "Category",
         type: Schema.Types.ObjectId,
@@ -75,6 +54,12 @@ categorySchema.virtual("products", {
     ref: "Product",
     localField: "_id",
     foreignField: "categories",
+})
+
+categorySchema.virtual("banners", {
+    ref: "Banner",
+    localField: "_id",
+    foreignField: "category",
 })
 
 categorySchema.virtual("shop_products", {

@@ -5,7 +5,7 @@ const path = require("path")
 const fs = require("fs")
 const { baseDir } = require("../../config/uploadFolder");
 const { Base64ToFile } = require("../../utils/base64ToFile")
-
+const fileService = require("../../services/file.service")
 
 router.get("/get-product-variants/:product_id", async (req, res) => {
     try {
@@ -36,18 +36,8 @@ router.put("/update-variant/:id", async (req, res) => {
     const { id } = req.params;
     let variant = req.body
     variant.sku = slugify(`${variant.sku}`);
-    console.log("ddd");
     for (const attr of variant.attributes) {
-        if (attr.images) {
-            let images = [];
-            for (const image of attr?.images) {
-                const data = await new Base64ToFile(req).bufferInput(image).save();
-                images.push(data)
-            }
-
-            attr.images = images;
-        }
-
+        attr?.images?.length && (attr.images = await fileService.upload(req, attr.images))
     }
 
     try {
@@ -60,12 +50,7 @@ router.put("/update-variant/:id", async (req, res) => {
     } catch (error) {
         console.log(error)
         for (const attr of variant.attributes) {
-            if (attr?.images?.length) {
-                for (const image of attr?.images) {
-                    const imagePath = path.join(__dirname, `${baseDir}/${path.basename(image)}`);
-                    fs.unlink(imagePath, (err) => err && console.log(err))
-                }
-            }
+            attr?.images?.length && (attr.images = await fileService.remove(attr.images))
         }
 
 
@@ -79,12 +64,7 @@ router.delete("/variant-delete/:id", async (req, res) => {
         const { id } = req.params;
         const deleted = await productVariantModel.findOneAndDelete({ _id: id })
         for (const attr of deleted.attributes) {
-            if (attr?.images?.length) {
-                for (const image of attr?.images) {
-                    const imagePath = `${baseDir}/${path.basename(image)}`;
-                    fs.unlink(imagePath, (err) => err && console.log(err))
-                }
-            }
+            attr?.images?.length && (attr.images = await fileService.remove(attr.images))
         }
         
         res.json({

@@ -1,5 +1,5 @@
 const { redisClient } = require("../../config/redisDB");
-const carouselModel = require("../../models/carousel.model");
+const carouselModel = require("../../models/banner.model");
 const router = require("express").Router();
 
 

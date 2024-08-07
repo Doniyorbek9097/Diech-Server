@@ -4,9 +4,7 @@ const categoryModel = require("../../models/category.model");
 const { Base64ToFile } = require("../../utils/base64ToFile");
 const { redisClient } = require("../../config/redisDB");
 const { generateOTP } = require("../../utils/otpGenrater")
-const path = require("path");
-const fs = require("fs");
-
+const fileService = require("../../services/file.service")
 
 class Category {
     async create(req, res) {
@@ -159,26 +157,19 @@ class Category {
 
     async updateById(req, res) {
         redisClient.FLUSHALL()
-        req.body.slug = slugify(`${req.body.name.ru.toLowerCase()}-${generateOTP(5)}`)
+        const {body: product } = req;
 
-
+        product.slug = slugify(`${req.body.name.ru.toLowerCase()}-${generateOTP(5)}`)
+        product?.icon && (product.icon = await fileService.upload(req, product.icon))
+        product?.image && (product.image = await fileService.upload(req, product.image))
 
         try {
             const upadted = await categoryModel.findByIdAndUpdate(req.params.id, req.body);
             return res.status(200).json(upadted);
 
         } catch (error) {
-
-            if (req.body.image) {
-                const imagePath = path.join(__dirname, `../../uploads/${path.basename(req.body.image)}`);
-                fs.unlink(imagePath, (err) => err && console.log(err));
-            }
-
-            if (req.body.icon) {
-                const imagePath = path.join(__dirname, `../../uploads/${path.basename(req.body.icon)}`);
-                fs.unlink(imagePath, (err) => err && console.log(err));
-            }
-
+            product?.icon && await fileService.remove(product.icon)
+            product?.image && await fileService.remove(product.image)
             return res.status(500).json(error.message)
         }
     }
@@ -190,17 +181,8 @@ class Category {
 
             let deleted = await categoryModel.findByIdAndDelete(req.params.id);
             if (!deleted) return res.status(404).json("Category not found");
-           
-            if (deleted?.image) {
-                const imagePath = path.join(__dirname, `../../uploads/${path.basename(deleted.image)}`);
-                fs.unlink(imagePath, (err) => err && console.log(err));
-            }
-
-            if (deleted?.icon) {
-                const imagePath = path.join(__dirname, `../../uploads/${path.basename(deleted.icon)}`);
-                fs.unlink(imagePath, (err) => err && console.log(err));
-            }
-
+            deleted?.image && await fileService.remove(deleted?.image)
+            deleted?.icon && await fileService.remove(deleted?.icon)
 
             res.status(200).json(deleted);
 
