@@ -42,7 +42,7 @@ class File {
                 const filePaths = await Promise.all(filePromises);
                 return filePaths;
             } catch (err) {
-                throw new Error(err);
+                console.log(err?.message)
             }
 
         } else if (typeof files === 'string' && files.includes("base64")) {
@@ -59,10 +59,10 @@ class File {
                         .toFile(filePath);
                     return `${req.protocol}://${req.headers.host}/uploads/${baseFilename}`;
                 } catch (err) {
-                    throw new Error(err);
+                    console.log(err?.message)
                 }
             } else {
-                throw new Error('Invalid base64 string');
+                console.log('Invalid base64 string');
             }
         } else {
             return files;
