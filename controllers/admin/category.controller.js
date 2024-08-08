@@ -48,12 +48,10 @@ class Category {
             const totalPages = Math.ceil(totalDocuments / limit);
 
             let categories = await categoryModel.find(query)
-                .populate({
-                    path: "children",
-                })
-                .populate({
-                    path: "fields",
-                })
+                .populate("children")
+                .populate("fields")
+                .populate('banners')
+                .populate('image')
                 .skip(page * limit)
                 .limit(limit)
                 .sort({ _id: -1 })

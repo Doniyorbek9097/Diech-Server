@@ -12,7 +12,6 @@ const categorySchema = new Schema({
     },
 
     icon: String,
-    image: String,
     
     parent: {
         ref: "Category",
@@ -59,8 +58,16 @@ categorySchema.virtual("products", {
 categorySchema.virtual("banners", {
     ref: "Banner",
     localField: "_id",
-    foreignField: "category",
+    foreignField: "category_banner",
 })
+
+categorySchema.virtual("image", {
+    ref: "Banner",
+    localField: "_id",
+    foreignField: "category_image",
+    justOne: true
+})
+
 
 categorySchema.virtual("shop_products", {
     ref: "ShopProducts",

@@ -9,7 +9,12 @@ const bannerSchema = new Schema({
         type:String,
     },
 
-    category: {
+    category_banner: {
+        type: Schema.Types.ObjectId,
+        ref:"Category"
+    },
+
+    category_image: {
         type: Schema.Types.ObjectId,
         ref:"Category"
     }
