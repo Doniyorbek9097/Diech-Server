@@ -28,7 +28,7 @@ router.get("/categories", async (req, res) => {
 
         const categories = await categoryModel.find({ parent: undefined })
         .populate("image")
-        .select("name slug")
+        .select("name slug icon image")
         
 
 
