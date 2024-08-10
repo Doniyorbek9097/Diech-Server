@@ -98,12 +98,10 @@ router.get("/category-slug/:slug", async (req, res) => {
         if (cacheData) return res.json(JSON.parse(cacheData))
 
         let category = await categoryModel.findOne({ slug })
+            .populate("banners")
             .populate({
                 path:"children",
                 select:['image','slug','name','icon'],
-                populate: {
-                    path:"image"
-                }
             })
             .populate({
                 path: "products",
