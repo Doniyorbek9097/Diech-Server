@@ -91,9 +91,19 @@ class Category {
             const totalPages = Math.ceil(totalDocuments / limit);
 
             let categories = await categoryModel.find(query)
-                .populate({
-                    path: "children",
-                })
+            .populate('banners')
+            .populate('image')
+            .populate({
+                path: "children",
+                populate: [
+                    {
+                        path:"image"
+                    },
+                    {
+                        path:"banners"
+                    },
+                ]
+            })
                 .populate({
                     path: "fields",
                 })
@@ -155,19 +165,23 @@ class Category {
 
     async updateById(req, res) {
         redisClient.FLUSHALL()
-        const {body: product } = req;
+        const {body: category } = req;
+        const { id, fileName } = req.params;
 
-        product.slug = slugify(`${req.body.name.ru.toLowerCase()}-${generateOTP(5)}`)
-        product?.icon && (product.icon = await fileService.upload(req, product.icon))
-        product?.image && (product.image = await fileService.upload(req, product.image))
+        category.slug = slugify(`${req.body.name.ru.toLowerCase()}-${generateOTP(5)}`)
+        category?.icon && (category.icon = await fileService.upload(req, category.icon))
+        category?.image && (category.image = await fileService.upload(req, category.image))
 
         try {
-            const upadted = await categoryModel.findByIdAndUpdate(req.params.id, req.body);
+            const upadted = await categoryModel.findByIdAndUpdate(id, req.body);
+            
+            category.deletedImages.length && category.deletedImages.forEach(async item => await fileService.remove(item));
+            
             return res.status(200).json(upadted);
 
         } catch (error) {
-            product?.icon && await fileService.remove(product.icon)
-            product?.image && await fileService.remove(product.image)
+            category?.icon && await fileService.remove(category.icon)
+            category?.image && await fileService.remove(category.image)
             return res.status(500).json(error.message)
         }
     }

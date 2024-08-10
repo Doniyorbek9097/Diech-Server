@@ -27,9 +27,17 @@ router.get("/categories", async (req, res) => {
         }
 
         const categories = await categoryModel.find({ parent: undefined })
-        .populate("image")
-        .select("name slug icon image")
-        
+            .populate("image")
+            .populate({
+                path: "children",
+                select: ['slug', 'name'],
+                populate: {
+                    path: "children",
+                    select: ['slug', 'name'],
+                }
+            })
+            .select("name slug icon image children")
+
 
 
         const data = { page: page + 1, limit, categories };
@@ -52,14 +60,14 @@ router.get("/category-all", async (req, res) => {
         let search = req.query.search || "";
         const cacheKey = `category-all:${search}`;
         const cacheData = await redisClient.get(cacheKey)
-        if(cacheData) return res.json({
+        if (cacheData) return res.json({
             categories: JSON.parse(cacheData),
-            message:"success"
+            message: "success"
         })
 
-        let categories = await categoryModel.find({ slug:{ $regex: search, $options: "i" } },)
-        .limit(3)
-        
+        let categories = await categoryModel.find({ slug: { $regex: search, $options: "i" } },)
+            .limit(3)
+
         redisClient.SETEX(cacheKey, 3600, JSON.stringify(categories));
         return res.status(200).json(categories);
 
@@ -78,29 +86,37 @@ router.get("/category-all", async (req, res) => {
 // Get by slug name 
 router.get("/category-slug/:slug", async (req, res) => {
     try {
-        let {slug = ""} = req.params;
+        let { slug = "" } = req.params;
         let page = parseInt(req.query?.page) - 1 || 0;
-        let limit = parseInt(req.query?.limit) || 8;
-        let {search = ""} = req.query;
-        const {lang = ""} = req.headers;
+        let limit = parseInt(req.query?.limit) || 10;
+        let { search = "" } = req.query;
+        const { lang = "" } = req.headers;
         redisClient.FLUSHALL()
 
         const cacheKey = `category-slug:${lang}:${slug}:${page}:${limit}:${search}`;
         const cacheData = await redisClient.get(cacheKey)
-        if(cacheData) return res.json(JSON.parse(cacheData))
+        if (cacheData) return res.json(JSON.parse(cacheData))
 
         let category = await categoryModel.findOne({ slug })
-        .populate("children")
-        .populate({
-            path: "products",
-            select: ['name', 'slug', 'images', 'attributes'],
-            populate: [
-                {
-                    path: "details",
-                    select: ['orginal_price', 'sale_price','discount','reviews', 'rating', 'viewsCount']
+            .populate({
+                path:"children",
+                select:['image','slug','name','icon'],
+                populate: {
+                    path:"image"
                 }
-            ]
-        })
+            })
+            .populate({
+                path: "products",
+                match: {},  // Bu yerga qo'shimcha shartlar qo'yishingiz mumkin
+                options: {skip: page, limit: limit},
+                select: ['name', 'slug', 'images', 'attributes'],
+                populate: [
+                    {
+                        path: "details",
+                        select: ['orginal_price', 'sale_price', 'discount', 'reviews', 'rating', 'viewsCount']
+                    }
+                ]
+            })
 
         if (!category) {
             return res.json({ error: 'Category not found' });
@@ -110,13 +126,13 @@ router.get("/category-slug/:slug", async (req, res) => {
         // const { price = '' } = req.query;
         // const [minPrice = 0, maxPrice = Number.MAX_VALUE] = price ? price.split(',').map(Number) : [];
         // let products = await shopProductModel.find({categories:{$in: category._id}, orginal_price: { $gte: minPrice, $lte: maxPrice }}).populate("product")
-        
+
         const data = {
-            message:"success",
+            message: "success",
             totalPage: Math.ceil(category.products.length / limit),
             page: page + 1,
             limit,
-            data:category,
+            data: category,
         }
 
         // redisClient.SETEX(cacheKey, 3600, JSON.stringify(data))
