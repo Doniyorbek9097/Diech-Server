@@ -14,10 +14,6 @@ const bannerSchema = new Schema({
         ref:"Category"
     },
 
-    category_image: {
-        type: Schema.Types.ObjectId,
-        ref:"Category"
-    }
 },
 
 {

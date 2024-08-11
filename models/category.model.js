@@ -21,7 +21,8 @@ const categorySchema = new Schema({
 
     fields: [{
         type: Schema.Types.ObjectId,
-        ref:"Field"
+        ref:"Field",
+        default: undefined
     }],
 
     createdBy: {
