@@ -122,8 +122,9 @@ class Product {
 
     async oneById(req, res) {
         try {
-            let product = await productModel.findOne({ _id: req.params.id }).populate("categories")
-            return res.status(200).json(product.toObject());
+            let product = await productModel.findOne({ _id: req.params.id }).populate("categories").lean();
+            console.log(product)
+            return res.status(200).json(product);
         } catch (error) {
             console.log(error);
             return res.status(500).send("Server Ishlamayapti");

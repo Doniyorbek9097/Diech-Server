@@ -26,13 +26,13 @@ router.get("/products-search", async (req, res) => {
 
     const ids = hits.map(item => item.objectID)
     const query = { _id: { $in: ids } };
-    
+
     const totalDocuments = await productModel.countDocuments(query).exec()
     const totalPages = Math.ceil(totalDocuments / limit);
 
     const products = await productModel.find(query)
-    .populate('categories', 'name slug')
-    .select('name slug images keywords category')
+      .populate('categories', 'name slug')
+      .select('name slug images keywords category')
 
     const data = {
       message: "success get products",
@@ -51,12 +51,13 @@ router.get("/products-search", async (req, res) => {
 
 
 
+
 router.get("/products", async (req, res) => {
   try {
-    
+
     const search = req.query.search || "";
     const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
-    const limit = parseInt(req.query.limit, 10) || 5;
+    const limit = parseInt(req.query.limit, 10) || 100;
     const { lang = '' } = req.headers;
 
     const cacheKey = `product:${lang}:${search}:${page}:${limit}`;
@@ -70,19 +71,27 @@ router.get("/products", async (req, res) => {
     const { hits } = await productsIndex.search(search, options)
     const ids = hits.map(item => item.objectID)
     const query = { _id: { $in: ids } };
-    
+
     const totalDocuments = await productModel.countDocuments(query).exec()
     const totalPages = Math.ceil(totalDocuments / limit);
 
     const products = await productModel.find(query)
-    .populate('details')
-    .select('name slug images keywords')
+      .populate({
+        path: "details",
+        populate: [
+          {
+            path: "shop",
+            select: ['slug', 'name']
+          }
+        ]
+      })
+      .select('name slug images keywords')
 
 
     // Mahsulotlarni `ids` tartibida qayta tartiblash
     const productsMap = new Map(products.map(product => [product._id.toString(), product]));
     const sortedProducts = ids.map(id => productsMap.get(id.toString())).filter(Boolean);
-    
+
     const data = {
       message: "success get products",
       data: sortedProducts,

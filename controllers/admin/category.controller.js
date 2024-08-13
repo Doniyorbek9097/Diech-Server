@@ -11,7 +11,6 @@ class Category {
         try {
             redisClient.FLUSHALL()
             const formData = req.body;
-
             for (const cate of formData) {
                 cate.slug = slugify(`${cate.name.ru.toLowerCase()}-${generateOTP(5)}`)
             }

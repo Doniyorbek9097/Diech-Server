@@ -3,11 +3,8 @@ const jwt = require("jsonwebtoken");
 const bcrypt  = require("bcrypt");
 const {  generateOTP } = require("../utils/otpGenrater");
 const slugify = require("slugify")
+const { body, validationResult } = require('express-validator');
 
-
-const addressSchema = mongooose.Schema({
-
-})
 
 const telegamSchema = mongooose.Schema({
     id: String,
@@ -140,6 +137,14 @@ userSchema.index(
     { expireAfterSeconds: "1d", partialFilterExpression: { verified: false } }
 )
 
-
 const userModel = mongooose.model("User", userSchema);
-module.exports = userModel
+
+
+const userValidator = (req, res) => {
+    
+} 
+
+module.exports = userModel;
+
+
+

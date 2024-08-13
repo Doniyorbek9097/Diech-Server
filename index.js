@@ -1,18 +1,19 @@
 const http = require("http");
 const fs = require('fs')
-const path = require("path")
 const express = require("express");
 const cookieParser = require('cookie-parser');
 const { Server } = require('socket.io');
-const cors = require("cors");
+const cors = require("cors");const morgan = require('morgan');
 var bodyParser = require('body-parser');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit')
+const compression = require('compression');
 require("dotenv/config");
 require("./config/db");
 // const redisClient = require("./config/redisDB")
 // require("./bot");
 
 const mongoose = require("mongoose");
-const { removeDuplicates } = require("./utils/removeDuplicates");
 const app = express();
 
 
@@ -40,12 +41,21 @@ const corsOptions = {
     credentials: true // cookie'larni ruxsat berish
 };
 
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 daqiqa
+    max: 100 // Har 15 daqiqada 100 ta so'rovdan oshmasligi kerak
+  });
 
+
+// app.use(limiter);
+// app.use(morgan('dev'));
 app.use(cors());
-
+// app.use(helmet());
+app.use(compression());
 app.use(bodyParser.json({limit: '100mb'}));
 app.use(bodyParser.urlencoded({limit: '100mb', extended: true}));
 app.use(cookieParser())
+
 
 const baseDir = process.env.NODE_ENV === 'production' ? "../../../../mnt/data/uploads" : "./uploads";
 app.use("/uploads", express.static(baseDir));
