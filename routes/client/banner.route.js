@@ -12,7 +12,7 @@ router.get("/banner-all", async(req,res) => {
         const { category_id } = req.query;
         const query = {};
         if(category_id) query.category_id = category_id;
-        else query.category_id = { $exists: false };
+        else query.category_id = undefined;
 
         let banners = await bannerModel.find(query);
 
