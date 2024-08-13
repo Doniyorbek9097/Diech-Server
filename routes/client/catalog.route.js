@@ -33,16 +33,12 @@ router.get('/catalog-all', async (req, res) => {
             ]
         });
 
-        const totalProducts = catalogs.reduce((acc, catalog) => acc + catalog.products.length, 0);
-        const totalPage = Math.ceil(totalProducts / limit);
-        const data = { totalPage, page: page + 1, limit, catalogs };
+    
+        const data = { message: "success",  data:catalogs };
 
         redisClient.SETEX(cacheKey, 3600, JSON.stringify(data));
         
-        res.json({
-            data: data,
-            message: "success"
-        })
+        res.json(data)
 
     } catch (error) {
         console.log(error)
