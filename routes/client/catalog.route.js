@@ -17,7 +17,7 @@ router.get('/catalog-all', async (req, res) => {
             return res.json(JSON.parse(cacheData));
         }
 
-        const catalogs = await catalogModel.find()
+        let catalogs = await catalogModel.find()
         .populate({
             path: "products",
             select: ['name', 'slug', 'images'],
@@ -33,7 +33,11 @@ router.get('/catalog-all', async (req, res) => {
             ]
         });
 
-    
+        catalogs = catalogs.flatMap(cate => {
+            cate.products = cate.products.filter((item => item?.details?.length));
+            return cate;
+        })
+
         const data = { message: "success",  data:catalogs };
 
         redisClient.SETEX(cacheKey, 3600, JSON.stringify(data));

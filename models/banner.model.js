@@ -5,6 +5,12 @@ const bannerSchema = new Schema({
         type: String,
         intl: true
     },
+
+    smallImage: {
+        type: String,
+        intl: true
+    },
+
     slug:{
         type:String,
     },

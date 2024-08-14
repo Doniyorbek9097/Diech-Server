@@ -90,7 +90,7 @@ router.get("/products", async (req, res) => {
 
     // Mahsulotlarni `ids` tartibida qayta tartiblash
     const productsMap = new Map(products.map(product => [product._id.toString(), product]));
-    const sortedProducts = ids.map(id => productsMap.get(id.toString())).filter(Boolean);
+    const sortedProducts = ids.map(id => productsMap.get(id.toString())).filter(Boolean).filter((item => item?.details?.length))
 
     const data = {
       message: "success get products",
