@@ -10,7 +10,8 @@ const { redisClient } = require("../../config/redisDB");
 const shopProductModel = require("../../models/shop.product.model");
 const { checkToken } = require("../../middlewares/authMiddleware")
 const { transformAttributes } = require('../../utils/transformAttributes')
-const { algolia } = require("../../config/algolia")
+const { algolia } = require("../../config/algolia");
+const { skip } = require("node:test");
 const productsIndex = algolia.initIndex("products");
 
 // get all products search
@@ -55,10 +56,11 @@ router.get("/products-search", async (req, res) => {
 router.get("/products", async (req, res) => {
   try {
 
-    const search = req.query.search || "";
     const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
     const limit = parseInt(req.query.limit, 10) || 100;
     const { lang = '' } = req.headers;
+    const { search = "", category_id = "" } = req.query;
+    let random = parseInt(req.query.random) || 0;
 
     const cacheKey = `product:${lang}:${search}:${page}:${limit}`;
     const cacheData = await redisClient.get(cacheKey);
@@ -66,14 +68,19 @@ router.get("/products", async (req, res) => {
 
     if (cacheData) return res.json(JSON.parse(cacheData));
 
+    let query = {};
 
     const options = { page: page, hitsPerPage: limit };
     const { hits } = await productsIndex.search(search, options)
     const ids = hits.map(item => item.objectID)
-    const query = { _id: { $in: ids } };
 
-    const totalDocuments = await productModel.countDocuments(query).exec()
+    if(search) query._id = { $in: ids };
+    if(category_id) query.categories = { $in: [category_id] };
+    
+    const totalDocuments = await productModel.countDocuments(query)
     const totalPages = Math.ceil(totalDocuments / limit);
+    
+    if(random) random = Math.floor(Math.random() * totalDocuments);
 
     const products = await productModel.find(query)
       .populate({
@@ -86,12 +93,12 @@ router.get("/products", async (req, res) => {
         ]
       })
       .select('name slug images keywords')
+      .skip(random || page * limit)
+      .limit(20)
 
 
     // Mahsulotlarni `ids` tartibida qayta tartiblash
-    const productsMap = new Map(products.map(product => [product._id.toString(), product]));
-    const sortedProducts = ids.map(id => productsMap.get(id.toString())).filter(Boolean).filter((item => item?.details?.length))
-
+    const sortedProducts = products.filter((item => item?.details?.length))
     const data = {
       message: "success get products",
       data: sortedProducts,
@@ -117,6 +124,10 @@ router.get("/product-slug/:slug", async (req, res) => {
   const { sku = '' } = req.query;
   const { slug = '' } = req.params;
   const { lang = '' } = req.headers;
+  const search = req.query.search || "";
+  const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
+  const limit = parseInt(req.query.limit, 10) || 10;
+
 
   redisClient.FLUSHALL()
   const cacheKey = `product:${lang}:${slug}:${sku}`;
@@ -131,6 +142,7 @@ router.get("/product-slug/:slug", async (req, res) => {
         path: "categories",
         select: ['name', 'slug'],
       })
+
       .populate({
         path: "details",
         populate: [
@@ -182,7 +194,6 @@ router.get("/product-slug/:slug", async (req, res) => {
       details = product.details;
     }
 
-
     const data = {
       data: {
         attributes,
@@ -202,6 +213,7 @@ router.get("/product-slug/:slug", async (req, res) => {
     return res.status(500).send("Server Ishlamayapti");
   }
 });
+
 
 
 router.post("/add-review/:id", async (req, res) => {
