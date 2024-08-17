@@ -1,4 +1,5 @@
-const { Schema, model } = require("mongoose")
+const { Schema } = require("mongoose")
+const { serverDB } = require("../config/db")
 
 const reviewSchema = Schema(
     {

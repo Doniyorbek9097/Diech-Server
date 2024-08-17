@@ -48,7 +48,7 @@ certificateScene.on("text", async (ctx) => {
 
         // Faqat mavjud bo'lgan 'answers' massivdan biror narsa topish
         const answer = test.answers.find(item => item.user && item.user.userid.toString() === ctx.chat.id.toString());
-        // console.log(answer.user)
+        
         switch (test.author.template) {
             case 'image-1.jpg':
                 await generate.certificate1({ user: answer, test })
@@ -84,7 +84,6 @@ certificateScene.on("text", async (ctx) => {
                     caption: "Sertifikatingiz tayyor!",
                     parse_mode: 'HTML'
                 });
-
                 break;
         }
 

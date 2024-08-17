@@ -1,4 +1,5 @@
-const { Schema, model } = require("mongoose")
+const { Schema } = require("mongoose")
+const { serverDB } = require("../config/db")
 
 const pointSchema = Schema({
     name: {
@@ -17,6 +18,6 @@ const pointSchema = Schema({
 
 )
 
-const pointModel = model("Point", pointSchema); 
+const pointModel = serverDB.model("Point", pointSchema); 
 
 module.exports = pointModel

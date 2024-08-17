@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { serverDB } = require("../config/db")
 
 const addressSchema = mongoose.Schema({
     region: {
@@ -102,7 +103,7 @@ shopSchema.virtual("orders", {
 
 
 
-const shopModel = mongoose.model("Shop", shopSchema);
+const shopModel = serverDB.model("Shop", shopSchema);
 module.exports = shopModel
 
 

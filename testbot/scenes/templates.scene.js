@@ -29,7 +29,7 @@ const getCertificate = async (ctx) => {
     const imagePath = imageMap[ctx.message.text] || 'image-1.jpg';
     const updateUser = await userModel.findOneAndUpdate({ 'userid': ctx.chat.id }, { 'template': imagePath })
     .catch((err) => console.log(err))
-
+    
     const text = "<b>✅ Yaxshi endi ushbu sertifikat siz tuzadigan test qatnashchilariga beriladi.</b>";
     await ctx.replyWithPhoto({ source: `./testbot/certificates/instructions/${imagePath}` }, {
         caption: text, 

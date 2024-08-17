@@ -1,4 +1,5 @@
-const { Schema, model } = require("mongoose");
+const { Schema } = require("mongoose");
+const { serverDB } = require("../config/db")
 
 const cartSchema = Schema({
     products: [
@@ -28,5 +29,5 @@ const cartSchema = Schema({
     timestamps: true 
 });
 
-const cartModel = model("Cart", cartSchema)
+const cartModel = serverDB.model("Cart", cartSchema)
 module.exports = cartModel

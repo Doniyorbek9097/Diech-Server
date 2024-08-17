@@ -9,10 +9,11 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit')
 const compression = require('compression');
 require("dotenv/config");
-require("./config/db");
 // const redisClient = require("./config/redisDB")
 // require("./bot");
 require('./testbot')
+
+const { serverDB } = require("./config/db")
 
 const mongoose = require("mongoose");
 const app = express();
@@ -65,7 +66,7 @@ app.use("/uploads", express.static(baseDir));
 
 app.use("/", (req, res, next) => {
     const lang = req.headers['lang']
-    if(lang) mongoose.setDefaultLanguage(lang);
+    if(lang) serverDB.setDefaultLanguage(lang);
     return next();
 });
 

@@ -1,4 +1,5 @@
-const { Schema, model } = require("mongoose");
+const { Schema } = require("mongoose");
+const { serverDB } = require("../config/db")
 
 
 const categorySchema = new Schema({
@@ -80,6 +81,6 @@ categorySchema.virtual("shop_products", {
 
 
 
-const categoryModel = model("Category", categorySchema);
+const categoryModel = serverDB.model("Category", categorySchema);
 
 module.exports = categoryModel

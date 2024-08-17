@@ -1,4 +1,5 @@
-const { Schema, model } = require("mongoose")
+const { Schema } = require("mongoose")
+const { serverDB } = require("../config/db")
 
 const fieldSchema = Schema({
     category_id: {
@@ -23,4 +24,4 @@ const fieldSchema = Schema({
     }]
 })
 
-module.exports = model('Field', fieldSchema)
+module.exports = serverDB.model('Field', fieldSchema)

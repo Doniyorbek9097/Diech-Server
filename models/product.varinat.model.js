@@ -1,4 +1,6 @@
-const {Schema, model} = require("mongoose")
+const {Schema} = require("mongoose")
+const { serverDB } = require("../config/db")
+
 const shopProductVariantModel = require("./shop.product.variant.model")
 const reviewSchema = require("./review.model")
 
@@ -103,6 +105,6 @@ variantsSchema.pre('deleteOne', deleteShopVariants);
 variantsSchema.pre('remove', deleteShopVariants);
 
 
-const variantModel = model("Variant", variantsSchema)
+const variantModel = serverDB.model("Variant", variantsSchema)
 
 module.exports = variantModel;

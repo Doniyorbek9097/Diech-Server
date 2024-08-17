@@ -1,4 +1,5 @@
-const { Schema, model } = require("mongoose");
+const { Schema,  } = require("mongoose");
+const { serverDB } = require("../config/db")
 
 const orderSchema = new Schema({
     user: {
@@ -91,5 +92,5 @@ const orderSchema = new Schema({
 
 }, { timestamps: true });
 
-const orderModel = model("Order", orderSchema);
+const orderModel = serverDB.model("Order", orderSchema);
 module.exports = orderModel

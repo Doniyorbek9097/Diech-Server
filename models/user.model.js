@@ -4,6 +4,7 @@ const bcrypt  = require("bcrypt");
 const {  generateOTP } = require("../utils/otpGenrater");
 const slugify = require("slugify")
 const { body, validationResult } = require('express-validator');
+const { serverDB } = require("../config/db")
 
 
 const telegamSchema = mongooose.Schema({
@@ -137,12 +138,8 @@ userSchema.index(
     { expireAfterSeconds: "1d", partialFilterExpression: { verified: false } }
 )
 
-const userModel = mongooose.model("User", userSchema);
+const userModel = serverDB.model("User", userSchema);
 
-
-const userValidator = (req, res) => {
-    
-} 
 
 module.exports = userModel;
 

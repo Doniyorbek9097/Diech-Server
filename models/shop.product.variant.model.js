@@ -1,4 +1,6 @@
-const {Schema, model} = require("mongoose")
+const { Schema } = require("mongoose")
+const { serverDB } = require("../config/db")
+
 const reviewSchema = require("./review.model")
 
 const variantsSchema = Schema({
@@ -61,6 +63,6 @@ const variantsSchema = Schema({
     },
 })
 
-const shopProductVariantModel = model("ShopVariant", variantsSchema)
+const shopProductVariantModel = serverDB.model("ShopVariant", variantsSchema)
 
 module.exports = shopProductVariantModel;

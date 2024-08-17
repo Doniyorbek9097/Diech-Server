@@ -1,4 +1,5 @@
-const { Schema, model } = require("mongoose")
+const { testbotDB } = require("../config/mongoDB")
+const { Schema } = require("mongoose")
 
 const answerSchema = Schema({
     user: {
@@ -37,4 +38,4 @@ const testSchema = Schema({
 }
 )
 
-module.exports = model("Test", testSchema)
+module.exports = testbotDB.model("Test", testSchema)

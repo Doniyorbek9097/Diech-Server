@@ -1,5 +1,6 @@
-const { Schema, model } = require("mongoose");
-const mongooseIntl = require("mongoose-intl")
+const { Schema } = require("mongoose");
+const { serverDB } = require("../config/db")
+
 
 const shopProductModel = require("./shop.product.model")
 const productVariantModel = require("./product.varinat.model")
@@ -230,7 +231,7 @@ productSchema.pre('remove', deleteDetails);
 
 
 
-const productModel = model("Product", productSchema);
+const productModel = serverDB.model("Product", productSchema);
 
 module.exports = productModel
 

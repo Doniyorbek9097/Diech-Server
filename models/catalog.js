@@ -1,4 +1,5 @@
-const { Schema, model } = require("mongoose")
+const { Schema } = require("mongoose")
+const { serverDB } = require("../config/db")
 
 const catalogSchema = Schema({
     title: {
@@ -21,6 +22,6 @@ const catalogSchema = Schema({
 
 )
 
-const catalogModel = model("Catalog", catalogSchema)
+const catalogModel = serverDB.model("Catalog", catalogSchema)
 
 module.exports = catalogModel

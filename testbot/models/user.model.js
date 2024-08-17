@@ -1,4 +1,5 @@
-const { Schema, model } = require("mongoose")
+const { Schema } = require("mongoose")
+const { testbotDB } = require("../config/mongoDB")
 
 const userSchema = new Schema({
     userid: String,
@@ -16,4 +17,4 @@ const userSchema = new Schema({
 })
 
 
-module.exports = model("TestBotUser", userSchema)
+module.exports = testbotDB.model("TestBotUser", userSchema)

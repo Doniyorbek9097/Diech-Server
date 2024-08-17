@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { serverDB } = require("../config/db")
 
 const brendSchema = mongoose.Schema({
     name: {
@@ -68,6 +69,6 @@ brendSchema.virtual("carousel", {
     foreignField: "brends",
 })
 
-const brendModel = mongoose.model("Brend", brendSchema);
+const brendModel = serverDB.model("Brend", brendSchema);
 
 module.exports = brendModel

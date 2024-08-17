@@ -1,4 +1,5 @@
 const mongooose = require("mongoose");
+const { serverDB } = require("../config/db")
 
 const Schema = mongooose.Schema({
     otp: {
@@ -19,5 +20,5 @@ const Schema = mongooose.Schema({
 
 },{timestamps:true});
 
-const otpModel = mongooose.model("Otp", Schema);
+const otpModel = serverDB.model("Otp", Schema);
 module.exports = otpModel

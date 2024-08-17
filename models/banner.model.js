@@ -1,5 +1,5 @@
-const { Schema, model } = require("mongoose");
-
+const { Schema } = require("mongoose");
+const { serverDB } = require("../config/db")
 const bannerSchema = new Schema({
     image: {
         type: String,
@@ -28,6 +28,6 @@ const bannerSchema = new Schema({
 }
 );
 
-const bannerModel = model("Banner", bannerSchema);
+const bannerModel = serverDB.model("Banner", bannerSchema);
 
 module.exports = bannerModel

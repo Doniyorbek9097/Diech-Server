@@ -12,7 +12,7 @@ async certificate1({user:{ user, ball }, test: {keyword, code, author}}) {
     // await certGen.addText({text:date, x:550, y:1150, color:'white'})
     await certGen.addText({text:`${author.firstname} ${author.lastname}`, x:1450, y:1150, color:'white'})
     // await certGen.addImage('./sertificat/image-1.jpg', 350, 500, 100, 100) 
-    await certGen.save('certificate.jpg');  // Faylni saqlash
+    await certGen.save('./testbot/certificate.jpg');  // Faylni saqlash
 }
 
 
@@ -27,7 +27,7 @@ async certificate2({user:{ user, ball }, test: {keyword, code, author}}) {
     // await certGen.addText('cursive', 32, date, 600, 1100, 1000, 50, 'black')
     await certGen.addText({text: `${author.firstname} ${author.lastname}`, x:1400, y:1100})
     // await certGen.addImage('./sertificat/image-1.jpg', 350, 500, 100, 100) 
-    await certGen.save('certificate.jpg');  // Faylni saqlash
+    await certGen.save('./testbot/certificate.jpg');  // Faylni saqlash
 }
 
 
@@ -43,7 +43,7 @@ async certificate3({user:{ user, ball }, test: {keyword, code, author}}) {
     // await certGen.addText('cursive', 32, date, 610, 1150, 1000, 50, 'black')
     await certGen.addText({text:`${author.firstname} ${author.lastname}`, x:1400, y:1150})
     // await certGen.addImage('./sertificat/image-1.jpg', 350, 500, 100, 100) 
-    await certGen.save('certificate.jpg');  // Faylni saqlash
+    await certGen.save('./testbot/certificate.jpg');  // Faylni saqlash
 };
 
 
