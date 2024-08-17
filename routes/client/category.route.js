@@ -6,5 +6,6 @@ router.get("/categories", categoryController.all);
 // Get by slug name 
 router.get("/category-slug/:slug", categoryController.oneBySlug)
 
+router.get("/categories-ids", categoryController.allByIds)
 
 module.exports = router;

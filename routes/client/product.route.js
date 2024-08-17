@@ -60,7 +60,7 @@ router.get("/products", async (req, res) => {
   try {
 
     const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
-    const limit = parseInt(req.query.limit, 10) || 100;
+    const limit = parseInt(req.query.limit, 10) || 30;
     const { lang = '' } = req.headers;
     const { search = "", category_id = "" } = req.query;
     let random = parseInt(req.query.random) || 0;
@@ -73,17 +73,18 @@ router.get("/products", async (req, res) => {
 
     let query = {};
 
-    const options = { page: page, hitsPerPage: limit };
-    const { hits } = await productsIndex.search(search, options)
-    const ids = hits.map(item => item.objectID)
-    if (search) query._id = { $in: ids };
 
-    if (category_id) query.categories = { $in: [category_id] };
+    if (search) {
+      const options = { page: page, hitsPerPage: limit };
+      const { hits } = await productsIndex.search(search, options)
+      const ids = hits.map(item => item.objectID)
+      query._id = { $in: ids };
+    }
 
-    const totalDocuments = await productModel.countDocuments(query)
-    const totalPages = Math.ceil(totalDocuments / limit);
+    if (category_id) query.categories = { $in: category_id.split(",") };
 
-    if (random) random = Math.floor(Math.random() * totalDocuments);
+    // const totalDocuments = await productModel.countDocuments(query)
+    // if (random) random = Math.floor(Math.random() * totalDocuments);
 
     const products = await productModel.find(query)
       .populate({
@@ -96,15 +97,27 @@ router.get("/products", async (req, res) => {
         ]
       })
       .select('name slug images keywords')
-      .skip(random || page * limit)
-      .limit(20)
+    // .skip(random || page * limit)
+    // .limit(20)
 
+    // Mahsulotlarni filtrlash
+    const filteredProducts = products.filter(item => item?.details?.length);
 
-    // Mahsulotlarni `ids` tartibida qayta tartiblash
-    const sortedProducts = products.filter((item => item?.details?.length))
+    // Tasodifiy ravishda aralashtirish
+    const shuffledProducts = filteredProducts.sort(() => Math.random() - 0.5);
+
+    // Mahsulotlarni bo'limlarga ajratish
+    const startIndex = page * limit;
+    const endIndex = startIndex + limit;
+    const paginatedProducts = shuffledProducts.slice(startIndex, endIndex);
+
+    // Sahifalangan ma'lumotlarni tayyorlash
+    const totalPages = Math.ceil(filteredProducts.length / limit);
+  
+
     const data = {
       message: "success get products",
-      data: sortedProducts,
+      data: paginatedProducts,
       limit,
       page,
       totalPages

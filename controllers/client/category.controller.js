@@ -10,6 +10,7 @@ class Category {
             const limit = parseInt(req.query.limit, 10) || 8;
             const search = req.query.search || "";
             const { lang = "" } = req.headers;
+            const {recommendations } = req.query;
 
             redisClient.FLUSHALL()
             const cacheKey = `categories:${lang}:${page}:${limit}:${search}`;
@@ -39,6 +40,40 @@ class Category {
         } catch (err) {
             console.log(err);
             res.status(500).json({ message: "Server is not working" });
+        }
+    }
+
+
+    async allByIds(req, res) {
+        try {
+            const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
+            const limit = parseInt(req.query.limit, 10) || 8;
+            const query = {}
+
+            if(req.query?.recommendations?.length) {
+                query._id = {$in: req.query?.recommendations?.split(",")}
+            }
+
+            const data = await categoryModel.find(query)
+            .populate({
+                path: "products",
+                select: ['name', 'slug', 'images'],
+                options: { limit, skip: page * limit }, // Apply pagination to shop_products
+                populate: [
+                    { 
+                        path: "details",
+                        populate: {
+                            path: "shop", 
+                            select: ['name', 'slug']
+                        }
+                     }
+                ]
+            })
+
+            res.json(data)
+
+        } catch (error) {
+            console.log(error)
         }
     }
 
