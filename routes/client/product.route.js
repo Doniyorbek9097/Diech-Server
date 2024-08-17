@@ -21,12 +21,15 @@ router.get("/products-search", async (req, res) => {
     const search = req.query.search || "";
     const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
     const limit = parseInt(req.query.limit, 10) || 5;
+    const query = {};
 
-    const options = { page: page, hitsPerPage: limit };
-    const { hits } = await productsIndex.search(search, options)
+    if (search) {
+      const options = { page: page, hitsPerPage: limit };
+      const { hits } = await productsIndex.search(search, options)
 
-    const ids = hits.map(item => item.objectID)
-    const query = { _id: { $in: ids } };
+      const ids = hits.map(item => item.objectID)
+      query._id = { $in: ids };
+    }
 
     const totalDocuments = await productModel.countDocuments(query).exec()
     const totalPages = Math.ceil(totalDocuments / limit);
@@ -73,14 +76,14 @@ router.get("/products", async (req, res) => {
     const options = { page: page, hitsPerPage: limit };
     const { hits } = await productsIndex.search(search, options)
     const ids = hits.map(item => item.objectID)
+    if (search) query._id = { $in: ids };
 
-    if(search) query._id = { $in: ids };
-    if(category_id) query.categories = { $in: [category_id] };
-    
+    if (category_id) query.categories = { $in: [category_id] };
+
     const totalDocuments = await productModel.countDocuments(query)
     const totalPages = Math.ceil(totalDocuments / limit);
-    
-    if(random) random = Math.floor(Math.random() * totalDocuments);
+
+    if (random) random = Math.floor(Math.random() * totalDocuments);
 
     const products = await productModel.find(query)
       .populate({
