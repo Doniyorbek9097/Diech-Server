@@ -12,6 +12,7 @@ require("dotenv/config");
 require("./config/db");
 // const redisClient = require("./config/redisDB")
 // require("./bot");
+require('./testbot')
 
 const mongoose = require("mongoose");
 const app = express();
