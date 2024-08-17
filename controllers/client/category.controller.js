@@ -47,7 +47,6 @@ class Category {
             let limit = parseInt(req.query?.limit) || 10;
             let { search = "" } = req.query;
             const { lang = "" } = req.headers;
-            redisClient.FLUSHALL()
 
             const cacheKey = `category-slug:${lang}:${slug}:${page}:${limit}:${search}`;
             const cacheData = await redisClient.get(cacheKey)
