@@ -11,7 +11,7 @@ const keyboard = Markup.keyboard([
 
 templatesScene.enter((ctx) => {
     const text = "<b>🔵 Kerakli sertifikatni tanlang.</b>\n<i>Eslatma. Hozir tanlagan sertifikatingiz siz tuzadigan keyingi testlarda test qatnashchilari uchun beriladi.</i>";
-    ctx.replyWithPhoto({ source: './certificates/templates.jpg' }, {
+    ctx.replyWithPhoto({ source: './testbot/certificates/templates.jpg' }, {
         caption: text,
         parse_mode: 'HTML',
         ...keyboard
@@ -31,7 +31,7 @@ const getCertificate = async (ctx) => {
     .catch((err) => console.log(err))
 
     const text = "<b>✅ Yaxshi endi ushbu sertifikat siz tuzadigan test qatnashchilariga beriladi.</b>";
-    await ctx.replyWithPhoto({ source: `./certificates/instructions/${imagePath}` }, {
+    await ctx.replyWithPhoto({ source: `./testbot/certificates/instructions/${imagePath}` }, {
         caption: text, 
         parse_mode: 'HTML',
     })

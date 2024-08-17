@@ -53,7 +53,7 @@ certificateScene.on("text", async (ctx) => {
             case 'image-1.jpg':
                 await generate.certificate1({ user: answer, test })
                 await ctx.replyWithDocument({
-                    source: "./certificate.jpg",
+                    source: "./testbot/certificate.jpg",
                    caption: "Sertifikatingiz tayyor!",
                     parse_mode: 'HTML'
                 });
@@ -62,7 +62,7 @@ certificateScene.on("text", async (ctx) => {
             case 'image-2.jpg':
                 await generate.certificate2({ user: answer, test })
                 await ctx.replyWithDocument({
-                    source: "./certificate.jpg",
+                    source: "./testbot/certificate.jpg",
                     caption: "Sertifikatingiz tayyor!",
                     parse_mode: 'HTML'
                 });
@@ -71,7 +71,7 @@ certificateScene.on("text", async (ctx) => {
             case 'image-3.jpg':
                 await generate.certificate3({ user: answer, test })
                 await ctx.replyWithDocument({
-                    source: "./certificate.jpg",
+                    source: "./testbot/certificate.jpg",
                     caption: "Sertifikatingiz tayyor!",
                     parse_mode: 'HTML'
                 });
@@ -80,7 +80,7 @@ certificateScene.on("text", async (ctx) => {
             case 'image-4.jpg':
                 await generate.certificate4({ user: answer, test })
                 await ctx.replyWithDocument({
-                    source: "./certificate.jpg",
+                    source: "./testbot/certificate.jpg",
                     caption: "Sertifikatingiz tayyor!",
                     parse_mode: 'HTML'
                 });
