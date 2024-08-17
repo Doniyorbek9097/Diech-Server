@@ -35,7 +35,7 @@ class Category {
 
             redisClient.SETEX(cacheKey, 3600, JSON.stringify(data));
 
-            return res.status(200).json(categories);
+            return res.status(200).json(data);
         } catch (err) {
             console.log(err);
             res.status(500).json({ message: "Server is not working" });
