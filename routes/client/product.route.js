@@ -67,7 +67,7 @@ router.get("/products", async (req, res) => {
 
     const cacheKey = `product:${lang}:${search}:${page}:${limit}`;
     const cacheData = await redisClient.get(cacheKey);
-    redisClient.FLUSHALL();
+    // redisClient.FLUSHALL();
 
     if (cacheData) return res.json(JSON.parse(cacheData));
 
@@ -114,7 +114,6 @@ router.get("/products", async (req, res) => {
     // Sahifalangan ma'lumotlarni tayyorlash
     const totalPages = Math.ceil(filteredProducts.length / limit);
   
-
     const data = {
       message: "success get products",
       data: paginatedProducts,
@@ -145,7 +144,7 @@ router.get("/product-slug/:slug", async (req, res) => {
   const limit = parseInt(req.query.limit, 10) || 10;
 
 
-  redisClient.FLUSHALL()
+  // redisClient.FLUSHALL()
   const cacheKey = `product:${lang}:${slug}:${sku}`;
   const cacheData = await redisClient.get(cacheKey)
   if (cacheData) return res.json(JSON.parse(cacheData))

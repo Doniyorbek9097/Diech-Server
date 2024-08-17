@@ -10,9 +10,8 @@ class Category {
             const limit = parseInt(req.query.limit, 10) || 8;
             const search = req.query.search || "";
             const { lang = "" } = req.headers;
-            const {recommendations } = req.query;
 
-            redisClient.FLUSHALL()
+            // redisClient.FLUSHALL()
             const cacheKey = `categories:${lang}:${page}:${limit}:${search}`;
             const cacheData = await redisClient.get(cacheKey);
             if (cacheData) {
