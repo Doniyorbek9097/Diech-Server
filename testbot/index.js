@@ -1,5 +1,6 @@
 const { Telegraf, session } = require("telegraf")
 require("dotenv/config")
+require("./prototypes")
 const stage = require('./scenes/stage')
 
 const bot = new Telegraf(process.env.TEST_BOT_TOKEN)
