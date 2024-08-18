@@ -1,6 +1,7 @@
 const { Scenes: { WizardScene }, Markup } = require("telegraf");
 const testModel = require("../models/test.model");
 const userModel = require("../models/user.model");
+const { format } = require('date-fns');
 
 const answerScene = new WizardScene("answerScene",
     async (ctx) => {
@@ -9,18 +10,20 @@ const answerScene = new WizardScene("answerScene",
     },
 
     async (ctx) => {
-        if(isNaN(ctx.message.text)) return ctx.reply("raqam bo'lishi kerak");
+        if (isNaN(ctx.message.text)) return ctx.reply("raqam bo'lishi kerak");
         const test = await testModel.findOne({ code: ctx.message.text })
-            .populate({
-                path: "answers.user",
-                match: { userid: ctx.chat.id }
-            })
-            .populate("author")
+        .populate({
+            path: "answers.user",
+            match: { 'userid': ctx.chat.id }
+        })
+        .populate("author");
 
-        if (!test) return ctx.reply("Kodingiz xato");
+        if (!test) return ctx.replyWithHTML("<b>❗️ Test kodi noto'g'ri, tekshirib qaytadan yuboring.</b>");
+        if (test.closed) return ctx.replyWithHTML("<b>❗️ Test yakunlangan, javob yuborishda kechikdingiz. Keyingi testlarda faol bo'lishingizni so'raymiz.</b>");
+
         const foundUser = test.answers.find(item => item.user?.userid.toString() == ctx.chat.id.toString())
         if (foundUser) {
-            let text = `<b>🔴 Ushbu testda avval qatnashgansiz\n✅ Natija:</b> ${foundUser.ball / 10} ta\n<b>🎯 Sifat:</b> ${foundUser.ball}%\n<b>⏱️ 2024-08-15 08:16:51</b>`;
+            let text = `<b>🔴 Ushbu testda avval qatnashgansiz</b>\n<b>💡Natijangiz:</b>\n<b>✅ To'g'ri javoblar:</b> ${foundUser.correctAnswerCount} ta\n<b>❌ Noto'g'ri javoblar:</b> ${foundUser.wrongAnswerCount} ta\n<b>📊 Sifat:</b> ${foundUser.ball}%\n\n${foundUser.status}`;
             return ctx.replyWithHTML(text);
         }
 
@@ -33,7 +36,7 @@ const answerScene = new WizardScene("answerScene",
         try {
             const { test } = ctx.wizard.state;
             const answer = ctx.message.text.toLowerCase();
-    
+
             // Javoblar va test nomi harflarini boshidan tekshirish
             let correctCount = 0;
             const result = test.keyword.toLowerCase().split('').map((ch, i) => {
@@ -44,42 +47,104 @@ const answerScene = new WizardScene("answerScene",
                     return `${i + 1}-❌`;
                 }
             }).join(' ');
-    
+
             // To'g'ri javoblar foizini hisoblash
             const ball = (correctCount / test.keyword.length) * 100;
             const incorrectCount = test.keyword.length - correctCount;
             const user = await userModel.findOne({ userid: ctx.chat.id });
-    
-            await testModel.findByIdAndUpdate(test._id, {
-                $push: { answers: { user: user._id, ball } }
+            const date = format(new Date(), 'dd.MM.yyyy HH:mm:ss');
+
+          await testModel.findByIdAndUpdate(test._id, {
+                $push: {
+                    answers: {
+                        user: user._id,
+                        tgid: ctx.chat.id,
+                        ball: ball,
+                        status: result,
+                        correctAnswerCount: correctCount,
+                        wrongAnswerCount: incorrectCount,
+                        date: date
+                    }
+                },
+
             });
-    
-            const userText = `<b>💡 Natijangiz:</b>\n<b>✅ To'g'ri javoblar:</b> ${correctCount} ta\n<b>❌ Noto'g'ri javoblar:</b> ${incorrectCount} ta\n<b>📊 Sifat:</b> ${ball.toFixed(1)}%\n\n${result}`;
-    
-            const authorText = `${test.code} kodli oddiy testda ${user?.firstname} ${user?.lastname} qatnashdi!\n✅ Natija: ${correctCount} ta\n🎯 Sifat darajasi: ${ball.toFixed(1)}%\n⏱️ 15.08.2024 08:16`;
-    
+
+
+            const userText = `<b>💡 Natijangiz:</b>\n<b>✅ To'g'ri javoblar:</b> ${correctCount} ta\n<b>❌ Noto'g'ri javoblar:</b> ${incorrectCount} ta\n<b>📊 Sifat:</b> ${ball}%\n\n${result}`;
+            const authorText = `${test.code} kodli oddiy testda ${user?.firstname} ${user?.lastname} qatnashdi!\n✅ Natija: ${correctCount} ta\n🎯 Sifat darajasi: ${ball}%\n⏱️ ${date}`;
+        
             await ctx.replyWithHTML(userText);
             await ctx.telegram.sendMessage(test.author.userid, authorText, {
                 ...Markup.inlineKeyboard([
-                    Markup.button.callback("📊Holat", "stat"),
-                    Markup.button.callback("⌛Yakunlash", "closed")
+                    Markup.button.callback("📊Holat", `stat-${test._id}-${user._id}`),
+                    Markup.button.callback("⌛Yakunlash", `closed-${test._id}`)
                 ])
             });
             await ctx.scene.enter("homeScene");
-    
+
         } catch (error) {
             console.log(error);
         }
     }
-    
-        
+
+
 );
 
-answerScene.use((ctx, next) => ctx?.message?.text && next());
+// answerScene.use((ctx, next) => ctx?.message?.text && next());
 answerScene.hears('/start', ctx => ctx.scene.enter('start'));
 
-answerScene.action('closed', async (ctx) => {
-    console.log(ctx.wizard.state.test)
+answerScene.on("callback_query", async (ctx) => {
+    const query = ctx.callbackQuery.data;
+    const queryArray = query.split("-");
+
+    const [event, testId, userId] = queryArray;
+
+    if (event == "stat") {
+      const test = await testModel.findOne({'_id': testId, 'answers.user': userId })
+      .populate({
+        path:"answers.user",
+      })
+
+      console.log(test)
+
+        await ctx.reply("test yaklandi")
+        await ctx.scene.enter("homeScene") 
+    }
+
+    if (queryArray[0] == "closed") {
+        await testModel.findOneAndUpdate({'_id': queryArray[1]}, { 'closed': true });
+        await ctx.reply("test yaklandi")
+        await ctx.scene.enter("homeScene")
+    }
+
+
 })
+
+// answerScene.action('closed', async (ctx) => {
+//     try {
+//         const author = await userModel.findOne({'userid': ctx.chat.id});
+
+//         if (!author) {
+//             return ctx.reply("Foydalanuvchi topilmadi.");
+//         }
+
+//         const test = await testModel.findOneAndUpdate(
+//             { 'author': author._id },
+//             { 'closed': true },
+//             { new: true } // yangilangan hujjatni qaytaradi
+//         );
+
+//         if (!test) {
+//             return ctx.reply("Test topilmadi yoki yangilab bo'lmadi.");
+//         }
+
+//         await ctx.reply("Test yakunlandi.");
+//         await ctx.scene.enter("homeScene");
+//     } catch (err) {
+//         console.error("Xatolik yuz berdi:", err);
+//         await ctx.reply("Xatolik yuz berdi. Iltimos, qayta urinib ko'ring.");
+//     }
+// });
+
 
 module.exports = answerScene;

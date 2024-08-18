@@ -1,3 +1,4 @@
+const { format } = require('date-fns');
 const { Scenes: { WizardScene }, Markup } = require("telegraf");
 const testModel = require("../../models/test.model")
 const userModel = require("../../models/user.model")
@@ -22,17 +23,13 @@ const createTestSimple = new WizardScene("createTestSimple",
             keyword: ctx?.message.text,
             author: user._id,
             code: testLength + 1 || 1,
+            date: format(new Date(), 'dd.MM.yyyy HH:mm:ss')
         }).save()
 
-        const text = `<b>✅ Test bazaga qo'shildi.</b>
-<b>👨‍🏫 Muallif:</b> ${user?.firstname} ${user?.lastname}
-<b>✍️ Test kodi:</b> ${newTest.code}
-<b>🔹 Savollar:</b> ${newTest.keyword.length} ta
-<b>📆 14.08.2024 ⏰</b> 21:37`;
-
-        ctx.replyWithHTML(text, {
-            ...Markup.keyboard(['🔙 Orqaga qaytish']).resize()
-        })
+        const [date, hours] = newTest.date.split(" ");
+        const text = `<b>✅ Test bazaga qo'shildi.</b>\n<b>👨‍🏫 Muallif:</b> ${user?.firstname} ${user?.lastname}\n<b>✍️ Test kodi:</b> ${newTest.code}\n<b>🔹 Savollar:</b> ${newTest.keyword.length} ta\n<b>📆 ${date} ⏰</b> ${hours}`;
+        await ctx.replyWithHTML(text)
+        await ctx.scene.enter("homeScene");
     },
 
 )

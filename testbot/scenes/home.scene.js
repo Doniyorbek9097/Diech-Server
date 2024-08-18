@@ -13,7 +13,7 @@ const keyboards = Markup.keyboard([
 
 
 homeScene.enter((ctx) => {
-    ctx.reply("Bosh sahifa.", keyboards)
+    ctx.reply(`Asosiy Sahifa`, keyboards)
 })
 
 homeScene.hears("✍️ Test yaratish", (ctx) => {

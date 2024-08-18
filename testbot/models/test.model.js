@@ -6,11 +6,13 @@ const answerSchema = Schema({
         type: Schema.Types.ObjectId,
         ref: "TestBotUser"
     },
-
-    ball: {
-        type: Number,
-        default: 0
-    }
+    tgid: String,
+    ball: Number,
+    status: String,
+    found: String,
+    correctAnswerCount: Number,
+    wrongAnswerCount: Number,
+    date: String
 })
 
 const testSchema = Schema({
@@ -19,23 +21,22 @@ const testSchema = Schema({
         ref: "TestBotUser"
     },
     answers: [answerSchema],
-    name:String,
+    name: String,
     keyword: String,
-    keyboards:[{
+    keyboards: [{
         type: String,
         default: undefined
     }],
     code: Number,
+    date: String,
     closed: {
         type: Boolean,
         default: false
-    }
+    },
 },
-
-{
-    timestamps: true,
-    toJSON: { virtuals: true }
-}
+    {
+        toJSON: { virtuals: true }
+    }
 )
 
 module.exports = testbotDB.model("Test", testSchema)
