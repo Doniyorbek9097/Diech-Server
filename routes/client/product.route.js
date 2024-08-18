@@ -69,7 +69,7 @@ router.get("/products", async (req, res) => {
 
     if (cacheData) return res.json(JSON.parse(cacheData));
 
-    let query = {};
+    const query = {};
 
     if (search) {
       const options = { page: page, hitsPerPage: limit };
@@ -77,11 +77,9 @@ router.get("/products", async (req, res) => {
       const ids = hits.map(item => item.objectID)
       query._id = { $in: ids };
     }
-
+    
     if (category_id) query.categories = { $in: category_id.split(",") };
 
-    // const totalDocuments = await productModel.countDocuments(query)
-    // if (random) random = Math.floor(Math.random() * totalDocuments);
 
     const products = await productModel.find(query)
       .populate({
@@ -94,8 +92,6 @@ router.get("/products", async (req, res) => {
         ]
       })
       .select('name slug images keywords')
-    // .skip(random || page * limit)
-    // .limit(20)
 
     // Mahsulotlarni filtrlash
     const filteredProducts = products.filter(item => item?.details?.length);
@@ -210,7 +206,7 @@ router.get("/product-slug/:slug", async (req, res) => {
       data: {
         attributes,
         product,
-        details: product.details,
+        details: product?.details,
         variants,
         isVariant: !!variants
       },
