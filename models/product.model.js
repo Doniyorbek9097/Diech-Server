@@ -105,11 +105,7 @@ const productSchema = Schema({
         ref: "Category"
     }],
 
-    keywords: [],
-    keyword: {
-        uz: [],
-        ru: []
-    },
+    keywords: keywordsSchema,
 
     barcode: String,
 
