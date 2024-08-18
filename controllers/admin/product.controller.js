@@ -67,7 +67,8 @@ class Product {
             const regex = new RegExp(search, 'i'); // 'i' flagi case-insensitive qidiruvni belgilaydi
             query = {
                 $or: [
-                    { 'keywords': { $elemMatch: { $regex: regex } } },
+                    { 'keywords.uz': { $elemMatch: { $regex: regex } } },
+                    { 'keywords.ru': { $elemMatch: { $regex: regex } } },
                     { 'name.uz': regex },
                     { 'name.ru': regex },
                     { 'barcode': regex }
@@ -182,8 +183,8 @@ class Product {
                     objectID: item._id.toString(),  // objectID ni _id dan olish
                     name_uz: item?.name?.uz,
                     name_ru: item?.name?.ru,
-                    keywords_uz: item?.keyword?.uz,
-                    keywords_ru: item?.keyword?.ru,
+                    keywords_uz: item?.keywords?.uz,
+                    keywords_ru: item?.keywords?.ru,
                     variant_uz: variant_uz,
                     variant_ru: variant_ru,
                     attribute_uz: attribute_uz,
