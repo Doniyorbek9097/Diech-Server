@@ -35,7 +35,7 @@ router.get("/products-search", async (req, res) => {
 
     const products = await productModel.find(query)
       .populate('categories', 'name slug')
-      .select('name slug images keyword category')
+      .select('name slug images keywords category')
 
     const data = {
       message: "success get products",
@@ -62,7 +62,6 @@ router.get("/products", async (req, res) => {
     const limit = parseInt(req.query.limit, 10) || 30;
     const { lang = '' } = req.headers;
     const { search = "", category_id = "" } = req.query;
-    let random = parseInt(req.query.random) || 0;
 
     const cacheKey = `product:${lang}:${search}:${page}:${limit}`;
     const cacheData = await redisClient.get(cacheKey);
@@ -111,7 +110,7 @@ router.get("/products", async (req, res) => {
 
     // Sahifalangan ma'lumotlarni tayyorlash
     const totalPages = Math.ceil(filteredProducts.length / limit);
-    console.log(limit);
+    
     const data = {
       message: "success get products",
       products: paginatedProducts,

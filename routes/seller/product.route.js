@@ -54,7 +54,6 @@ router.get("/custom-products", async (req, res) => {
                     { 'name.uz': { $regex: search, $options: "i" } }, // name maydoni bo'yicha qidirish
                     { 'name.ru': { $regex: search, $options: "i" } }, // name maydoni bo'yicha qidirish
                     { 'barcode': { $regex: search, $options: "i" } },
-                    { 'keywords': { $regex: search, $options: "i" } }, // keywords maydoni bo'yicha qidirish
                 ]
             };
         }

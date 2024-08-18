@@ -75,7 +75,8 @@ const keywordsSchema = Schema({
     ru: Array
 },
 
-{ toJSON: { virtuals: true } })
+{ toJSON: { virtuals: true } }
+)
 
 
 const productSchema = Schema({
