@@ -75,8 +75,7 @@ const keywordsSchema = Schema({
     ru: Array
 },
 
-{ toJSON: { virtuals: true } }
-)
+{ toJSON: { virtuals: true } })
 
 
 const productSchema = Schema({
@@ -107,6 +106,12 @@ const productSchema = Schema({
     }],
 
     keywords: keywordsSchema,
+    // keywords: [{
+    //     type: Schema.Types.Mixed,
+    //     intl: true,
+    //     default: undefined
+    // }],
+
 
     barcode: String,
 

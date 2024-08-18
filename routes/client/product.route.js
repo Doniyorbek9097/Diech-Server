@@ -203,7 +203,7 @@ router.get("/product-slug/:slug", async (req, res) => {
       ) ?? [];
 
     } else {
-      details = product.details;
+      details = product?.details;
     }
 
     const data = {
