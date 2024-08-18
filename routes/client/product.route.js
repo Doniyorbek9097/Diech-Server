@@ -11,7 +11,6 @@ const shopProductModel = require("../../models/shop.product.model");
 const { checkToken } = require("../../middlewares/authMiddleware")
 const { transformAttributes } = require('../../utils/transformAttributes')
 const { algolia } = require("../../config/algolia");
-const { skip } = require("node:test");
 const productsIndex = algolia.initIndex("products");
 
 // get all products search
@@ -36,7 +35,7 @@ router.get("/products-search", async (req, res) => {
 
     const products = await productModel.find(query)
       .populate('categories', 'name slug')
-      .select('name slug images keywords category')
+      .select('name slug images keyword category')
 
     const data = {
       message: "success get products",
@@ -67,12 +66,11 @@ router.get("/products", async (req, res) => {
 
     const cacheKey = `product:${lang}:${search}:${page}:${limit}`;
     const cacheData = await redisClient.get(cacheKey);
-    // redisClient.FLUSHALL();
+    redisClient.FLUSHALL();
 
     if (cacheData) return res.json(JSON.parse(cacheData));
 
     let query = {};
-
 
     if (search) {
       const options = { page: page, hitsPerPage: limit };
@@ -113,10 +111,10 @@ router.get("/products", async (req, res) => {
 
     // Sahifalangan ma'lumotlarni tayyorlash
     const totalPages = Math.ceil(filteredProducts.length / limit);
-  
+    console.log(limit);
     const data = {
       message: "success get products",
-      data: paginatedProducts,
+      products: paginatedProducts,
       limit,
       page,
       totalPages
@@ -144,7 +142,7 @@ router.get("/product-slug/:slug", async (req, res) => {
   const limit = parseInt(req.query.limit, 10) || 10;
 
 
-  // redisClient.FLUSHALL()
+  redisClient.FLUSHALL()
   const cacheKey = `product:${lang}:${slug}:${sku}`;
   const cacheData = await redisClient.get(cacheKey)
   if (cacheData) return res.json(JSON.parse(cacheData))
@@ -182,7 +180,7 @@ router.get("/product-slug/:slug", async (req, res) => {
       await product.save()
     }
 
-    const attributes = transformAttributes(product.details.flatMap(item => item?.variants || []));
+    const attributes = transformAttributes( (product?.details || []).flatMap(item => item.variants || []));
 
     const matchesFilter = variant =>
       variantQuery.every(query =>

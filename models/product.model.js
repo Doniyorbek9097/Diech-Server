@@ -70,6 +70,12 @@ const propertiesSchema = Schema({
 );
 
 
+const keywordsSchema = Schema({
+    uz: Array,
+    ru: Array
+},
+
+{ toJSON: { virtuals: true } })
 
 
 const productSchema = Schema({
