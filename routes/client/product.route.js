@@ -113,79 +113,80 @@ router.get("/products", async (req, res) => {
     if (category_id) query.categories = { $in: [mostFrequentCategory] };
 
 
-    const ids = await productModel.aggregate([
-      { $match: query },         // Filtirlash uchun query
-      { $sample: { size: 10 } },  // Randomlashtirish va limit
-      { $sort: Object.keys(sort).length ? sort : { _id: 1 } },
+    
+
+    const result = await productModel.aggregate([
+      { $match: query },  // Filtirlash uchun query
+      // { $sample: { size: limit * page } },  // Tasodifiy hujjatlar olish
       {
-        $project: {
-          _id: 1, // Faqat 'name' maydonini olib keladi
-          // Boshqa kerakli maydonlarni qo'shish mumkin, masalan: price: 1, discount: 1
+        $facet: {
+          totalCount: [{ $count: 'count' }], // Umumiy hujjatlar sonini hisoblash
+          data: [
+            { $sample: { size: limit } },
+            { $skip: page * limit }, // Sahifalash
+            { $limit: limit }, // Faqat kerakli hujjatlarni olish
+            {
+              $lookup: {
+                from: 'shopproducts',
+                let: { productId: '$_id' },
+                pipeline: [
+                  { $match: { $expr: { $eq: ['$product', '$$productId'] } } },
+                  {
+                    $lookup: {
+                      from: 'shops',
+                      localField: 'shop',
+                      foreignField: '_id',
+                      as: 'shop'
+                    }
+                  },
+                  { $unwind: '$shop' },
+                  {
+                    $project: {
+                      sale_price: 1,
+                      orginal_price: 1,
+                      discount: 1,
+                      shop: {
+                        _id: 1,
+                        name: 1,
+                        slug: 1
+                      }
+                    }
+                  }
+                ],
+                as: 'details'
+              }
+            },
+            { $unwind: '$details' },
+            {
+              $project: {
+                _id: 1,
+                slug: 1,
+                images: 1,
+                keywords: `$keywords.${lang}`,
+                name: `$name.${lang}`,
+                disription: `$discription.${lang}`,
+                details: 1
+              }
+            }
+          ]
         }
       },
-
-      // {
-      //   $lookup: {
-      //     from: 'details', // 'details' kollektsiyasining nomi
-      //     localField: 'details', // Mahsulotdagi details maydoni
-      //     foreignField: '_id', // 'details' kollektsiyasidagi mos maydon
-      //     as: 'details'
-      //   }
-      // },
-      // {
-      //   $unwind: '$details' // details array elementlarini alohida hujjat sifatida chiqaradi
-      // },
-      // {
-      //   $sort: { 'details.sale_price': -1 } // sale_price bo'yicha sortlash
-      // },
-      // {
-      //   $group: {
-      //     _id: '$_id', // Mahsulotni guruhlash
-      //     name: { $first: '$name' }, // Mahsulotning qolgan maydonlari
-      //     details: { $push: '$details' } // Sortlangan details arrayini yig'ish
-      //   }
-      // }
-
-      
-    ]);
-
-    if(ids.length) query._id = {$in: ids};
-
-
-    let products = await productModel.find(query)
-      .populate({
-        path: "details",
-        match: populateQuery,
-        options: {
-          sort: { sale_price: -1 } // Sort by discount in descending order
-        },
-        populate: [
-          {
-            path: "shop",
-            select: ['slug', 'name']
+      {
+        $project: {
+          data: 1, // Hujjatlarni o'z ichiga oladi
+          totalPages: {
+            $ceil: { $divide: [{ $arrayElemAt: ['$totalCount.count', 0] }, limit] } // Umumiy sahifalar sonini hisoblash
           }
-        ]
-      })
-      .select('name slug images keywords')
-
-
-    // Tasodifiy ravishda aralashtirish
-    const shuffledProducts = products.sort(() => Math.random() - 0.5);
-
-    // Mahsulotlarni bo'limlarga ajratish
-    const startIndex = page * limit;
-    const endIndex = startIndex + limit;
-    const paginatedProducts = shuffledProducts.slice(startIndex, endIndex);
-
-    // Sahifalangan ma'lumotlarni tayyorlash
-
-    const totalPages = Math.ceil(products.length / limit);
+        }
+      }
+    ]);
+    
     const data = {
       message: "success get products",
-      products: products,
+      products: result[0].data,
       limit,
       page,
-      totalPages
+      totalPages: result[0].totalPages
     };
 
     await redisClient.SETEX(cacheKey, 3600, JSON.stringify(data));
