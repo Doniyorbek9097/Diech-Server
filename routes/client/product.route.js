@@ -174,17 +174,24 @@ router.get("/product-slug/:slug", async (req, res) => {
     let user_id = req.headers['user'];
     user_id = (user_id === "null") ? null : (user_id === "undefined") ? undefined : user_id;
   
-    const update = {
-      $inc: { viewsCount: 1 },
-      $addToSet: { views: user_id } // user_id mavjud bo'lmasa qo'shadi
-    };
+    let product;
+
+    if(!variantQuery?.length) {
+      const update = {
+        $inc: { viewsCount: 1 },
+        $addToSet: { views: user_id } // user_id mavjud bo'lmasa qo'shadi
+      };
+
+      product = await productModel.findOneAndUpdate(
+        {"slug": slug},
+        update,
+        { new: true, useFindAndModify: false }
+      );
+
+    }
 
 
-  let product = await productModel.findOneAndUpdate(
-      {"slug": slug},
-      update,
-      { new: true, useFindAndModify: false }
-    );
+  
 
     product = await productModel.findOne({ slug: slug })
       .populate({
