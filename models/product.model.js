@@ -231,6 +231,38 @@ const deleteDetails = async function (next) {
 };
 
 
+productSchema.statics.getRandomProducts = async function(limit) {
+    return this.aggregate([
+        { $sample: { size: limit } } // Barcha hujjatlarni randomlashtiradi va `limit` miqdorida hujjatlarni oladi
+    ]);
+};
+
+
+productSchema.post('find', function(docs) {
+    // docs arrayini joyida tahrir qilamiz
+    for (let i = docs.length - 1; i >= 0; i--) {
+        const doc = docs[i];
+        if (!doc.details || !doc.details.length) {
+            docs.splice(i, 1); // Agar details bo'sh bo'lsa, hujjatni arraydan o'chirib tashlaymiz
+            docs.sort(() => Math.random() - 0.5);
+        } else {
+            // details ichidagi mahsulotlarni sale_price bo'yicha sortlaymiz
+            doc.details.sort((a, b) => a.sale_price - b.sale_price);
+        }
+    }
+});
+
+productSchema.post('findOne', function(doc) {
+    if (doc) {
+        // `details` maydoni mavjudligini va bo'sh emasligini tekshiramiz
+        if (doc.details && doc.details.length) {
+            // `details` ichidagi mahsulotlarni `sale_price` bo'yicha sortlaymiz
+            doc.details.sort((a, b) => a.sale_price - b.sale_price);
+        }
+    }
+});
+
+
 productSchema.pre('findOneAndDelete', deleteDetails);
 productSchema.pre('findByIdAndDelete', deleteDetails);
 productSchema.pre('deleteMany', deleteDetails);

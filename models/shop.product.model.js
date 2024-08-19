@@ -60,10 +60,6 @@ const shopProductsSchema = Schema({
         default: 0,
     },
 
-    discount: {
-        type: Number,
-        default: 1
-    },
 },
 
     {

@@ -33,9 +33,18 @@ router.get('/catalog-all', async (req, res) => {
         });
 
         catalogs = catalogs.flatMap(cate => {
-            cate.products = cate.products.filter((item => item?.details?.length));
+            cate.products = cate.products.filter((item => {
+                if (item?.details?.length) {
+                    item.details = item.details.sort((a, b) => a.sale_price - b.sale_price);
+                    return true;
+                  }
+                  return false;
+            }));
             return cate;
         })
+
+        
+      
 
         const data = { message: "success",  data:catalogs };
 

@@ -11,6 +11,7 @@ const shopProductModel = require("../../models/shop.product.model");
 const { checkToken } = require("../../middlewares/authMiddleware")
 const { transformAttributes } = require('../../utils/transformAttributes')
 const { algolia } = require("../../config/algolia");
+const { $ne } = require("sift");
 const productsIndex = algolia.initIndex("products");
 
 // get all products search
@@ -61,7 +62,7 @@ router.get("/products", async (req, res) => {
     const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
     const limit = parseInt(req.query.limit, 10) || 30;
     const { lang = '' } = req.headers;
-    const { search = "", category_id = "", viewsCount } = req.query;
+    const { search = "", category_id = "", viewsCount, disCount, expensive, cheap } = req.query;
 
     const cacheKey = `product:${lang}:${search}:${page}:${limit}`;
     const cacheData = await redisClient.get(cacheKey);
@@ -69,10 +70,19 @@ router.get("/products", async (req, res) => {
 
     if (cacheData) return res.json(JSON.parse(cacheData));
 
-    const query = {};
     const sort = {};
-    viewsCount && (sort.viewsCount = Number(viewsCount));
+    viewsCount && (sort.viewsCount = Number(viewsCount))
+    cheap && (sort.cheap = Number(cheap))
+    expensive && (sort.expensive = Number(expensive))
 
+    const populateSort = {};
+    disCount && (populateSort.discount = -1)
+
+
+    const populateQuery = {};
+    disCount && (populateQuery.discount = { $exists: true, $ne: 0 })
+
+    const query = {};
     if (search) {
       const options = { page: page, hitsPerPage: limit };
       const { hits } = await productsIndex.search(search, options)
@@ -83,29 +93,48 @@ router.get("/products", async (req, res) => {
 
     function findMostFrequentCategory(arr) {
       const ids = arr.split(",");
-    
+
       // Takrorlanishni hisoblash uchun obyekt yarating
       const countMap = ids.reduce((acc, id) => {
         acc[id] = (acc[id] || 0) + 1;
         return acc;
       }, {});
-    
+
       // Eng ko'p takrorlangan identifikatorni aniqlash
       const maxCountId = Object.keys(countMap).reduce((maxId, id) => {
         return countMap[id] > countMap[maxId] ? id : maxId;
       });
-    
+
       return maxCountId;
     }
-    
+
     // Misol uchun foydalanish
     const mostFrequentCategory = findMostFrequentCategory(category_id);
-
     if (category_id) query.categories = { $in: [mostFrequentCategory] };
-    const products = await productModel.find(query)
+
+
+    const ids = await productModel.aggregate([
+      { $match: query },         // Filtirlash uchun query
+      { $sample: { size: 10 } },  // Randomlashtirish va limit
+      {
+        $project: {
+          _id: 1, // Faqat 'name' maydonini olib keladi
+          // Boshqa kerakli maydonlarni qo'shish mumkin, masalan: price: 1, discount: 1
+        }
+      }
+    ]);
+
+    if(ids.length) query._id = {$in: ids};
+
+
+    let products = await productModel.find(query)
       .sort(sort)
       .populate({
         path: "details",
+        match: populateQuery,
+        options: {
+          sort: { sale_price: -1 } // Sort by discount in descending order
+        },
         populate: [
           {
             path: "shop",
@@ -114,15 +143,12 @@ router.get("/products", async (req, res) => {
         ]
       })
       .select('name slug images keywords')
-      .limit(10)
+      .limit(20)
+    // .then((products => products.filter(item => item.details.length)))
 
-
-
-    // Mahsulotlarni filtrlash
-    const filteredProducts = products.filter(item => item?.details?.length);
 
     // Tasodifiy ravishda aralashtirish
-    const shuffledProducts = filteredProducts.sort(() => Math.random() - 0.5);
+    const shuffledProducts = products.sort(() => Math.random() - 0.5);
 
     // Mahsulotlarni bo'limlarga ajratish
     const startIndex = page * limit;
@@ -130,8 +156,8 @@ router.get("/products", async (req, res) => {
     const paginatedProducts = shuffledProducts.slice(startIndex, endIndex);
 
     // Sahifalangan ma'lumotlarni tayyorlash
-    const totalPages = Math.ceil(filteredProducts.length / limit);
 
+    const totalPages = Math.ceil(products.length / limit);
     const data = {
       message: "success get products",
       products: products,
@@ -173,17 +199,17 @@ router.get("/product-slug/:slug", async (req, res) => {
 
     let user_id = req.headers['user'];
     user_id = (user_id === "null") ? null : (user_id === "undefined") ? undefined : user_id;
-  
+
     let product;
 
-    if(!variantQuery?.length) {
+    if (!variantQuery?.length) {
       const update = {
         $inc: { viewsCount: 1 },
         $addToSet: { views: user_id } // user_id mavjud bo'lmasa qo'shadi
       };
 
       product = await productModel.findOneAndUpdate(
-        {"slug": slug},
+        { "slug": slug },
         update,
         { new: true, useFindAndModify: false }
       );
@@ -191,7 +217,7 @@ router.get("/product-slug/:slug", async (req, res) => {
     }
 
 
-  
+
 
     product = await productModel.findOne({ slug: slug })
       .populate({

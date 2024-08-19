@@ -9,6 +9,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit')
 const compression = require('compression');
 require("dotenv/config");
+require("./prototypes")
 // const redisClient = require("./config/redisDB")
 // require("./bot");
 require('./testbot')
