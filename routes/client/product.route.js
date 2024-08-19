@@ -116,19 +116,43 @@ router.get("/products", async (req, res) => {
     const ids = await productModel.aggregate([
       { $match: query },         // Filtirlash uchun query
       { $sample: { size: 10 } },  // Randomlashtirish va limit
+      { $sort: Object.keys(sort).length ? sort : { _id: 1 } },
       {
         $project: {
           _id: 1, // Faqat 'name' maydonini olib keladi
           // Boshqa kerakli maydonlarni qo'shish mumkin, masalan: price: 1, discount: 1
         }
-      }
+      },
+
+      // {
+      //   $lookup: {
+      //     from: 'details', // 'details' kollektsiyasining nomi
+      //     localField: 'details', // Mahsulotdagi details maydoni
+      //     foreignField: '_id', // 'details' kollektsiyasidagi mos maydon
+      //     as: 'details'
+      //   }
+      // },
+      // {
+      //   $unwind: '$details' // details array elementlarini alohida hujjat sifatida chiqaradi
+      // },
+      // {
+      //   $sort: { 'details.sale_price': -1 } // sale_price bo'yicha sortlash
+      // },
+      // {
+      //   $group: {
+      //     _id: '$_id', // Mahsulotni guruhlash
+      //     name: { $first: '$name' }, // Mahsulotning qolgan maydonlari
+      //     details: { $push: '$details' } // Sortlangan details arrayini yig'ish
+      //   }
+      // }
+
+      
     ]);
 
     if(ids.length) query._id = {$in: ids};
 
 
     let products = await productModel.find(query)
-      .sort(sort)
       .populate({
         path: "details",
         match: populateQuery,
@@ -143,8 +167,6 @@ router.get("/products", async (req, res) => {
         ]
       })
       .select('name slug images keywords')
-      .limit(20)
-    // .then((products => products.filter(item => item.details.length)))
 
 
     // Tasodifiy ravishda aralashtirish
