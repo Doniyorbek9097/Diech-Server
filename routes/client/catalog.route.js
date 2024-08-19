@@ -5,7 +5,6 @@ const { redisClient } = require("../../config/redisDB");
 
 router.get('/catalog-all', async (req, res) => {
     try {
-
         // redisClient.FLUSHALL()
         const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
         const limit = parseInt(req.query.limit, 10) || 8;

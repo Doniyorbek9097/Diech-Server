@@ -61,7 +61,7 @@ router.get("/products", async (req, res) => {
     const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
     const limit = parseInt(req.query.limit, 10) || 30;
     const { lang = '' } = req.headers;
-    const { search = "", category_id = "" } = req.query;
+    const { search = "", category_id = "", viewsCount } = req.query;
 
     const cacheKey = `product:${lang}:${search}:${page}:${limit}`;
     const cacheData = await redisClient.get(cacheKey);
@@ -70,6 +70,8 @@ router.get("/products", async (req, res) => {
     if (cacheData) return res.json(JSON.parse(cacheData));
 
     const query = {};
+    const sort = {};
+    viewsCount && (sort.viewsCount = Number(viewsCount));
 
     if (search) {
       const options = { page: page, hitsPerPage: limit };
@@ -77,11 +79,31 @@ router.get("/products", async (req, res) => {
       const ids = hits.map(item => item.objectID)
       query._id = { $in: ids };
     }
+
+
+    function findMostFrequentCategory(arr) {
+      const ids = arr.split(",");
     
-    if (category_id) query.categories = { $in: category_id.split(",") };
+      // Takrorlanishni hisoblash uchun obyekt yarating
+      const countMap = ids.reduce((acc, id) => {
+        acc[id] = (acc[id] || 0) + 1;
+        return acc;
+      }, {});
+    
+      // Eng ko'p takrorlangan identifikatorni aniqlash
+      const maxCountId = Object.keys(countMap).reduce((maxId, id) => {
+        return countMap[id] > countMap[maxId] ? id : maxId;
+      });
+    
+      return maxCountId;
+    }
+    
+    // Misol uchun foydalanish
+    const mostFrequentCategory = findMostFrequentCategory(category_id);
 
-
+    if (category_id) query.categories = { $in: [mostFrequentCategory] };
     const products = await productModel.find(query)
+      .sort(sort)
       .populate({
         path: "details",
         populate: [
@@ -92,6 +114,9 @@ router.get("/products", async (req, res) => {
         ]
       })
       .select('name slug images keywords')
+      .limit(10)
+
+
 
     // Mahsulotlarni filtrlash
     const filteredProducts = products.filter(item => item?.details?.length);
@@ -106,10 +131,10 @@ router.get("/products", async (req, res) => {
 
     // Sahifalangan ma'lumotlarni tayyorlash
     const totalPages = Math.ceil(filteredProducts.length / limit);
-    
+
     const data = {
       message: "success get products",
-      products: paginatedProducts,
+      products: products,
       limit,
       page,
       totalPages
@@ -145,7 +170,23 @@ router.get("/product-slug/:slug", async (req, res) => {
   const regexTerms = searchTerms.map(term => new RegExp(term, 'i'));
 
   try {
-    let product = await productModel.findOne({ slug: slug })
+
+    let user_id = req.headers['user'];
+    user_id = (user_id === "null") ? null : (user_id === "undefined") ? undefined : user_id;
+  
+    const update = {
+      $inc: { viewsCount: 1 },
+      $addToSet: { views: user_id } // user_id mavjud bo'lmasa qo'shadi
+    };
+
+
+  let product = await productModel.findOneAndUpdate(
+      {"slug": slug},
+      update,
+      { new: true, useFindAndModify: false }
+    );
+
+    product = await productModel.findOne({ slug: slug })
       .populate({
         path: "categories",
         select: ['name', 'slug'],
@@ -168,14 +209,7 @@ router.get("/product-slug/:slug", async (req, res) => {
       })
 
 
-    let user_id = req.headers['user'];
-    user_id = (user_id === "null") ? null : (user_id === "undefined") ? undefined : user_id;
-    if (user_id) {
-      user_id && !product.views.includes(user_id) && (product.views.push(user_id), product.viewsCount++);
-      await product.save()
-    }
-
-    const attributes = transformAttributes( (product?.details || []).flatMap(item => item.variants || []));
+    const attributes = transformAttributes((product?.details || []).flatMap(item => item.variants || []));
 
     const matchesFilter = variant =>
       variantQuery.every(query =>
