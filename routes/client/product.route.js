@@ -128,16 +128,19 @@ router.get("/products", async (req, res) => {
 
      const totalDocuments = await productModel.countDocuments(query);
     const totalPages = Math.ceil(totalDocuments / limit);
-
+    
     const result = await productModel.find(query)
       .populate({
         path: "details",
-        select: ["orginal_price", "sale_price"],
+        select: ["orginal_price", "sale_price","discount"],
+        match: populateQuery,
         options: {
           sort: populateSort
         }
       })
+      .sort(populateSort)
       .select("name slug disription images details")
+
 
     const products = result.filter(item => !!item.details.length)
     
