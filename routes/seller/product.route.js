@@ -36,28 +36,33 @@ router.get("/product-all", async (req, res) => {
         const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
         const limit = parseInt(req.query.limit, 10) || 1;
 
-        const query = { shop: shop_id };
+
+        let query = {};
         if (search) {
             const regex = new RegExp(search, 'i'); // 'i' flagi case-insensitive qidiruvni belgilaydi
-            query = {
-                $or: [
+            query.$or = [
                     { 'keywords.uz': { $elemMatch: { $regex: regex } } },
                     { 'keywords.ru': { $elemMatch: { $regex: regex } } },
                     { 'name.uz': regex },
                     { 'name.ru': regex },
                     { 'barcode': regex }
                 ]
-            };
+            
         }
-
-        const totalDocuments = await shopProductModel.countDocuments(query).exec()
+        
+        const totalDocuments = await shopProductModel.countDocuments({shop: shop_id})
         const totalPages = Math.ceil(totalDocuments / limit);
 
-        let products = await shopProductModel.find(query)
-            .populate("product")
+        let products = await shopProductModel.find({shop: shop_id})
+            .populate({
+                path:"product",
+                match: query,
+            })
             .skip(page * limit)
             .limit(limit)
             .sort({ _id: -1 })
+
+            products = products.filter(item => !!item.product)
 
         return res.json({
             message: "success get products",
