@@ -11,8 +11,9 @@ const shopProductModel = require("../../models/shop.product.model");
 const { checkToken } = require("../../middlewares/authMiddleware")
 const { transformAttributes } = require('../../utils/transformAttributes')
 const { algolia } = require("../../config/algolia");
-const { $ne } = require("sift");
+const { $ne, $gte } = require("sift");
 const productsIndex = algolia.initIndex("products");
+const mongoose = require("mongoose")
 
 // get all products search
 router.get("/products-search", async (req, res) => {
@@ -60,9 +61,17 @@ router.get("/products", async (req, res) => {
   try {
 
     const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
-    const limit = parseInt(req.query.limit, 10) || 30;
+    const limit = parseInt(req.query.limit, 10) || 10;
     const { lang = '' } = req.headers;
-    const { search = "", category_id = "", viewsCount, disCount, expensive, cheap } = req.query;
+    const { 
+      search = "", 
+      category_id = "", 
+      viewsCount, 
+      disCount, 
+      price, 
+      random 
+    
+    } = req.query;
 
     const cacheKey = `product:${lang}:${search}:${page}:${limit}`;
     const cacheData = await redisClient.get(cacheKey);
@@ -71,18 +80,18 @@ router.get("/products", async (req, res) => {
     if (cacheData) return res.json(JSON.parse(cacheData));
 
     const sort = {};
-    viewsCount && (sort.viewsCount = Number(viewsCount))
-    cheap && (sort.cheap = Number(cheap))
-    expensive && (sort.expensive = Number(expensive))
+    !!viewsCount && (sort.viewsCount = Number(viewsCount))
+    price && (sort.price = Number(price))
 
     const populateSort = {};
-    disCount && (populateSort.discount = -1)
+    !!disCount && (populateSort.discount = -1)
 
 
     const populateQuery = {};
     disCount && (populateQuery.discount = { $exists: true, $ne: 0 })
 
     const query = {};
+
     if (search) {
       const options = { page: page, hitsPerPage: limit };
       const { hits } = await productsIndex.search(search, options)
@@ -110,84 +119,36 @@ router.get("/products", async (req, res) => {
 
     // Misol uchun foydalanish
     const mostFrequentCategory = findMostFrequentCategory(category_id);
-    if (category_id) query.categories = { $in: [mostFrequentCategory] };
-
-
+    if (category_id) query.categories = { $in: [new mongoose.Types.ObjectId(mostFrequentCategory)] };
     
+    
+    let productsIds = [];
+    Boolean(random) && (productsIds = await productModel.getRandomProducts({query, limit, sort, page}))
+    productsIds.length && (query._id = {$in: productsIds})
 
-    const result = await productModel.aggregate([
-      { $match: query },  // Filtirlash uchun query
-      // { $sample: { size: limit * page } },  // Tasodifiy hujjatlar olish
-      {
-        $facet: {
-          totalCount: [{ $count: 'count' }], // Umumiy hujjatlar sonini hisoblash
-          data: [
-            { $sample: { size: limit } },
-            { $skip: page * limit }, // Sahifalash
-            { $limit: limit }, // Faqat kerakli hujjatlarni olish
-            {
-              $lookup: {
-                from: 'shopproducts',
-                let: { productId: '$_id' },
-                pipeline: [
-                  { $match: { $expr: { $eq: ['$product', '$$productId'] } } },
-                  {
-                    $lookup: {
-                      from: 'shops',
-                      localField: 'shop',
-                      foreignField: '_id',
-                      as: 'shop'
-                    }
-                  },
-                  { $unwind: '$shop' },
-                  {
-                    $project: {
-                      sale_price: 1,
-                      orginal_price: 1,
-                      discount: 1,
-                      shop: {
-                        _id: 1,
-                        name: 1,
-                        slug: 1
-                      }
-                    }
-                  }
-                ],
-                as: 'details'
-              }
-            },
-            { $unwind: '$details' },
-            {
-              $project: {
-                _id: 1,
-                slug: 1,
-                images: 1,
-                keywords: `$keywords.${lang}`,
-                name: `$name.${lang}`,
-                disription: `$discription.${lang}`,
-                details: 1
-              }
-            }
-          ]
+     const totalDocuments = await productModel.countDocuments(query);
+    const totalPages = Math.ceil(totalDocuments / limit);
+
+    const result = await productModel.find(query)
+      .populate({
+        path: "details",
+        select: ["orginal_price", "sale_price"],
+        options: {
+          sort: populateSort
         }
-      },
-      {
-        $project: {
-          data: 1, // Hujjatlarni o'z ichiga oladi
-          totalPages: {
-            $ceil: { $divide: [{ $arrayElemAt: ['$totalCount.count', 0] }, limit] } // Umumiy sahifalar sonini hisoblash
-          }
-        }
-      }
-    ]);
+      })
+      .select("name slug disription images details")
+
+    const products = result.filter(item => !!item.details.length)
     
     const data = {
       message: "success get products",
-      products: result[0].data,
+      products: products,
       limit,
       page,
-      totalPages: result[0].totalPages
+      totalPages
     };
+
 
     await redisClient.SETEX(cacheKey, 3600, JSON.stringify(data));
     return res.json(data);
