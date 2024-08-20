@@ -238,29 +238,32 @@ productSchema.statics.getRandomProducts = async function(limit) {
 };
 
 
-productSchema.post('find', function(docs) {
-    // docs arrayini joyida tahrir qilamiz
-    for (let i = docs.length - 1; i >= 0; i--) {
-        const doc = docs[i];
-        if (!doc.details || !doc.details.length) {
-            docs.splice(i, 1); // Agar details bo'sh bo'lsa, hujjatni arraydan o'chirib tashlaymiz
-            docs.sort(() => Math.random() - 0.5);
-        } else {
-            // details ichidagi mahsulotlarni sale_price bo'yicha sortlaymiz
-            doc.details.sort((a, b) => a.sale_price - b.sale_price);
-        }
-    }
-});
+// productSchema.post('find', function(docs, next) {
+//     // docs arrayini joyida tahrir qilamiz
+//     for (let i = docs.length - 1; i >= 0; i--) {
+//         const doc = docs[i];
+//         if (!doc.details || !doc.details.length) {
+//             docs.splice(i, 1); // Agar details bo'sh bo'lsa, hujjatni arraydan o'chirib tashlaymiz
+//             docs.sort(() => Math.random() - 0.5);
+//         } else {
+//             // details ichidagi mahsulotlarni sale_price bo'yicha sortlaymiz
+//             doc.details.sort((a, b) => a.sale_price - b.sale_price);
+//         }
+//     }
+// });
 
-productSchema.post('findOne', function(doc) {
-    if (doc) {
-        // `details` maydoni mavjudligini va bo'sh emasligini tekshiramiz
-        if (doc.details && doc.details.length) {
-            // `details` ichidagi mahsulotlarni `sale_price` bo'yicha sortlaymiz
-            doc.details.sort((a, b) => a.sale_price - b.sale_price);
-        }
-    }
-});
+// productSchema.post('findOne', function(doc, next) {
+//     if (doc) {
+//         // `details` maydoni mavjudligini va bo'sh emasligini tekshiramiz
+//         if (doc.details && doc.details.length) {
+//             // `details` ichidagi mahsulotlarni `sale_price` bo'yicha sortlaymiz
+//             doc.details.sort((a, b) => a.sale_price - b.sale_price);
+//         }
+
+//         next()
+
+//     }
+// });
 
 
 productSchema.pre('findOneAndDelete', deleteDetails);
