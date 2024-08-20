@@ -11,16 +11,16 @@ const { redisClient } = require("../../config/redisDB");
 router.post("/product-add", checkToken, async (req, res) => {
     redisClient.FLUSHALL()
     try {
-        const {body: products} = req; 
+        const { body: products } = req;
         if (Array.isArray(products)) {
             for (const product of products) {
                 product.discount = parseInt(((product.orginal_price - product.sale_price) / product.orginal_price) * 100);
                 if (isNaN(product.discount)) product.discount = 0;
             }
         }
-        
+
         const newProduct = await shopProductModel.insertMany(products)
-        return res.status(200).json({data: newProduct, message:"success added"});
+        return res.status(200).json({ data: newProduct, message: "success added" });
 
     } catch (error) {
         console.log(error);
@@ -32,10 +32,41 @@ router.post("/product-add", checkToken, async (req, res) => {
 router.get("/product-all", async (req, res) => {
     try {
         const { shop_id } = req.query;
-        let products = await shopProductModel.find({shop: shop_id})
-        .populate("product")
+        const search = req.query.search || "";
+        const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
+        const limit = parseInt(req.query.limit, 10) || 1;
 
-        res.json(products);
+        const query = { shop: shop_id };
+        if (search) {
+            const regex = new RegExp(search, 'i'); // 'i' flagi case-insensitive qidiruvni belgilaydi
+            query = {
+                $or: [
+                    { 'keywords.uz': { $elemMatch: { $regex: regex } } },
+                    { 'keywords.ru': { $elemMatch: { $regex: regex } } },
+                    { 'name.uz': regex },
+                    { 'name.ru': regex },
+                    { 'barcode': regex }
+                ]
+            };
+        }
+
+        const totalDocuments = await shopProductModel.countDocuments(query).exec()
+        const totalPages = Math.ceil(totalDocuments / limit);
+
+        let products = await shopProductModel.find(query)
+            .populate("product")
+            .skip(page * limit)
+            .limit(limit)
+            .sort({ _id: -1 })
+
+        return res.json({
+            message: "success get products",
+            products,
+            limit,
+            page,
+            totalPages
+        });
+
 
     } catch (error) {
         console.log(error)
@@ -59,7 +90,7 @@ router.get("/custom-products", async (req, res) => {
         }
 
         let products = await productModel.find(query)
-        .limit(5)
+            .limit(5)
         res.json(products);
 
     } catch (error) {
@@ -70,12 +101,12 @@ router.get("/custom-products", async (req, res) => {
 
 router.get('/custom-product', async (req, res) => {
     const barcode = req.query?.barcode;
-    const product = await productModel.findOne({barcode});
-    if(!product) return res.json({message:"Mahsulot topilmadi"})
+    const product = await productModel.findOne({ barcode });
+    if (!product) return res.json({ message: "Mahsulot topilmadi" })
 
     return res.json({
-        data:product,
-        message:"Success"
+        data: product,
+        message: "Success"
     })
 })
 
@@ -85,18 +116,18 @@ router.get("/product-one/:id", checkToken, async (req, res) => {
     try {
         let product = await shopProductModel.findOne({ _id: req.params.id })
             .populate({
-              path:"product",
-              populate: {
-                path:"variants",
-              }   
+                path: "product",
+                populate: {
+                    path: "variants",
+                }
             })
             .populate({
-                  path:"variants",
-                  populate: {
-                      path:"variant"
-                  }
-              })
-            
+                path: "variants",
+                populate: {
+                    path: "variant"
+                }
+            })
+
         return res.status(200).json(product);
     } catch (error) {
         console.log(error);
@@ -117,12 +148,12 @@ router.put("/product-edit/:id", checkToken, async (req, res) => {
             variants.forEach(item => {
                 item.discount = parseInt(((item.orginal_price - item.sale_price) / item.orginal_price) * 100);
             })
-        } 
+        }
 
         product.variants = variants;
         product.discount = parseInt(((product.orginal_price - product.sale_price) / product.orginal_price) * 100);
         const updated = await shopProductModel.findByIdAndUpdate(req.params.id, product);
-        
+
         res.status(200).json(updated);
 
     } catch (error) {
@@ -140,9 +171,9 @@ router.delete("/product-delete/:id", checkToken, async (req, res) => {
 
         const deleted = await shopProductModel.findByIdAndDelete(req.params.id).populate('variants')
         for (const variant of deleted.variants) {
-           await shopProductVariantModel.deleteMany({_id: variant._id})
+            await shopProductVariantModel.deleteMany({ _id: variant._id })
         }
-        
+
         return res.status(200).json({ message: "success deleted!", data: deleted });
 
     } catch (error) {

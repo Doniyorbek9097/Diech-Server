@@ -108,8 +108,6 @@ router.post("/signup/verify", async (req, res) => {
 
 router.post("/signin", async (req, res) => {
     try {
-        console.log(req.body)
-
         const user = await userModel.findOne({ phone_number: req.body.phone_number })
         .populate({
             path:"shop",
@@ -117,10 +115,13 @@ router.post("/signin", async (req, res) => {
                 path:"products"
             }
         })
-
+        
         if (!user) return res.json({
             message: "Telefon raqam yoki parol xato",
         });
+
+        if(!user.password) return res.json({message: "Siz Seller sifatida ro'yxatdan o'tmagansiz!"});
+
         const validPassword = await bcrypt.compare(req.body.password, user.password);
         if (!validPassword) return res.json({
             message: "Telefon raqam yoki parol xato",
