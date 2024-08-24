@@ -187,6 +187,12 @@ const productSchema = Schema({
         type:Schema.Types.ObjectId,
         ref:"User"
     },
+
+    mixed: {
+        type: Boolean,
+        default: false
+    },
+
     type: {
         type: String,
         enum: ["product"],

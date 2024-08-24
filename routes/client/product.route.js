@@ -259,39 +259,37 @@ router.get("/product-slug/:slug", async (req, res) => {
     let firstCategory = product.categories[0];
     let lastCategory = product.categories[product.categories.length - 1];
 
-    firstCategory = await categoryModel.findOne({ _id: firstCategory._id })
-      .populate({
-        path: "products",
-        options: { limit, skip: page * limit },
-        select: ['name', 'slug', 'images', 'attributes'],
-        populate: [
-          {
-            path: "details",
-            select: ['orginal_price', 'sale_price', 'discount', 'reviews', 'rating', 'viewsCount']
-          }
-        ]
-      });
+    const getCategoryProducts = async (category) => {
+      const [result] = await productModel.aggregate([
+        { $match: { categories: { $in: [category._id] } } },  // Kategoriyaga mos mahsulotlarni topish
+        { $sample: { size: limit } },  // Randomlashtirish
+        { $project: { _id: 1 } },  // Faqat _id maydonini qaytarish
+        { $group: { _id: null, ids: { $push: '$_id' } } },  // _idlarni arrayga yig'ish
+        { $project: { _id: 0, ids: 1 } }  // Yig'ilgan arrayni qaytarish
+      ]);
+  
+      const randomProductIds = result ? result.ids : [];
+      const products = await productModel.find({ _id: { $in: randomProductIds } })
+        .populate({
+          path: "details",
+          select: ['orginal_price', 'sale_price', 'discount', 'reviews', 'rating', 'viewsCount']
+        });
 
+        return products;
+  
+    }
 
-      lastCategory = await categoryModel.findOne({ _id: lastCategory._id })
-      .populate({
-        path: "products",
-        options: { limit, skip: page * limit },
-        select: ['name', 'slug', 'images', 'attributes'],
-        populate: [
-          {
-            path: "details",
-            select: ['orginal_price', 'sale_price', 'discount', 'reviews', 'rating', 'viewsCount']
-          }
-        ]
-      })
+    const lastCategoryProducts = await getCategoryProducts(lastCategory)
+    const firstCategoryProducts = await getCategoryProducts(firstCategory)
+
 
 
     const data = {
       data: {
         attributes,
         product,
-        firstCategory,
+        firstCategoryProducts,
+        lastCategoryProducts,
         lastCategory,
         details: product?.details,
         variants,
@@ -380,6 +378,35 @@ router.post("/delete-review/:id", async (req, res) => {
     res.status(500).json("Server is don't working")
 
   }
+})
+
+
+router.get("/random-products", async (req, res) => {
+  const [result] = await productModel.aggregate([
+    {
+      $match: {
+        $or: [
+          { mixed: false },        // `mixed` maydoni false bo'lgan hujjatlar
+          { mixed: { $exists: false } }  // `mixed` maydoni mavjud bo'lmagan hujjatlar
+        ]
+      }
+    },  // Kategoriyaga mos mahsulotlarni topish
+    { $sample: { size: 100 } },  // Randomlashtirish
+    { $project: { _id: 1 } },  // Faqat _id maydonini qaytarish
+    { $group: { _id: null, ids: { $push: '$_id' } } },  // _idlarni arrayga yig'ish
+    { $project: { _id: 0, ids: 1 } }  // Yig'ilgan arrayni qaytarish
+  ]);
+
+  const randomProductIds = result ? result.ids : [];
+ 
+
+
+await productModel.updateMany(
+  { _id: { $in: randomProductIds } },  // Filterni belgilash
+  { $set: {mixed: true } }  // Yangilash so'rovi
+);
+
+
 })
 
 module.exports = router;
