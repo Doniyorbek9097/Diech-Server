@@ -15,18 +15,22 @@ const answerSchema = Schema({
     date: String
 })
 
+const keywordsSchema = Schema({
+    title:String,
+    keyword: String,
+    ball: String
+})
+
 const testSchema = Schema({
     author: {
         type: Schema.Types.ObjectId,
         ref: "TestBotUser"
     },
     answers: [answerSchema],
-    name: String,
+    title: String,
     keyword: String,
-    keyboards: [{
-        type: String,
-        default: undefined
-    }],
+    keywords: [keywordsSchema],
+    photo: String,
     code: Number,
     date: String,
     closed: {

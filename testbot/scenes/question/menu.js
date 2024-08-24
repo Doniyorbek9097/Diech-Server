@@ -22,15 +22,15 @@ createTestMenu.hears("📝 Oddiy test", (ctx) => {
 
 createTestMenu.hears("📕 Fanli test", (ctx) => {
     ctx.session.history.push(ctx.scene.current.id) 
-    ctx.scene.enter("createSubjectTest")
+    ctx.scene.enter("subjectScene")
 })
 createTestMenu.hears("🗂 Maxsus test", (ctx) => {
     ctx.session.history.push(ctx.scene.current.id) 
-    ctx.scene.enter("createSpecialTest")
+    ctx.scene.enter("filesScene")
 })
 createTestMenu.hears("📚 Blok test", (ctx) => {
     ctx.session.history.push(ctx.scene.current.id) 
-    ctx.scene.enter("createBlokTest")
+    ctx.scene.enter("multipleScene")
 })
 
 

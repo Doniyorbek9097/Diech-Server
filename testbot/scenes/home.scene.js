@@ -23,7 +23,7 @@ homeScene.hears("✍️ Test yaratish", (ctx) => {
 
 homeScene.hears("✅ Javobni tekshirish", (ctx) => {
     ctx.session.history.push(ctx.scene.current.id) 
-    ctx.scene.enter("answerScene")
+    ctx.scene.enter("answerMainScene")
 })
 
 
