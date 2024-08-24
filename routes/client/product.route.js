@@ -63,14 +63,14 @@ router.get("/products", async (req, res) => {
     const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
     const limit = parseInt(req.query.limit, 10) || 10;
     const { lang = '' } = req.headers;
-    const { 
-      search = "", 
-      category_id = "", 
-      viewsCount, 
-      disCount, 
-      price, 
-      random 
-    
+    const {
+      search = "",
+      category_id = "",
+      viewsCount,
+      disCount,
+      price,
+      random
+
     } = req.query;
 
     const cacheKey = `product:${lang}:${search}:${page}:${limit}`;
@@ -120,19 +120,19 @@ router.get("/products", async (req, res) => {
     // Misol uchun foydalanish
     const mostFrequentCategory = findMostFrequentCategory(category_id);
     if (category_id) query.categories = { $in: [new mongoose.Types.ObjectId(mostFrequentCategory)] };
-    
-    
-    let productsIds = [];
-    Boolean(random) && (productsIds = await productModel.getRandomProducts({query, limit, sort, page}))
-    productsIds.length && (query._id = {$in: productsIds})
 
-     const totalDocuments = await productModel.countDocuments(query);
+
+    let productsIds = [];
+    Boolean(random) && (productsIds = await productModel.getRandomProducts({ query, limit, sort, page }))
+    productsIds.length && (query._id = { $in: productsIds })
+
+    const totalDocuments = await productModel.countDocuments(query);
     const totalPages = Math.ceil(totalDocuments / limit);
-    
+
     const result = await productModel.find(query)
       .populate({
         path: "details",
-        select: ["orginal_price", "sale_price","discount"],
+        select: ["orginal_price", "sale_price", "discount"],
         match: populateQuery,
         options: {
           sort: populateSort
@@ -143,7 +143,7 @@ router.get("/products", async (req, res) => {
 
 
     const products = result.filter(item => !!item.details.length)
-    
+
     const data = {
       message: "success get products",
       products: products,
@@ -255,6 +255,7 @@ router.get("/product-slug/:slug", async (req, res) => {
     } else {
       details = product?.details;
     }
+
 
     const data = {
       data: {

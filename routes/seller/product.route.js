@@ -50,13 +50,13 @@ router.get("/product-all", async (req, res) => {
             
         }
         
-        const totalDocuments = await shopProductModel.countDocuments({shop: shop_id})
+        const totalDocuments = await productModel.countDocuments({shop: shop_id})
+        console.log(totalDocuments)
         const totalPages = Math.ceil(totalDocuments / limit);
-
-        let products = await shopProductModel.find({shop: shop_id})
+        
+        let products = await productModel.find(query)
             .populate({
-                path:"product",
-                match: query,
+                path:"details",
             })
             .skip(page * limit)
             .limit(limit)
