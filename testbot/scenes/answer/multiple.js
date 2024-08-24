@@ -25,14 +25,15 @@ const answerMultipleScene = new WizardScene("answerMultipleScene",
             const answer = ctx.message.text.toLowerCase();
 
             // Javoblar va test nomi harflarini boshidan tekshirish
-            let correctCount = 0;
-            let ball;
-            let incorrectCount;
-            let result;
+           
             const user = await userModel.findOne({ userid: ctx.chat.id });
             const date = format(new Date(), 'dd.MM.yyyy HH:mm:ss');
 
             test.keywords.forEach(async(item, index) => {
+                let correctCount = 0;
+                let ball;
+                let incorrectCount;
+                let result;
                 // To'g'ri javoblar foizini hisoblash
                 ball = (correctCount / item.keyword.length) * 100;
                 incorrectCount = item.keyword.length - correctCount;

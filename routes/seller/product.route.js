@@ -4,6 +4,8 @@ const shopProductModel = require("../../models/shop.product.model");
 const shopProductVariantModel = require("../../models/shop.product.variant.model")
 const { checkToken } = require("../../middlewares/authMiddleware");
 const { redisClient } = require("../../config/redisDB");
+const { algolia } = require("../../config/algolia");
+const productsIndex = algolia.initIndex("ShopProducts");
 
 
 
@@ -36,33 +38,24 @@ router.get("/product-all", async (req, res) => {
         const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
         const limit = parseInt(req.query.limit, 10) || 1;
 
+        const options = { page, hitsPerPage: limit, filters: `shop_id:${shop_id}` };
+        const query = {};
 
-        let query = {};
-        if (search) {
-            const regex = new RegExp(search, 'i'); // 'i' flagi case-insensitive qidiruvni belgilaydi
-            query.$or = [
-                    { 'keywords.uz': { $elemMatch: { $regex: regex } } },
-                    { 'keywords.ru': { $elemMatch: { $regex: regex } } },
-                    { 'name.uz': regex },
-                    { 'name.ru': regex },
-                    { 'barcode': regex }
-                ]
-            
-        }
-        
-        const totalDocuments = await productModel.countDocuments({shop: shop_id})
-        console.log(totalDocuments)
+        const { hits } = await productsIndex.search(search || '', options)
+
+        const ids = hits.map(item => item.objectID)
+        query._id = { $in: ids };
+
+        const totalDocuments = await shopProductModel.countDocuments(query)
         const totalPages = Math.ceil(totalDocuments / limit);
-        
-        let products = await productModel.find(query)
+
+        let products = await shopProductModel.find(query)
             .populate({
-                path:"details",
+                path: "product",
             })
-            .skip(page * limit)
-            .limit(limit)
             .sort({ _id: -1 })
 
-            products = products.filter(item => !!item.product)
+        products = products.filter(item => !!item.product)
 
         return res.json({
             message: "success get products",
@@ -187,6 +180,30 @@ router.delete("/product-delete/:id", checkToken, async (req, res) => {
     }
 });
 
+
+router.get('/indexed', async (req, res) => {
+    const products = await shopProductModel.find().populate('product').lean()
+    try {
+        const body = products.flatMap((item) => {
+            return {
+                objectID: item._id.toString(),  // objectID ni _id dan olish
+                name_uz: item?.product?.name?.uz,
+                name_ru: item?.product?.name?.ru,
+                keywords_uz: item?.product?.keywords?.uz,
+                keywords_ru: item?.product?.keywords?.ru,
+                barcode: item?.product?.barcode,
+                shop_id: item.shop.toString()
+            }
+        });
+
+        await productsIndex.saveObjects(body);
+        res.send("Indeksatsiya qilindi")
+
+    } catch (error) {
+        console.error('Indeksatsiya xatosi:', error);
+    }
+
+})
 
 
 module.exports = router;

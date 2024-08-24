@@ -11,9 +11,9 @@ const shopProductModel = require("../../models/shop.product.model");
 const { checkToken } = require("../../middlewares/authMiddleware")
 const { transformAttributes } = require('../../utils/transformAttributes')
 const { algolia } = require("../../config/algolia");
-const { $ne, $gte } = require("sift");
 const productsIndex = algolia.initIndex("products");
-const mongoose = require("mongoose")
+const mongoose = require("mongoose");
+const { $in } = require("sift");
 
 // get all products search
 router.get("/products-search", async (req, res) => {
@@ -256,11 +256,53 @@ router.get("/product-slug/:slug", async (req, res) => {
       details = product?.details;
     }
 
+    let firstCategory = product.categories[0];
+    let lastCategory = product.categories[product.categories.length - 1];
+
+    firstCategory = await categoryModel.findOne({ _id: firstCategory._id })
+      .populate("banners")
+      .populate({
+        path: "children",
+        select: ['image', 'slug', 'name', 'icon'],
+      })
+      .populate({
+        path: "products",
+        options: { limit, skip: page * limit },
+        select: ['name', 'slug', 'images', 'attributes'],
+        populate: [
+          {
+            path: "details",
+            select: ['orginal_price', 'sale_price', 'discount', 'reviews', 'rating', 'viewsCount']
+          }
+        ]
+      });
+
+
+      lastCategory = await categoryModel.findOne({ _id: lastCategory._id })
+      .populate("banners")
+      .populate({
+        path: "children",
+        select: ['image', 'slug', 'name', 'icon'],
+      })
+      .populate({
+        path: "products",
+        options: { limit, skip: page * limit },
+        select: ['name', 'slug', 'images', 'attributes'],
+        populate: [
+          {
+            path: "details",
+            select: ['orginal_price', 'sale_price', 'discount', 'reviews', 'rating', 'viewsCount']
+          }
+        ]
+      })
+
 
     const data = {
       data: {
         attributes,
         product,
+        firstCategory,
+        lastCategory,
         details: product?.details,
         variants,
         isVariant: !!variants
