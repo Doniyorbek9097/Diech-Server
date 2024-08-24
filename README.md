@@ -1,1 +1,1 @@
-# Olma saytining server tomoni
+# Olma saytining server tomoni dwe
