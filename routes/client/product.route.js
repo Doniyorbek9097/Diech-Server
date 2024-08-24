@@ -260,11 +260,6 @@ router.get("/product-slug/:slug", async (req, res) => {
     let lastCategory = product.categories[product.categories.length - 1];
 
     firstCategory = await categoryModel.findOne({ _id: firstCategory._id })
-      .populate("banners")
-      .populate({
-        path: "children",
-        select: ['image', 'slug', 'name', 'icon'],
-      })
       .populate({
         path: "products",
         options: { limit, skip: page * limit },
@@ -279,11 +274,6 @@ router.get("/product-slug/:slug", async (req, res) => {
 
 
       lastCategory = await categoryModel.findOne({ _id: lastCategory._id })
-      .populate("banners")
-      .populate({
-        path: "children",
-        select: ['image', 'slug', 'name', 'icon'],
-      })
       .populate({
         path: "products",
         options: { limit, skip: page * limit },
