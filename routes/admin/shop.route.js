@@ -5,19 +5,28 @@ const { generateToken } = require("../../utils/generateToken");
 const { checkToken } = require("../../middlewares/authMiddleware")
 
 router.post("/shop", checkToken, async(req,res) => {
+    const shopData = req.body;
     try {
-        req.body.slug = slugify(req.body.name);
-        const shop = await shopModel.findOne({slug: req.body.slug})
+        shopData.slug = slugify(shopData.name);
+
+        const shop = await shopModel.findOne({slug: shopData.slug})
         if(shop) return res.json({
             message:"Bu Do'kon yaratilgan",
             errShop: true
         });
-        const result = await new shopModel(req.body).save();
+
+        shopData?.image && (shopData.image = await fileService.upload(req, shopData.image))
+        shopData?.bannerImage && (shopData.bannerImage = await fileService.upload(req, shopData.bannerImage))
+       
+        const result = await new shopModel(shopData).save();
         res.json({
             message: "Muoffaqiyatli yaratildi",
             data: result
         })
     } catch (error) {
+        shopData?.image && await fileService.remove(req, shopData.image)
+        shopData?.bannerImage && await fileService.remove(req, shopData.bannerImage)
+
         console.log(error);
         res.status(500).json("Serverda Xatolik")
     }
@@ -55,14 +64,22 @@ router.get("/shop/:id", checkToken, async(req,res) => {
 
 
 router.put("/shop-update/:id", checkToken, async(req,res) => {
+    const shopData = req.body;
+
     try {
-        req.body.slug = slugify(req.body.name);
-        const result = await shopModel.findByIdAndUpdate(req.params.id, req.body);
+        shopData.slug = slugify(req.body.name);
+        shopData?.image && (shopData.image = await fileService.upload(req, shopData.image))
+        shopData?.bannerImage && (shopData.bannerImage = await fileService.upload(req, shopData.bannerImage))
+       
+        const result = await shopModel.findByIdAndUpdate(req.params.id, shopData);
         res.json({
             data:result, 
             message:"success updated!"
         })
     } catch (error) {
+        shopData?.image && await fileService.remove(req, shopData.image)
+        shopData?.bannerImage && await fileService.remove(req, shopData.bannerImage)
+
         console.log(error)
         res.status(500).json(error.message)
     }

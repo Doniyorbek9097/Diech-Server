@@ -1,6 +1,6 @@
 const router = require("express").Router();
 const shopModel = require("../../models/shop.model");
-
+const fileService = require('../../services/file.service')
 
 router.get("/shops/:user_id", async(req,res) => {
     try {
@@ -64,12 +64,20 @@ router.get("/shop_id/:id", async(req,res) => {
 
 
 router.put("/shop/:id", async(req,res) => {
+    const shopData = req.body;
     try {
-        const result = await shopModel.findByIdAndUpdate(req.params.id, req.body)
+        shopData?.image && (shopData.image = await fileService.upload(req, shopData.image))
+        shopData?.bannerImage && (shopData.bannerImage = await fileService.upload(req, shopData.bannerImage))
+
+        const result = await shopModel.findByIdAndUpdate(req.params.id, shopData)
         res.status(200).json(result)
     } catch (error) {
+        shopData?.image && await fileService.remove(shopData.image)
+        shopData?.bannerImage && await fileService.remove(shopData.bannerImage)
+
         res.status(500).json("Serverda Xatolik "+ error.message)
         console.log(error.message);
+
     }
 });
 
