@@ -13,7 +13,7 @@ const { transformAttributes } = require('../../utils/transformAttributes')
 const { algolia } = require("../../config/algolia");
 const productsIndex = algolia.initIndex("products");
 const mongoose = require("mongoose");
-const { $in } = require("sift");
+
 
 // get all products search
 router.get("/products-search", async (req, res) => {
@@ -80,7 +80,8 @@ router.get("/products", async (req, res) => {
     if (cacheData) return res.json(JSON.parse(cacheData));
 
     const sort = {};
-    !!viewsCount && (sort.viewsCount = Number(viewsCount))
+  
+    !!viewsCount && (sort.viewsCount = -1)
     price && (sort.price = Number(price))
 
     const populateSort = {};
@@ -128,7 +129,7 @@ router.get("/products", async (req, res) => {
 
     const totalDocuments = await productModel.countDocuments(query);
     const totalPages = Math.ceil(totalDocuments / limit);
-
+    
     const result = await productModel.find(query)
       .populate({
         path: "details",
@@ -138,7 +139,7 @@ router.get("/products", async (req, res) => {
           sort: populateSort
         }
       })
-      .sort(populateSort)
+      .sort(sort)
       .select("name slug disription images details")
 
 
