@@ -18,75 +18,77 @@ const answerMultipleScene = new WizardScene("answerMultipleScene",
             console.log(error)
         }
     },
-
     async (ctx) => {
         try {
             const { test } = ctx.wizard.state;
             const answer = ctx.message.text.toLowerCase();
-
-            // Javoblar va test nomi harflarini boshidan tekshirish
-           
             const user = await userModel.findOne({ userid: ctx.chat.id });
             const date = format(new Date(), 'dd.MM.yyyy HH:mm:ss');
-
+    
+            let overallCorrectCount = 0;
+            let overallIncorrectCount = 0;
+            let overallBall = 0;
+            let results = [];
+    
             for (const [index, item] of test.keywords.entries()) {
                 let correctCount = 0;
-                let ball;
-                let incorrectCount;
-                let result;
-            
-                // Javoblarni tekshirish va to'g'ri javoblar sonini hisoblash
-                result = item.keyword.toLowerCase().split('').map((ch, i) => {
+                let incorrectCount = 0;
+    
+                const result = item.keyword.toLowerCase().split('').map((ch, i) => {
                     if (i < answer.length && ch === answer[i]) {
                         correctCount++;
                         return `${i + 1}-✅`;
                     } else {
+                        incorrectCount++;
                         return `${i + 1}-❌`;
                     }
                 }).join(' ');
-            
-                // To'g'ri javoblar foizini hisoblash
-                ball = (correctCount / item.keyword.length) * 100;
-                incorrectCount = item.keyword.length - correctCount;
-            
-                let text = `💡 Blok: ${index + 1}\n📚 Fan: ${item.title}\n✅ To'g'ri javoblar: ${correctCount} ta\n❌ Noto'g'ri javoblar: ${incorrectCount} ta\n📊 Sifat: ${ball}%\n\n${result}`;
-            
+    
+                const ball = (correctCount / item.keyword.length) * 100;
+                overallCorrectCount += correctCount;
+                overallIncorrectCount += incorrectCount;
+                overallBall += ball;
+    
+                const text = `💡 Blok: ${index + 1}\n📚 Fan: ${item.title}\n✅ To'g'ri javoblar: ${correctCount} ta\n❌ Noto'g'ri javoblar: ${incorrectCount} ta\n📊 Sifat: ${ball}%\n\n${result}`;
                 await ctx.replyWithHTML(text);
+    
+                results.push({ correctCount, incorrectCount, ball, result });
             }
-            
-
-
+    
+            overallBall = overallBall / test.keywords.length; // O'rtacha sifat
+    
             await testModel.findByIdAndUpdate(test._id, {
                 $push: {
-                    answers: {
+                    answers: results.map((res, i) => ({
                         user: user._id,
                         tgid: ctx.chat.id,
-                        ball: ball,
-                        status: result,
-                        correctAnswerCount: correctCount,
-                        wrongAnswerCount: incorrectCount,
+                        ball: res.ball,
+                        status: res.result,
+                        correctAnswerCount: res.correctCount,
+                        wrongAnswerCount: res.incorrectCount,
                         date: date
-                    }
-                },
+                    }))
+                }
             });
-
-
-            const userText = `<b>💡 Umumiy natija:</b>\n<b>Blok 1:</b> ${correctCount} ball\n<b>❌ Noto'g'ri javoblar:</b> ${incorrectCount} ta\n<b>📊 Sifat:</b> ${ball}%\n\n${result}`;
-            const authorText = `${test.code} kodli oddiy testda ${user?.firstname} ${user?.lastname} qatnashdi!\n✅ Natija: ${correctCount} ta\n🎯 Sifat darajasi: ${ball}%\n⏱️ ${date}`;
+    
+            const userText = `<b>💡 Umumiy natija:</b>\n<b>Bloklar:</b> ${overallCorrectCount} ball\n<b>❌ Noto'g'ri javoblar:</b> ${overallIncorrectCount} ta\n<b>📊 O'rtacha sifat:</b> ${overallBall}%`;
+            const authorText = `${test.code} kodli oddiy testda ${user?.firstname} ${user?.lastname} qatnashdi!\n✅ Natija: ${overallCorrectCount} ta\n🎯 O'rtacha sifat darajasi: ${overallBall}%\n⏱️ ${date}`;
+            
             await ctx.replyWithHTML(userText);
-
             await ctx.telegram.sendMessage(test.author.userid, authorText, {
                 ...Markup.inlineKeyboard([
                     Markup.button.callback("📊Holat", `stat-${test._id}-${user._id}`),
                     Markup.button.callback("⌛Yakunlash", `closed-${test._id}`)
                 ])
             });
+    
             await ctx.scene.enter("homeScene");
-
+    
         } catch (error) {
             console.log(error);
         }
     }
+    
 
 
 );
