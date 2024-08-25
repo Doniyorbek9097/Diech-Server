@@ -38,13 +38,15 @@ router.get("/product-all", async (req, res) => {
         const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
         const limit = parseInt(req.query.limit, 10) || 1;
 
-        const options = { page, hitsPerPage: limit, filters: `shop_id:${shop_id}` };
-        const query = {};
-
-        const { hits } = await productsIndex.search(search || '', options)
-
-        const ids = hits.map(item => item.objectID)
-        query._id = { $in: ids };
+        const query = { shop: shop_id };
+        if (search) {
+            const regex = new RegExp(search, 'i'); // 'i' flagi case-insensitive qidiruvni belgilaydi
+            query.$or = [
+                { 'name.uz': regex },
+                { 'name.ru': regex },
+                { 'barcode': regex },
+            ]
+        }
 
         const totalDocuments = await shopProductModel.countDocuments(query)
         const totalPages = Math.ceil(totalDocuments / limit);
@@ -53,9 +55,10 @@ router.get("/product-all", async (req, res) => {
             .populate({
                 path: "product",
             })
+            .skip(page * limit)
+            .limit(limit)
             .sort({ _id: -1 })
 
-        products = products.filter(item => !!item.product)
 
         return res.json({
             message: "success get products",
@@ -206,19 +209,20 @@ router.get('/indexed', async (req, res) => {
 })
 
 
-router.get('/replace', async(req, res) => {
+router.get('/replace', async (req, res) => {
     try {
         const products = await shopProductModel.find().populate("product", 'name barcode').select("_id").lean()
         res.json(products)
         for (const item of products) {
-            await shopProductModel.updateOne({_id: item._id}, {$set: {
-                barcode: item.product.barcode,
-                name: item.product.name
-            }
-               
+            await shopProductModel.updateOne({ _id: item._id }, {
+                $set: {
+                    barcode: item.product.barcode,
+                    name: item.product.name
+                }
+
             })
         }
-        
+
     } catch (error) {
         console.log(error)
     }
