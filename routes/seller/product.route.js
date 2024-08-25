@@ -15,9 +15,12 @@ router.post("/product-add", checkToken, async (req, res) => {
     try {
         const { body: products } = req;
         if (Array.isArray(products)) {
-            for (const product of products) {
-                product.discount = parseInt(((product.orginal_price - product.sale_price) / product.orginal_price) * 100);
-                if (isNaN(product.discount)) product.discount = 0;
+            for (const item of products) {
+                const product = await productModel.findById(item.product).lean();
+                item.barcode = product.barcode;
+                item.name = product.name;
+                item.discount = parseInt(((item.orginal_price - item.sale_price) / item.orginal_price) * 100);
+                if (isNaN(item.discount)) item.discount = 0;
             }
         }
 
