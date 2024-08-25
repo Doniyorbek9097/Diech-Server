@@ -3,6 +3,7 @@ const slugify = require("slugify");
 const shopModel = require("../../models/shop.model");
 const { generateToken } = require("../../utils/generateToken");
 const { checkToken } = require("../../middlewares/authMiddleware")
+const fileService = require("../../services/file.service")
 
 router.post("/shop", checkToken, async(req,res) => {
     const shopData = req.body;
@@ -76,6 +77,8 @@ router.put("/shop-update/:id", checkToken, async(req,res) => {
             data:result, 
             message:"success updated!"
         })
+        shopData?.deletedImages?.length && await fileService.remove(shopData.deletedImages)
+
     } catch (error) {
         shopData?.image && await fileService.remove(req, shopData.image)
         shopData?.bannerImage && await fileService.remove(req, shopData.bannerImage)

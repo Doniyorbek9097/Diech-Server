@@ -71,6 +71,9 @@ router.put("/shop/:id", async(req,res) => {
 
         const result = await shopModel.findByIdAndUpdate(req.params.id, shopData)
         res.status(200).json(result)
+        shopData?.deletedImages?.length && await fileService.remove(shopData.deletedImages)
+
+        
     } catch (error) {
         shopData?.image && await fileService.remove(shopData.image)
         shopData?.bannerImage && await fileService.remove(shopData.bannerImage)
