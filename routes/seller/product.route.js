@@ -206,6 +206,25 @@ router.get('/indexed', async (req, res) => {
 })
 
 
+router.get('/replace', async(req, res) => {
+    try {
+        const products = await shopProductModel.find().populate("product", 'name barcode').select("_id").lean()
+        res.json(products)
+        for (const item of products) {
+            await shopProductModel.updateOne({_id: item._id}, {$set: {
+                barcode: item.product.barcode,
+                name: item.product.name
+            }
+               
+            })
+        }
+        
+    } catch (error) {
+        console.log(error)
+    }
+})
+
+
 module.exports = router;
 
 

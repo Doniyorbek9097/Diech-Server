@@ -11,6 +11,11 @@ const shopProductsSchema = Schema({
         ref: "Product",
     },
     // slug: String,
+    name: {
+        type:String,
+        intl:true
+    },
+    barcode:String,
     discount: Number,
     orginal_price: Number,
     sale_price: Number,
