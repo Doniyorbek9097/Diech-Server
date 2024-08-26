@@ -35,6 +35,8 @@ const answerMainScene = new WizardScene("answerMainScene",
             if(test.photo) return ctx.scene.enter("answerSpecialScene", { test });
             if(test.keywords.length) return ctx.scene.enter("answerMultipleScene", { test });
             if(test.title) return ctx.scene.enter("answerSubjectScene", { test });
+            else return ctx.scene.enter("answerSimpleScene", { test });
+
                         
 
         } catch (error) {

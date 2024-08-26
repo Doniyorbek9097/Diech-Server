@@ -6,19 +6,7 @@ const shopProductModel = require("./shop.product.model")
 const productVariantModel = require("./product.varinat.model")
 const reviewSchema = require("./review.model")
 
-const propertyOptionsSchema = Schema({
-    key: {
-        type: String,
-        intl: true
-    },
-    value: {
-        type: String,
-        intl: true
-    }
-},
-    { toJSON: { virtuals: true } }
 
-)
 
 
 const attributesSchema = Schema({
@@ -58,6 +46,19 @@ const attributesSchema = Schema({
     
 }, { toJSON: { virtuals: true } })
 
+const propertyOptionsSchema = Schema({
+    key: {
+        type: String,
+        intl: true
+    },
+    value: {
+        type: String,
+        intl: true
+    }
+},
+    { toJSON: { virtuals: true } }
+
+)
 
 const propertiesSchema = Schema({
     label: {
@@ -106,21 +107,13 @@ const productSchema = Schema({
     }],
 
     keywords: keywordsSchema,
-    // keywords: [{
-    //     type: Schema.Types.Mixed,
-    //     intl: true,
-    //     default: undefined
-    // }],
-
-
     barcode: String,
 
     method_sale: {
-        type: Boolean,
-        default: false
+        type: String,
+        enum:["piece", "weight"],
+        default: "piece"
     },
-
-
 
     reviews: {
         type: [reviewSchema]

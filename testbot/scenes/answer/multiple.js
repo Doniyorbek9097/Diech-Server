@@ -21,107 +21,91 @@ const answerMultipleScene = new WizardScene("answerMultipleScene",
     async (ctx) => {
         try {
             const { test } = ctx.wizard.state;
-            const answer = ctx.message.text.toLowerCase();
             const user = await userModel.findOne({ userid: ctx.chat.id });
             const date = format(new Date(), 'dd.MM.yyyy HH:mm:ss');
-    
-            let overallCorrectCount = 0;
-            let overallIncorrectCount = 0;
-            let overallBall = 0;
-            let results = [];
-    
+            const answer = ctx.message.text.toLowerCase().split('\n');
+
+            if(answer.length !== test.keywords.length) {
+                return ctx.replyWithHTML(`${test.code}-testimizda <b>${test.keywords.length}</b> ta savol bor hammasiga javob bering\nMasalan:\nabs3asa\ncaea3a\nawer3af\n shu ketma ketlikda`)
+            }
+
+            let allball = 0; // Umumiy ballni saqlaydigan o'zgaruvchi
+            let correctAnswerCount = 0; // Umumiy to'g'ri javoblar soni
+            let wrongAnswerCount = 0; // Umumiy noto'g'ri javoblar soni
+            let result = ''; // Natijalarni saqlaydigan string
+
             for (const [index, item] of test.keywords.entries()) {
-                let correctCount = 0;
-                let incorrectCount = 0;
-    
-                const result = item.keyword.toLowerCase().split('').map((ch, i) => {
-                    if (i < answer.length && ch === answer[i]) {
-                        correctCount++;
+                let blockBall = 0; // Har bir blok uchun ball
+                let blockCorrectCount = 0; // Har bir blok uchun to'g'ri javoblar soni
+                let blockIncorrectCount = 0; // Har bir blok uchun noto'g'ri javoblar soni
+                let blockResult = '';
+                if(item.keyword.toLowerCase() === answer[index].toLowerCase()) {
+                    allball += Number(item.ball);
+                }
+                // Javoblarni tekshirish va to'g'ri javoblar sonini hisoblash
+                blockResult = item.keyword.toLowerCase().split('').map((ch, i) => {
+                    if (i < answer[index].length && ch === answer[index][i]) {
+                        blockCorrectCount++;
+                        correctAnswerCount++; // Umumiy to'g'ri javoblar sonini oshirish
                         return `${i + 1}-✅`;
                     } else {
-                        incorrectCount++;
+                        blockIncorrectCount++;
+                        wrongAnswerCount++; // Umumiy noto'g'ri javoblar sonini oshirish
                         return `${i + 1}-❌`;
                     }
-                }).join(' ');
-    
-                const ball = (correctCount / item.keyword.length) * 100;
-                overallCorrectCount += correctCount;
-                overallIncorrectCount += incorrectCount;
-                overallBall += ball;
-    
-                const text = `💡 Blok: ${index + 1}\n📚 Fan: ${item.title}\n✅ To'g'ri javoblar: ${correctCount} ta\n❌ Noto'g'ri javoblar: ${incorrectCount} ta\n📊 Sifat: ${ball}%\n\n${result}`;
+                }).join(' ') + '\n'; // Har bir blokdan keyin satr qo'shish
+                result += `${item.title} - ${blockResult}\n`;
+                // To'g'ri javoblar foizini hisoblash
+                blockBall = (blockCorrectCount / item.keyword.length) * 100;
+                // allball += blockBall; // Umumiy ballni oshirish
+
+                let text = `💡 Blok: ${index + 1}\n📚 Fan: ${item.title}\n✅ To'g'ri javoblar: ${blockCorrectCount} ta\n❌ Noto'g'ri javoblar: ${blockIncorrectCount} ta\n📊 Sifat: ${blockBall.toFixed(1)}%\n\n${blockResult}`;
+
                 await ctx.replyWithHTML(text);
-    
-                results.push({ correctCount, incorrectCount, ball, result });
             }
-    
-            overallBall = overallBall / test.keywords.length; // O'rtacha sifat
-    
+
+            // Umumiy ballni to'g'ri hisoblash 
+            // allball = (allball / test.keywords.length).toFixed(1);
+
             await testModel.findByIdAndUpdate(test._id, {
                 $push: {
-                    answers: results.map((res, i) => ({
-                        user: user._id,
-                        tgid: ctx.chat.id,
-                        ball: res.ball,
-                        status: res.result,
-                        correctAnswerCount: res.correctCount,
-                        wrongAnswerCount: res.incorrectCount,
-                        date: date
-                    }))
-                }
-            });
-    
-            const userText = `<b>💡 Umumiy natija:</b>\n<b>Bloklar:</b> ${overallCorrectCount} ball\n<b>❌ Noto'g'ri javoblar:</b> ${overallIncorrectCount} ta\n<b>📊 O'rtacha sifat:</b> ${overallBall}%`;
-            const authorText = `${test.code} kodli oddiy testda ${user?.firstname} ${user?.lastname} qatnashdi!\n✅ Natija: ${overallCorrectCount} ta\n🎯 O'rtacha sifat darajasi: ${overallBall}%\n⏱️ ${date}`;
-            
+                  answers: {
+                    user: user._id,
+                    tgid: ctx.chat.id,
+                    ball: allball,
+                    status: result,
+                    correctAnswerCount: correctAnswerCount,
+                    wrongAnswerCount: wrongAnswerCount,
+                    date: date,
+                  },
+                },
+              });
+
+
+            const userText = `<b>💡 Umumiy natija:</b>\n<b>Blok 1:</b> ${correctAnswerCount} ball\n<b>❌ Noto'g'ri javoblar:</b> ${wrongAnswerCount} ta\n<b>📊 Sifat:</b> ${allball}% \n\n${result}`;
+
+            const authorText = `${test.code} kodli oddiy testda ${user?.firstname} ${user?.lastname} qatnashdi!\n✅ Natija: ${correctAnswerCount} ta\n🎯 Sifat darajasi: ${allball}%\n⏱ ${date}`;
+
             await ctx.replyWithHTML(userText);
+
             await ctx.telegram.sendMessage(test.author.userid, authorText, {
                 ...Markup.inlineKeyboard([
                     Markup.button.callback("📊Holat", `stat-${test._id}-${user._id}`),
-                    Markup.button.callback("⌛Yakunlash", `closed-${test._id}`)
+                    Markup.button.callback("⌛️Yakunlash", `closed-${test._id}`)
                 ])
             });
-    
             await ctx.scene.enter("homeScene");
-    
+
         } catch (error) {
             console.log(error);
         }
-    }
-    
-
+    },
 
 );
 
 // answerMultipleScene.use((ctx, next) => ctx?.message?.text && next());
 answerMultipleScene.hears('/start', ctx => ctx.scene.enter('start'));
 
-answerMultipleScene.on("callback_query", async (ctx) => {
-    const query = ctx.callbackQuery.data;
-    const queryArray = query.split("-");
-
-    const [event, testId, userId] = queryArray;
-
-    if (event == "stat") {
-        const test = await testModel.findOne({ '_id': testId, 'answers.user': userId })
-            .populate({
-                path: "answers.user",
-            })
-
-        console.log(test)
-
-        await ctx.reply("test yaklandi")
-        await ctx.scene.enter("homeScene")
-    }
-
-    if (queryArray[0] == "closed") {
-        await testModel.findOneAndUpdate({ '_id': queryArray[1] }, { 'closed': true });
-        await ctx.reply("test yaklandi")
-        await ctx.scene.enter("homeScene")
-    }
-
-
-})
 
 // answerMultipleScene.action('closed', async (ctx) => {
 //     try {

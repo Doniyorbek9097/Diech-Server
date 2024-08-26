@@ -6,7 +6,8 @@ const { checkToken } = require("../../middlewares/authMiddleware");
 const { redisClient } = require("../../config/redisDB");
 const { algolia } = require("../../config/algolia");
 const productsIndex = algolia.initIndex("ShopProducts");
-
+const slugify = require("slugify")
+const { generateOTP } = require("../../utils/otpGenrater")
 
 
 // create new Product 
@@ -17,10 +18,12 @@ router.post("/product-add", checkToken, async (req, res) => {
         if (Array.isArray(products)) {
             for (const item of products) {
                 const product = await productModel.findById(item.product).lean();
+                const {_id, ...productData} = product;
                 item.barcode = product.barcode;
                 item.name = product.name;
                 item.discount = parseInt(((item.orginal_price - item.sale_price) / item.orginal_price) * 100);
                 if (isNaN(item.discount)) item.discount = 0;
+                
             }
         }
 
@@ -214,22 +217,30 @@ router.get('/indexed', async (req, res) => {
 
 router.get('/replace', async (req, res) => {
     try {
-        const products = await shopProductModel.find().populate("product", 'name barcode').select("_id").lean()
-        res.json(products)
-        for (const item of products) {
-            await shopProductModel.updateOne({ _id: item._id }, {
+        const products = await productModel.find().lean();
+        let totalModifiedCount = 0;
+        for (const product of products) {
+            const {_id, ...productData} = product;
+            const result = await shopProductModel.updateMany({product: product._id}, {
+                $rename: {
+                    product: "parent"
+                },
                 $set: {
-                    barcode: item.product.barcode,
-                    name: item.product.name
+                    ...productData,
+                    description: product.discription,
+                    slug: slugify(`${product.name.ru} ${generateOTP(30)}`)
                 }
+            });
 
-            })
+            totalModifiedCount += result.modifiedCount;
         }
-
+        
+        res.status(200).send(`Fields renamed successfully. Modified count: ${totalModifiedCount}`);
     } catch (error) {
-        console.log(error)
+        console.log(error);
+        res.status(500).send('An error occurred');
     }
-})
+});
 
 
 module.exports = router;

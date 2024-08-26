@@ -4,17 +4,66 @@ const { serverDB } = require("../config/db")
 const shopProductVariantModel = require("./shop.product.variant.model")
 const reviewSchema = require("./review.model")
 
+const propertyOptionsSchema = Schema({
+    key: {
+        type: String,
+        intl: true
+    },
+    value: {
+        type: String,
+        intl: true
+    }
+},
+    { toJSON: { virtuals: true } }
+
+)
+
+const propertiesSchema = Schema({
+    label: {
+        type: String,
+        intl: true
+    },
+    options: [propertyOptionsSchema]
+},
+    { toJSON: { virtuals: true } }
+);
+
+
 
 const shopProductsSchema = Schema({
-    product: {
+    parent: {
         type: Schema.Types.ObjectId,
         ref: "Product",
     },
-    // slug: String,
+
+    product: {
+        type: Schema.Types.ObjectId,
+        ref: "Product",
+    }, 
+
+    slug: String,
     name: {
         type:String,
         intl:true
     },
+    description: {
+        type: String,
+        intl: true
+    },
+    exactname: {
+        type: String,
+        intl: true
+    },
+
+    
+    images: [],
+    properteis: [propertiesSchema],
+
+    categories: [{
+        type: Schema.Types.ObjectId,
+        ref: "Category"
+    }],
+
     barcode:String,
     discount: Number,
     orginal_price: Number,

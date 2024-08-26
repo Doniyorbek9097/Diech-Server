@@ -80,7 +80,8 @@ answerSimpleScene.on("callback_query", async (ctx) => {
     const queryArray = query.split("-");
 
     const [event, testId, userId] = queryArray;
-
+    console.log(queryArray);
+    
     if (event == "stat") {
         const test = await testModel.findOne({ '_id': testId, 'answers.user': userId })
             .populate({
@@ -93,8 +94,8 @@ answerSimpleScene.on("callback_query", async (ctx) => {
         await ctx.scene.enter("homeScene")
     }
 
-    if (queryArray[0] == "closed") {
-        await testModel.findOneAndUpdate({ '_id': queryArray[1] }, { 'closed': true });
+    if (event == "closed") {
+        await testModel.findOneAndUpdate({ '_id': testId }, { 'closed': true });
         await ctx.reply("test yaklandi")
         await ctx.scene.enter("homeScene")
     }
