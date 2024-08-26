@@ -5,7 +5,7 @@ const catalogModel = require('../../models/catalog')
 router.post('/catalog-add', async (req, res) => {
     try {
         const catalogForm = req.body;
-        const savedCatalog = await catalogModel.insertMany(catalogForm)
+        const savedCatalog = await new catalogModel(catalogForm).save();
         res.json({
             data: savedCatalog,
             message: 'success added'

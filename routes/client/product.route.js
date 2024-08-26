@@ -128,6 +128,8 @@ router.get("/products", async (req, res) => {
     const result = await shopProductModel.find(query)
     .populate("shop")
     .sort(sort)
+    .skip(page * limit)
+    .limit(limit)
     .select("name slug disription images orginal_price sale_price discount reviews viewsCount shop")
 
     const data = {
@@ -252,6 +254,7 @@ router.get("/product-slug/:slug", async (req, res) => {
             path: "variant"
           }
       })
+      .limit(limit)
 
         return products;
   

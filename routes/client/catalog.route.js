@@ -21,31 +21,12 @@ router.get('/catalog-all', async (req, res) => {
             path: "products",
             select: ['name', 'slug', 'images'],
             options: { limit, skip: page * limit }, // Apply pagination to shop_products
-            populate: [
-                { 
-                    path: "details",
-                    populate: {
-                        path: "shop", 
-                        select: ['name', 'slug']
-                    }
-                 }
-            ]
+            populate: {
+                path: "shop", 
+                select: ['name', 'slug']
+            }
         });
-
-        catalogs = catalogs.flatMap(cate => {
-            cate.products = cate.products.filter((item => {
-                if (item?.details?.length) {
-                    item.details = item.details.sort((a, b) => a.sale_price - b.sale_price);
-                    return true;
-                  }
-                  return false;
-            }));
-            return cate;
-        })
-
-        
-      
-
+  
         const data = { message: "success",  data:catalogs };
 
         redisClient.SETEX(cacheKey, 3600, JSON.stringify(data));

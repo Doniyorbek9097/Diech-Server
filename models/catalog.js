@@ -7,11 +7,12 @@ const catalogSchema = Schema({
         intl: true
     },
 
+    color: String,
     images: [String],
 
     products: [{
         type: Schema.Types.ObjectId,
-        ref:"Product"
+        ref:"ShopProducts"
     }]
 },
 
