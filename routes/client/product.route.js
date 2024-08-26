@@ -260,8 +260,6 @@ router.get("/product-slug/:slug", async (req, res) => {
     const lastCategoryProducts = await getCategoryProducts(lastCategory)
     const firstCategoryProducts = await getCategoryProducts(firstCategory)
 
-
-
     const data = {
       data: {
         product,
