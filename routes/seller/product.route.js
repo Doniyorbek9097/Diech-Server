@@ -256,22 +256,14 @@ router.get('/replace', async (req, res) => {
 
 router.get('/replaced', async (req, res) => {
     try {
-        const products = await productModel.find().select('method_sale').lean();
+        const products = await productModel.find().select('_id').lean();
 
         for (const item of products) {
-            if (item.method_sale == true) {
                 await productModel.updateOne({ _id: item._id }, {
-                    $set: {
-                        method_sale: 'weight'
+                    $rename: {
+                        discription: 'description'
                     }
                 })
-            } else {
-                await productModel.updateOne({ _id: item._id }, {
-                    $set: {
-                        method_sale: 'piece'
-                    }
-                })
-            }
         }
 
 
