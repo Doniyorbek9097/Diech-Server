@@ -203,38 +203,38 @@ router.get("/product-slug/:slug", async (req, res) => {
       })
 
 
-    const attributes = transformAttributes((product?.details || []).flatMap(item => item.variants || []));
+    // const attributes = transformAttributes((product?.details || []).flatMap(item => item.variants || []));
 
-    const matchesFilter = variant =>
-      variantQuery.every(query =>
-        variant.attributes.some(attr => attr.value === query)
-      );
+    // const matchesFilter = variant =>
+    //   variantQuery.every(query =>
+    //     variant.attributes.some(attr => attr.value === query)
+    //   );
 
-    let variants;
+    // let variants;
 
-    //  Filter variants by SKU
-    if (variantQuery.length) {
-      const details = product.details.filter(detail =>
-        detail.variants.some(item => {
-          item.shop = detail.shop;
-          return matchesFilter(item.variant);
-        })
-      );
+    // //  Filter variants by SKU
+    // if (variantQuery.length) {
+    //   const details = product.details.filter(detail =>
+    //     detail.variants.some(item => {
+    //       item.shop = detail.shop;
+    //       return matchesFilter(item.variant);
+    //     })
+    //   );
 
-      variants = details?.flatMap(detail =>
-        detail?.variants
-          .filter(item => (item.shop = detail.shop, matchesFilter(item.variant)))
-      ) ?? [];
+    //   variants = details?.flatMap(detail =>
+    //     detail?.variants
+    //       .filter(item => (item.shop = detail.shop, matchesFilter(item.variant)))
+    //   ) ?? [];
 
-    } else {
-      details = product?.details;
-    }
+    // } else {
+    //   details = product?.details;
+    // }
 
     let firstCategory = product.categories[0];
     let lastCategory = product.categories[product.categories.length - 1];
 
     const getCategoryProducts = async (category) => {
-      const [result] = await productModel.aggregate([
+      const [result] = await shopProductModel.aggregate([
         { $match: { categories: { $in: [category._id] } } },  // Kategoriyaga mos mahsulotlarni topish
         { $sample: { size: limit } },  // Randomlashtirish
         { $project: { _id: 1 } },  // Faqat _id maydonini qaytarish
@@ -243,11 +243,15 @@ router.get("/product-slug/:slug", async (req, res) => {
       ]);
   
       const randomProductIds = result ? result.ids : [];
-      const products = await productModel.find({ _id: { $in: randomProductIds } })
-        .populate({
-          path: "details",
-          select: ['orginal_price', 'sale_price', 'discount', 'reviews', 'rating', 'viewsCount']
-        });
+      const products = await shopProductModel.find({ _id: { $in: randomProductIds } })
+      .populate("categories", "name slug")
+      .populate("shop","slug name")
+      .populate({
+          path: "variants",
+          populate: {
+            path: "variant"
+          }
+      })
 
         return products;
   
@@ -260,14 +264,9 @@ router.get("/product-slug/:slug", async (req, res) => {
 
     const data = {
       data: {
-        attributes,
         product,
         firstCategoryProducts,
         lastCategoryProducts,
-        lastCategory,
-        details: product?.details,
-        variants,
-        isVariant: !!variants
       },
       message: "success"
     };

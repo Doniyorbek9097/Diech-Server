@@ -24,9 +24,6 @@ router.post("/product-add", checkToken, async (req, res) => {
                 }
 
                 const { _id, ...productData } = product;
-                item.barcode = product.barcode;
-                item.name = product.name;
-                item.description = product.discription;
                 item.slug = slugify(`${product.name.ru} ${generateOTP(30)}`);
                 item.discount = parseInt(((item.orginal_price - item.sale_price) / item.orginal_price) * 100);
 
