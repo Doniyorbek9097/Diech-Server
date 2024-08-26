@@ -62,13 +62,7 @@ class Category {
                 .populate({
                     path: "products",
                     options: {limit, skip: page * limit },
-                    select: ['name', 'slug', 'images', 'attributes'],
-                    populate: [
-                        {
-                            path: "details",
-                            select: ['orginal_price', 'sale_price', 'discount', 'reviews', 'rating', 'viewsCount']
-                        }
-                    ]
+                    select: ['name', 'slug', 'images', 'attributes','orginal_price', 'sale_price', 'discount', 'reviews', 'rating','viewsCount'],
                 })
 
             if (!category) {
