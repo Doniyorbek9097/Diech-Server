@@ -83,15 +83,10 @@ router.get("/products", async (req, res) => {
   
     !!viewsCount && (sort.viewsCount = -1)
     price && (sort.price = Number(price))
-
-    const populateSort = {};
-    !!disCount && (populateSort.discount = -1)
-
-
-    const populateQuery = {};
-    disCount && (populateQuery.discount = { $exists: true, $ne: 0 })
+    !!disCount && (sort.discount = -1)
 
     const query = {};
+    disCount && (query.discount = { $exists: true, $ne: 0 })
 
     if (search) {
       const options = { page: page, hitsPerPage: limit };
@@ -124,30 +119,20 @@ router.get("/products", async (req, res) => {
 
 
     let productsIds = [];
-    Boolean(random) && (productsIds = await productModel.getRandomProducts({ query, limit, sort, page }))
+    Boolean(random) && (productsIds = await shopProductModel.getRandomProducts({ query, limit, sort, page }))
     productsIds.length && (query._id = { $in: productsIds })
 
-    const totalDocuments = await productModel.countDocuments(query);
+    const totalDocuments = await shopProductModel.countDocuments(query);
     const totalPages = Math.ceil(totalDocuments / limit);
     
-    const result = await productModel.find(query)
-      .populate({
-        path: "details",
-        select: ["orginal_price", "sale_price", "discount"],
-        match: populateQuery,
-        options: {
-          sort: populateSort
-        }
-      })
-      .sort(sort)
-      .select("name slug disription images details")
-
-
-    const products = result.filter(item => !!item.details.length)
+    const result = await shopProductModel.find(query)
+    .populate("shop")
+    .sort(sort)
+    .select("name slug disription images orginal_price sale_price discount reviews viewsCount shop")
 
     const data = {
       message: "success get products",
-      products: products,
+      products: result,
       limit,
       page,
       totalPages
@@ -196,7 +181,7 @@ router.get("/product-slug/:slug", async (req, res) => {
         $addToSet: { views: user_id } // user_id mavjud bo'lmasa qo'shadi
       };
 
-      product = await productModel.findOneAndUpdate(
+      product = await shopProductModel.findOneAndUpdate(
         { "slug": slug },
         update,
         { new: true, useFindAndModify: false }
@@ -207,26 +192,14 @@ router.get("/product-slug/:slug", async (req, res) => {
 
 
 
-    product = await productModel.findOne({ slug: slug })
+    product = await shopProductModel.findOne({ slug: slug })
+      .populate("categories", "name slug")
+      .populate("shop","slug name")
       .populate({
-        path: "categories",
-        select: ['name', 'slug'],
-      })
-
-      .populate({
-        path: "details",
-        populate: [
-          {
-            path: "shop",
-            select: ['slug', 'name']
-          },
-          {
-            path: "variants",
-            populate: {
-              path: "variant"
-            }
+          path: "variants",
+          populate: {
+            path: "variant"
           }
-        ]
       })
 
 

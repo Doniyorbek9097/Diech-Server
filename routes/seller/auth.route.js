@@ -111,9 +111,6 @@ router.post("/signin", async (req, res) => {
         const user = await userModel.findOne({ phone_number: req.body.phone_number })
         .populate({
             path:"shop",
-            populate: {
-                path:"products"
-            }
         })
         
         if (!user) return res.json({

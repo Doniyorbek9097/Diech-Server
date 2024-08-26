@@ -17,15 +17,6 @@ router.get("/user/:id", checkToken, async (req, res) => {
         const user = await userModel.findById(req.params.id)
             .populate({
                 path: "shop",
-                populate: [
-                    {
-                        path: 'products',
-                        populate: "product"
-                    },
-                    {
-                        path: 'employees',
-                    }
-                ]
             });
 
 

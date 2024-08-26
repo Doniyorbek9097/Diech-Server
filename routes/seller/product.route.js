@@ -16,29 +16,28 @@ router.post("/product-add", checkToken, async (req, res) => {
     try {
         let { body: products } = req;
 
-if (Array.isArray(products)) {
-    products = await Promise.all(products.map(async (item) => { // Promise.all bilan map ichidagi async funktsiyani kutish
-        console.log(item);
-        const product = await productModel.findById(item.parent).lean();
-        console.log(product);
-        if (!product) {
-            throw new Error(`Product not found for parent ID: ${item.parent}`);
+        if (Array.isArray(products)) {
+            products = await Promise.all(products.map(async (item) => { // Promise.all bilan map ichidagi async funktsiyani kutish
+                const product = await productModel.findById(item.parent).lean();
+                if (!product) {
+                    throw new Error(`Product not found for parent ID: ${item.parent}`);
+                }
+
+                const { _id, ...productData } = product;
+                item.barcode = product.barcode;
+                item.name = product.name;
+                item.description = product.discription;
+                item.slug = slugify(`${product.name.ru} ${generateOTP(30)}`);
+                item.discount = parseInt(((item.orginal_price - item.sale_price) / item.orginal_price) * 100);
+
+                if (isNaN(item.discount)) item.discount = 0;
+
+                return {
+                    ...productData,
+                    ...item,
+                };
+            }));
         }
-
-        const { _id, ...productData } = product;
-
-        item.barcode = product.barcode;
-        item.name = product.name;
-        item.discount = parseInt(((item.orginal_price - item.sale_price) / item.orginal_price) * 100);
-        
-        if (isNaN(item.discount)) item.discount = 0;
-
-        return {
-            ...productData,
-            ...item
-        };
-    }));
-}
 
 
         const newProduct = await shopProductModel.insertMany(products)
@@ -68,13 +67,11 @@ router.get("/product-all", async (req, res) => {
             ]
         }
 
+
         const totalDocuments = await shopProductModel.countDocuments(query)
         const totalPages = Math.ceil(totalDocuments / limit);
 
         let products = await shopProductModel.find(query)
-            .populate({
-                path: "product",
-            })
             .skip(page * limit)
             .limit(limit)
             .sort({ _id: -1 })
@@ -234,8 +231,8 @@ router.get('/replace', async (req, res) => {
         const products = await productModel.find().lean();
         let totalModifiedCount = 0;
         for (const product of products) {
-            const {_id, ...productData} = product;
-            const result = await shopProductModel.updateMany({product: product._id}, {
+            const { _id, ...productData } = product;
+            const result = await shopProductModel.updateMany({ product: product._id }, {
                 $rename: {
                     product: "parent"
                 },
@@ -248,7 +245,7 @@ router.get('/replace', async (req, res) => {
 
             totalModifiedCount += result.modifiedCount;
         }
-        
+
         res.status(200).send(`Fields renamed successfully. Modified count: ${totalModifiedCount}`);
     } catch (error) {
         console.log(error);
@@ -262,22 +259,22 @@ router.get('/replaced', async (req, res) => {
         const products = await productModel.find().select('method_sale').lean();
 
         for (const item of products) {
-            if(item.method_sale == true) {
-                await productModel.updateOne({_id: item._id}, {
-                    $set:{
+            if (item.method_sale == true) {
+                await productModel.updateOne({ _id: item._id }, {
+                    $set: {
                         method_sale: 'weight'
                     }
                 })
             } else {
-                await productModel.updateOne({_id: item._id}, {
-                    $set:{
+                await productModel.updateOne({ _id: item._id }, {
+                    $set: {
                         method_sale: 'piece'
                     }
                 })
             }
         }
-       
-        
+
+
         res.status(200).send(`Fields renamed successfully. Modified `);
     } catch (error) {
         console.log(error);
