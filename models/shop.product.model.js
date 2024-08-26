@@ -42,6 +42,10 @@ const shopProductsSchema = Schema({
     }, 
 
     slug: String,
+    categories: [{
+        type: Schema.Types.ObjectId,
+        ref: "Category"
+    }],
     name: {
         type:String,
         intl:true
@@ -54,15 +58,15 @@ const shopProductsSchema = Schema({
         type: String,
         intl: true
     },
-
-    
+    method_sale: {
+        type: String,
+        enum:["piece", "weight"],
+        default: "piece"
+    },
     images: [],
     properteis: [propertiesSchema],
 
-    categories: [{
-        type: Schema.Types.ObjectId,
-        ref: "Category"
-    }],
+    
 
     barcode:String,
     discount: Number,

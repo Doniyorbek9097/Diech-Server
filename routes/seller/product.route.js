@@ -14,18 +14,32 @@ const { generateOTP } = require("../../utils/otpGenrater")
 router.post("/product-add", checkToken, async (req, res) => {
     redisClient.FLUSHALL()
     try {
-        const { body: products } = req;
-        if (Array.isArray(products)) {
-            for (const item of products) {
-                const product = await productModel.findById(item.product).lean();
-                const {_id, ...productData} = product;
-                item.barcode = product.barcode;
-                item.name = product.name;
-                item.discount = parseInt(((item.orginal_price - item.sale_price) / item.orginal_price) * 100);
-                if (isNaN(item.discount)) item.discount = 0;
-                
-            }
+        let { body: products } = req;
+
+if (Array.isArray(products)) {
+    products = await Promise.all(products.map(async (item) => { // Promise.all bilan map ichidagi async funktsiyani kutish
+        console.log(item);
+        const product = await productModel.findById(item.parent).lean();
+        console.log(product);
+        if (!product) {
+            throw new Error(`Product not found for parent ID: ${item.parent}`);
         }
+
+        const { _id, ...productData } = product;
+
+        item.barcode = product.barcode;
+        item.name = product.name;
+        item.discount = parseInt(((item.orginal_price - item.sale_price) / item.orginal_price) * 100);
+        
+        if (isNaN(item.discount)) item.discount = 0;
+
+        return {
+            ...productData,
+            ...item
+        };
+    }));
+}
+
 
         const newProduct = await shopProductModel.insertMany(products)
         return res.status(200).json({ data: newProduct, message: "success added" });
@@ -241,6 +255,36 @@ router.get('/replace', async (req, res) => {
         res.status(500).send('An error occurred');
     }
 });
+
+
+router.get('/replaced', async (req, res) => {
+    try {
+        const products = await productModel.find().select('method_sale').lean();
+
+        for (const item of products) {
+            if(item.method_sale == true) {
+                await productModel.updateOne({_id: item._id}, {
+                    $set:{
+                        method_sale: 'weight'
+                    }
+                })
+            } else {
+                await productModel.updateOne({_id: item._id}, {
+                    $set:{
+                        method_sale: 'piece'
+                    }
+                })
+            }
+        }
+       
+        
+        res.status(200).send(`Fields renamed successfully. Modified `);
+    } catch (error) {
+        console.log(error);
+        res.status(500).send('An error occurred');
+    }
+});
+
 
 
 module.exports = router;
