@@ -85,7 +85,7 @@ class Category {
         
             const products = await shopProductModel.find(query)
             .skip(page * limit)
-            limit(limit)
+            .limit(limit)
         
             const data = {
                 message: "success",
