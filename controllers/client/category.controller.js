@@ -77,6 +77,7 @@ class Category {
             let sort = {};
 
 
+            const totalProducts = await shopProductModel.countDocuments(query)
             let productsIds = [];
             (productsIds = await categoryModel.getRandomProducts({ query, limit, page, sort }))
             productsIds.length && (query._id = { $in: productsIds })
@@ -85,7 +86,7 @@ class Category {
         
             const data = {
                 message: "success",
-                totalPage: Math.ceil(productsIds.length / limit),
+                totalPage: Math.ceil(totalProducts / limit),
                 page: page + 1,
                 limit,
                 category,
