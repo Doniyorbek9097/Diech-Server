@@ -1,6 +1,8 @@
+const mongoose = require("mongoose")
 const categoryModel = require("../../models/category.model");
 const { redisClient } = require("../../config/redisDB");
 const _ = require('lodash');
+const shopProductModel = require("../../models/shop.product.model");
 
 class Category {
     async all(req, res) {
@@ -47,6 +49,8 @@ class Category {
             let limit = parseInt(req.query?.limit) || 10;
             let { search = "" } = req.query;
             const { lang = "" } = req.headers;
+            const random = Boolean(req.query.random)
+
             redisClient.FLUSHALL()
 
             const cacheKey = `category-slug:${lang}:${slug}:${page}:${limit}:${search}`;
@@ -59,11 +63,6 @@ class Category {
                     path: "children",
                     select: ['image', 'slug', 'name', 'icon'],
                 })
-                .populate({
-                    path: "products",
-                    options: {limit, skip: page * limit },
-                    select: ['name', 'slug', 'images', 'attributes','orginal_price', 'sale_price', 'discount', 'reviews', 'rating','viewsCount'],
-                })
 
             if (!category) {
                 return res.json({ error: 'Category not found' });
@@ -74,21 +73,23 @@ class Category {
             // const [minPrice = 0, maxPrice = Number.MAX_VALUE] = price ? price.split(',').map(Number) : [];
             // let products = await shopProductModel.find({categories:{$in: category._id}, orginal_price: { $gte: minPrice, $lte: maxPrice }}).populate("product")
 
+            let query = { categories: { $in: [new mongoose.Types.ObjectId(category._id)] } };
+            let sort = {};
 
-            // To'liq mahsulotlar sonini olish
-            const totalProductsCount = await categoryModel.findOne({ slug })
-            .populate({
-                path: "products",
-                select: '_id'  // Faqat ID-larni olish orqali mahsulotlar sonini hisoblash
-            })
-            .then(category => category.products.length);
 
+            let productsIds = [];
+            (productsIds = await categoryModel.getRandomProducts({ query, limit, page, sort }))
+            productsIds.length && (query._id = { $in: productsIds })
+        
+            const products = await shopProductModel.find(query)
+        
             const data = {
                 message: "success",
-                totalPage: Math.ceil(totalProductsCount / limit),
+                totalPage: Math.ceil(productsIds.length / limit),
                 page: page + 1,
                 limit,
                 category,
+                products
             }
 
             redisClient.SETEX(cacheKey, 3600, JSON.stringify(data))

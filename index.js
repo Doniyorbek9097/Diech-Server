@@ -1,5 +1,3 @@
-const http2 = require('http2');
-const path = require('path');
 const http = require("http");
 const fs = require('fs')
 const express = require("express");
@@ -16,20 +14,19 @@ require("./prototypes")
 // require("./bot");
 require('./testbot')
 
-
-
 const { serverDB } = require("./config/db")
 
 const mongoose = require("mongoose");
 const app = express();
 
-// const server = http.createServer(app);
-// const io = new Server(server, {
-//     cors: {
-//         origin:"*",
-//         methods: "*"
-//     }
-// })
+
+const server = http.createServer(app);
+const io = new Server(server, {
+    cors: {
+        origin:"*",
+        methods: "*"
+    }
+})
 
 
 
@@ -83,31 +80,24 @@ app.use("/", (req, res, next) => {
 
 
 // Socket.io bilan ishlash uplanish
-// io.on('connection', (socket) => {
-//     // console.log('Foydalanuvchi bog\'landi '+ socket.id);
+io.on('connection', (socket) => {
+    // console.log('Foydalanuvchi bog\'landi '+ socket.id);
     
-//     socket.on("add:category", (data) => {
-//         io.emit("add:category", data)
-//     })
+    socket.on("add:category", (data) => {
+        io.emit("add:category", data)
+    })
 
-//     socket.on("delete:category", (data) => {
-//         io.emit("delete:category", data)
-//     })
-
-
-//     socket.on('disconnect', () => {
-//         console.log('Foydalanuvchi ayirildi');
-//     });
-// });
+    socket.on("delete:category", (data) => {
+        io.emit("delete:category", data)
+    })
 
 
-// Sertifikat va kalit fayllarini yuklash (Self-signed yoki TLS sertifikati kerak)
-const options = {
-    key: fs.readFileSync(path.join(__dirname, 'ssl', 'server.key')),
-    cert: fs.readFileSync(path.join(__dirname, 'ssl', 'server.crt'))
-  };
+    socket.on('disconnect', () => {
+        console.log('Foydalanuvchi ayirildi');
+    });
+});
 
-const server = http2.createSecureServer(options, app);
+
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`server is runinng on port ${PORT}`))
