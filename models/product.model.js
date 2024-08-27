@@ -90,6 +90,10 @@ const productSchema = Schema({
         type: String,
         required: true
     },
+    description: {
+        type: String,
+        intl: true,
+    },
 
     discription: {
         type: String,

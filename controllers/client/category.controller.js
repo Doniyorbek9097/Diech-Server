@@ -49,7 +49,6 @@ class Category {
             let limit = parseInt(req.query?.limit) || 10;
             let { search = "" } = req.query;
             const { lang = "" } = req.headers;
-            const random = Boolean(req.query.random)
 
             redisClient.FLUSHALL()
 
@@ -78,7 +77,7 @@ class Category {
 
 
             const totalProducts = await shopProductModel.countDocuments(query)
-            console.log(totalProducts);
+        
             let productsIds = [];
             (productsIds = await categoryModel.getRandomProducts({ query, limit, page, sort }))
             productsIds.length && (query._id = { $in: productsIds })

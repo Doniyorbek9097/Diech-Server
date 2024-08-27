@@ -7,6 +7,7 @@ const catalogSchema = Schema({
         intl: true
     },
 
+    bg_color: String,
     color: String,
     images: [String],
 

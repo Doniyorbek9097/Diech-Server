@@ -50,6 +50,7 @@ const shopProductsSchema = Schema({
         type:String,
         intl:true
     },
+    
     description: {
         type: String,
         intl: true

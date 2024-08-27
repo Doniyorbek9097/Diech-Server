@@ -253,7 +253,7 @@ router.get('/replace', async (req, res) => {
 
 router.get('/replaced', async (req, res) => {
     try {
-        const products = await productModel.find().select('_id').lean();
+        const products = await productModel.find().select('_id name').lean();
 
         for (const item of products) {
                 await productModel.updateOne({ _id: item._id }, {
