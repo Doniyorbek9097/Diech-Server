@@ -24,7 +24,7 @@ subscribeScene.enter(async (ctx) => {
 
         let user = await userModel.findOne({ 'userid': ctx.from.id });
         if (user && !nonMembers.includes("left")) {
-            if (user.isAdmin) return ctx.scene.enter("admin");
+            if (user.isAdmin) return ctx.scene.enter("adminScene");
             return ctx.scene.enter("registerScene")
         }
 

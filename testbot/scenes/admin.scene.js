@@ -67,7 +67,9 @@ adminScene.hears("📢 Kanallar", async (ctx) => {
         
         const keyboard = Markup.keyboard([
             ["Qo'shish"],
-            ["O'chirish"], 
+            ["O'chirish"],
+            ["🔙 Bekor qilish"],
+
         ]).resize()
 
         await ctx.replyWithHTML(txt, keyboard)
@@ -88,6 +90,7 @@ adminScene.hears("O'chirish", async ctx => {
     return ctx.scene.enter("removeChannelScene")
 })
 
+adminScene.hears("🔙 Bekor qilish", (ctx) => ctx.scene.enter("adminScene"))
 
 
 module.exports = adminScene;
