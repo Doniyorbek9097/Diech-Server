@@ -2,10 +2,11 @@ const { Scenes: { WizardScene }, Markup } = require("telegraf");
 const userModel = require("../models/user.model")
 
 
-const register = new WizardScene("register",
+const registerScene = new WizardScene("registerScene",
     async (ctx) => {
         const user = await userModel.findOne({userid: ctx.chat.id})
-        if(user) return ctx.scene.enter("homeScene")
+        if(user?.isAdmin) return ctx.scene.enter("adminScene")
+        else if(user) return ctx.scene.enter("homeScene")
         ctx.wizard.state.user = {};
         ctx.wizard.state.user.userid = ctx.chat.id;
         ctx.reply("Ismingizni kiriting")
@@ -29,9 +30,9 @@ const register = new WizardScene("register",
 )
 
 
-register.use((ctx, next) => {
+registerScene.use((ctx, next) => {
     if(!ctx?.message?.text) return;
     next()
 })
 
-module.exports = register;
+module.exports = registerScene;

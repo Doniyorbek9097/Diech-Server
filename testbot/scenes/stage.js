@@ -3,7 +3,11 @@ const { Scenes:{Stage} } = require("telegraf");
 const stage = new Stage([
     require("./start.scene"),
     require("./register.scene"),
+    require("./subscribe.scene"),
+
     require("./home.scene"),
+    require("./admin.scene"),
+
     
     require("./question/menu"),
     require("./question/simple"),
@@ -20,6 +24,11 @@ const stage = new Stage([
     require("./certificate.scene"),
     require("./settings.scene"),
     require("./templates.scene"),
+    require("./send.scene"),
+
+    require("./addchannel.scene"),
+    require("./removechannel.scene")
+
     
 
 

@@ -1,6 +1,4 @@
 const { Scenes:{BaseScene}, Markup } = require("telegraf");
-const { hears } = require("./answer.scene");
-
 
 const homeScene = new BaseScene("homeScene")
 

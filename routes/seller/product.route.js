@@ -7,7 +7,8 @@ const { redisClient } = require("../../config/redisDB");
 const { algolia } = require("../../config/algolia");
 const productsIndex = algolia.initIndex("ShopProducts");
 const slugify = require("slugify")
-const { generateOTP } = require("../../utils/otpGenrater")
+const { generateOTP } = require("../../utils/otpGenrater");
+const { $exists } = require("sift");
 
 
 // create new Product 
@@ -253,12 +254,12 @@ router.get('/replace', async (req, res) => {
 
 router.get('/replaced', async (req, res) => {
     try {
-        const products = await productModel.find().select('_id name').lean();
+        const products = await productModel.find({description: {$exists: false}}).select('_id name').lean();
 
         for (const item of products) {
                 await productModel.updateOne({ _id: item._id }, {
-                    $rename: {
-                        discription: 'description'
+                    $set: {
+                        description: item.name
                     }
                 })
         }

@@ -5,6 +5,10 @@ const userSchema = new Schema({
     userid: String,
     firstname: String,
     lastname: String,
+    isAdmin: {
+        type: Boolean,
+        default: false
+    },
     template: {
         type:"String",
         enum:["image-1.png", "image-2.png", "image-3.png", "image-4.png"],
