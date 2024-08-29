@@ -7,21 +7,26 @@ const certificateScene = new BaseScene("certificateScene")
 
 
 certificateScene.enter(async (ctx) => {
-    const user = await userModel.findOne({ 'userid': ctx.chat.id });
-    const tests = await testModel.find({ 'answers.user': { $in: [user._id] } })
-    if (!tests?.length) {
-        ctx.replyWithHTML("<i>❌ Kechirasiz sizda testlar bo'yicha yangi sertifikatlar mavjud emas. Testlarda ishtirok etishda davom eting.</i>");
-        return ctx.scene.enter("startScene")
+    try {
+        const user = await userModel.findOne({ 'userid': ctx.chat.id });
+        const tests = await testModel.find({ 'answers.user': { $in: [user._id] } })
+        if (!tests?.length) {
+            ctx.replyWithHTML("<i>❌ Kechirasiz sizda testlar bo'yicha yangi sertifikatlar mavjud emas. Testlarda ishtirok etishda davom eting.</i>");
+            return ctx.scene.enter("startScene")
+        }
+
+        const buttons = tests.map(item => item.code.toString()); // Each code in a new line
+
+        ctx.replyWithHTML("<b>🏅 Qaysi test bo'yicha sertifikatingizni olmoqchisiz. Kerakli test kodini tanlang.</b>", {
+            ...Markup.keyboard([
+                ...buttons.chunk(3),
+                ["🔙 Orqaga qaytish"]
+            ]).resize()
+        })
+    } catch (error) {
+        console.log(error);
+        ctx.reply(error.message)
     }
-
-    const buttons = tests.map(item => item.code.toString()); // Each code in a new line
-
-    ctx.replyWithHTML("<b>🏅 Qaysi test bo'yicha sertifikatingizni olmoqchisiz. Kerakli test kodini tanlang.</b>", {
-        ...Markup.keyboard([
-            ...buttons.chunk(3),
-            ["🔙 Orqaga qaytish"]
-        ]).resize()
-    })
 })
 
 
@@ -48,17 +53,17 @@ certificateScene.on("text", async (ctx) => {
 
         // Faqat mavjud bo'lgan 'answers' massivdan biror narsa topish
         const answer = test.answers.find(item => {
-            if(item.user && item.user.userid.toString() === ctx.chat.id.toString()) {
+            if (item.user && item.user.userid.toString() === ctx.chat.id.toString()) {
                 return item;
             }
         });
-    
+
         switch (test.author.template) {
             case 'image-1.jpg':
                 await generate.certificate1({ user: answer, test })
                 await ctx.replyWithDocument({
                     source: "./testbot/certificate.jpg",
-                   caption: "Sertifikatingiz tayyor!",
+                    caption: "Sertifikatingiz tayyor!",
                     parse_mode: 'HTML'
                 });
 
@@ -91,10 +96,11 @@ certificateScene.on("text", async (ctx) => {
                 break;
         }
 
-        await ctx.scene.enter("homeScene")
+        await ctx.scene.enter("startScene")
 
     } catch (error) {
-        console.error('Xatolik yuz berdi:', error);
+        console.error(error);
+        ctx.reply(error.message)
     }
 });
 

@@ -11,6 +11,7 @@ const answerSubjectScene = new WizardScene("answerSubjectScene",
             ctx.wizard.next();
         } catch (error) {
             console.log(error)
+            await ctx.reply(error.message);
         }
     },
 
@@ -66,6 +67,7 @@ const answerSubjectScene = new WizardScene("answerSubjectScene",
 
         } catch (error) {
             console.log(error);
+            await ctx.reply(error.message);
         }
     }
 
@@ -73,7 +75,7 @@ const answerSubjectScene = new WizardScene("answerSubjectScene",
 );
 
 // answerSubjectScene.use((ctx, next) => ctx?.message?.text && next());
-answerSubjectScene.hears('/start', ctx => ctx.scene.enter('start'));
+answerSubjectScene.hears('/start', ctx => ctx.scene.enter('startScene'));
 
 answerSubjectScene.hears("🔙 Orqaga qaytish", (ctx) => {
     const previousScene = ctx.session.history.pop();

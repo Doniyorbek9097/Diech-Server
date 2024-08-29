@@ -16,39 +16,32 @@ bot.use(stage.middleware())
 bot.start(ctx => ctx.scene.enter("startScene"));
 
 bot.on("callback_query", async (ctx) => {
-  try {
-      const query = ctx.callbackQuery.data;
-      const queryArray = query.split("-");
+    try {
+        const query = ctx.callbackQuery.data;
+        const queryArray = query.split("-");
 
-      const [event, testId, userId] = queryArray;
-      
-      if (event == "stat") {
-          const test = await testModel.findOne({ '_id': testId, 'answers.user': userId })
-              .populate({
-                  path: "answers.user",
-              })
+        const [event, testId, userId] = queryArray;
 
-          await ctx.reply("test yaklandi")
-          await ctx.scene.enter("homeScene")
-      }
+        if (event == "stat") {
+            const test = await testModel.findOne({ '_id': testId, 'answers.user': userId }).populate('answers.user');
+            await ctx.reply("hozircha test stat ishlamaydi")
+            await ctx.scene.enter("startScene")
+        }
 
-      if (event == "closed") {
-          try {
-              await testModel.findOneAndUpdate({ '_id': testId }, { 'closed': true });
-              await ctx.reply("test yaklandi")
-              await ctx.scene.enter("homeScene")
-          } catch (error) {
-              console.log(error)
-          }
-      }
+        if (event == "closed") {
+            await testModel.findOneAndUpdate({ '_id': testId }, { 'closed': true });
+            await ctx.reply("test yaklandi")
+            await ctx.scene.enter("startScene")
+        }
 
-  } catch (error) {
-      console.log(error)
-  }
+    } catch (error) {
+        console.log(error)
+        await ctx.reply(error.message)
+    }
 
 })
 
 
 bot
-.launch(() => console.log("bot ishga tushdi"))
-.catch((err) => console.log("Botga ulanib bo'lmadi"))
+    .launch(() => console.log("bot ishga tushdi"))
+    .catch((err) => console.log("Botga ulanib bo'lmadi"))

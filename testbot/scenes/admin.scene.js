@@ -40,12 +40,17 @@ adminScene.hears("⚙️ Sozlamalar", async (ctx) => {
 })
 
 adminScene.hears("📊 Statistika", async (ctx) => {
-    ctx.session.history.push(ctx.scene.current.id)
+    try {
+        ctx.session.history.push(ctx.scene.current.id)
     const user = await userModel.findOne({ 'userid': ctx.chat.id })
     if (!user) return;
     const totalDocuments = await userModel.countDocuments()
     const text = `<b>Bot azolari hozirda:</b> ${totalDocuments} ta`;
     await ctx.replyWithHTML(text)
+    } catch (error) {
+        console.log(error);
+        await ctx.replyWithHTML(text)
+    }
 })
 
 
@@ -76,6 +81,7 @@ adminScene.hears("📢 Kanallar", async (ctx) => {
 
     } catch (error) {
         console.log(error)
+        await ctx.reply(error.message)
     }
 })
 
@@ -90,7 +96,7 @@ adminScene.hears("O'chirish", async ctx => {
     return ctx.scene.enter("removeChannelScene")
 })
 
-adminScene.hears("🔙 Bekor qilish", (ctx) => ctx.scene.enter("adminScene"))
+adminScene.hears("🔙 Bekor qilish", (ctx) => ctx.scene.enter("startScene"))
 
 
 module.exports = adminScene;

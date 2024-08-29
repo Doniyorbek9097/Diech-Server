@@ -5,31 +5,42 @@ const { format } = require('date-fns');
 
 const answerSpecialScene = new WizardScene("answerSpecialScene",
     async (ctx) => {
-        await ctx.replyWithHTML('✍️ Test kodini yuboring.');
-        ctx.wizard.next();
+        try {
+            await ctx.replyWithHTML('✍️ Test kodini yuboring.');
+            ctx.wizard.next();
+        } catch (error) {
+            console.log(error)
+            await ctx.reply(error.message);
+        }
     },
 
     async (ctx) => {
-        if (isNaN(ctx.message.text)) return ctx.reply("raqam bo'lishi kerak");
-        const test = await testModel.findOne({ code: ctx.message.text })
-        .populate({
-            path: "answers.user",
-            match: { 'userid': ctx.chat.id }
-        })
-        .populate("author");
+        try {
+            if (isNaN(ctx.message.text)) return ctx.reply("raqam bo'lishi kerak");
+            const test = await testModel.findOne({ code: ctx.message.text })
+                .populate({
+                    path: "answers.user",
+                    match: { 'userid': ctx.chat.id }
+                })
+                .populate("author");
 
-        if (!test) return ctx.replyWithHTML("<b>❗️ Test kodi noto'g'ri, tekshirib qaytadan yuboring.</b>");
-        if (test.closed) return ctx.replyWithHTML("<b>❗️ Test yakunlangan, javob yuborishda kechikdingiz. Keyingi testlarda faol bo'lishingizni so'raymiz.</b>");
+            if (!test) return ctx.replyWithHTML("<b>❗️ Test kodi noto'g'ri, tekshirib qaytadan yuboring.</b>");
+            if (test.closed) return ctx.replyWithHTML("<b>❗️ Test yakunlangan, javob yuborishda kechikdingiz. Keyingi testlarda faol bo'lishingizni so'raymiz.</b>");
 
-        const foundUser = test.answers.find(item => item.user?.userid.toString() == ctx.chat.id.toString())
-        if (foundUser) {
-            let text = `<b>🔴 Ushbu testda avval qatnashgansiz</b>\n<b>💡Natijangiz:</b>\n<b>✅ To'g'ri javoblar:</b> ${foundUser.correctAnswerCount} ta\n<b>❌ Noto'g'ri javoblar:</b> ${foundUser.wrongAnswerCount} ta\n<b>📊 Sifat:</b> ${foundUser.ball}%\n\n${foundUser.status}`;
-            return ctx.replyWithHTML(text);
+            const foundUser = test.answers.find(item => item.user?.userid.toString() == ctx.chat.id.toString())
+            if (foundUser) {
+                let text = `<b>🔴 Ushbu testda avval qatnashgansiz</b>\n<b>💡Natijangiz:</b>\n<b>✅ To'g'ri javoblar:</b> ${foundUser.correctAnswerCount} ta\n<b>❌ Noto'g'ri javoblar:</b> ${foundUser.wrongAnswerCount} ta\n<b>📊 Sifat:</b> ${foundUser.ball}%\n\n${foundUser.status}`;
+                return ctx.replyWithHTML(text);
+            }
+
+            ctx.wizard.state.test = test;
+            await ctx.replyWithHTML(`<b>✍️ ${test.code} kodli testda ${test.keyword.length} ta kalit mavjud. Marhamat, o'z javoblaringizni yuboring.</b>\n\nM-n: abcd yoki 1a2b3c4d`);
+            ctx.wizard.next();
+        } catch (error) {
+            console.log(error);
+            await ctx.reply(error.message);
+
         }
-
-        ctx.wizard.state.test = test;
-        await ctx.replyWithHTML(`<b>✍️ ${test.code} kodli testda ${test.keyword.length} ta kalit mavjud. Marhamat, o'z javoblaringizni yuboring.</b>\n\nM-n: abcd yoki 1a2b3c4d`);
-        ctx.wizard.next();
     },
 
     async (ctx) => {
@@ -54,7 +65,7 @@ const answerSpecialScene = new WizardScene("answerSpecialScene",
             const user = await userModel.findOne({ userid: ctx.chat.id });
             const date = format(new Date(), 'dd.MM.yyyy HH:mm:ss');
 
-          await testModel.findByIdAndUpdate(test._id, {
+            await testModel.findByIdAndUpdate(test._id, {
                 $push: {
                     answers: {
                         user: user._id,
@@ -72,7 +83,7 @@ const answerSpecialScene = new WizardScene("answerSpecialScene",
 
             const userText = `<b>💡 Natijangiz:</b>\n<b>✅ To'g'ri javoblar:</b> ${correctCount} ta\n<b>❌ Noto'g'ri javoblar:</b> ${incorrectCount} ta\n<b>📊 Sifat:</b> ${ball}%\n\n${result}`;
             const authorText = `${test.code} kodli oddiy testda ${user?.firstname} ${user?.lastname} qatnashdi!\n✅ Natija: ${correctCount} ta\n🎯 Sifat darajasi: ${ball}%\n⏱️ ${date}`;
-        
+
             await ctx.replyWithHTML(userText);
             await ctx.telegram.sendMessage(test.author.userid, authorText, {
                 ...Markup.inlineKeyboard([
@@ -84,6 +95,7 @@ const answerSpecialScene = new WizardScene("answerSpecialScene",
 
         } catch (error) {
             console.log(error);
+            await ctx.reply(error.message);
         }
     }
 
@@ -91,7 +103,7 @@ const answerSpecialScene = new WizardScene("answerSpecialScene",
 );
 
 // answerSpecialScene.use((ctx, next) => ctx?.message?.text && next());
-answerSpecialScene.hears('/start', ctx => ctx.scene.enter('start'));
+answerSpecialScene.hears('/start', ctx => ctx.scene.enter('startScene'));
 
 answerSpecialScene.hears("🔙 Orqaga qaytish", (ctx) => {
     const previousScene = ctx.session.history.pop();

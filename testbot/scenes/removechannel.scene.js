@@ -12,6 +12,7 @@ const removeChannelScene = new WizardScene(
             ctx.wizard.next()
         } catch (error) {
             console.log(error)
+            await ctx.replyWithHTML(error.message)
         }
     },
 
@@ -26,6 +27,7 @@ const removeChannelScene = new WizardScene(
             return ctx.scene.enter("startScene");
         } catch (error) {
             console.log(error)
+            await ctx.replyWithHTML(error.message)
         }
     }
 

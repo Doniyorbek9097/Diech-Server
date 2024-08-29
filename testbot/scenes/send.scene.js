@@ -12,6 +12,7 @@ const sendScene = new WizardScene('sendScene',
             ctx.wizard.next();
         } catch (error) {
             console.log(error)
+            await ctx.replyWithHTML(error.message)
         }
     },
 
@@ -30,6 +31,7 @@ const sendScene = new WizardScene('sendScene',
             return ctx.scene.enter("adminScene");
         } catch (error) {
             console.log(error)
+            await ctx.replyWithHTML(error.message)
         }
     },
 )

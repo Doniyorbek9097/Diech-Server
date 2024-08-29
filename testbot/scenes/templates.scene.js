@@ -25,19 +25,23 @@ templatesScene.hears("3", (ctx) => getCertificate(ctx))
 templatesScene.hears("4", (ctx) => getCertificate(ctx))
 
 const getCertificate = async (ctx) => {
-    const imageMap = {'1': 'image-1.jpg', '2': 'image-2.jpg', '3': 'image-3.jpg', '4': 'image-4.jpg'};
-    const imagePath = imageMap[ctx.message.text] || 'image-1.jpg';
-    const updateUser = await userModel.findOneAndUpdate({ 'userid': ctx.chat.id }, { 'template': imagePath })
-    .catch((err) => console.log(err))
-    
-    const text = "<b>✅ Yaxshi endi ushbu sertifikat siz tuzadigan test qatnashchilariga beriladi.</b>";
-    await ctx.replyWithPhoto({ source: `./testbot/certificates/instructions/${imagePath}` }, {
-        caption: text, 
-        parse_mode: 'HTML',
-    })
+    try {
+        const imageMap = { '1': 'image-1.jpg', '2': 'image-2.jpg', '3': 'image-3.jpg', '4': 'image-4.jpg' };
+        const imagePath = imageMap[ctx.message.text] || 'image-1.jpg';
+        const updateUser = await userModel.findOneAndUpdate({ 'userid': ctx.chat.id }, { 'template': imagePath })
+            .catch((err) => console.log(err))
 
-    await ctx.scene.enter("startScene");
-    
+        const text = "<b>✅ Yaxshi endi ushbu sertifikat siz tuzadigan test qatnashchilariga beriladi.</b>";
+        await ctx.replyWithPhoto({ source: `./testbot/certificates/instructions/${imagePath}` }, {
+            caption: text,
+            parse_mode: 'HTML',
+        })
+
+        await ctx.scene.enter("startScene");
+    } catch (error) {
+        console.log(error);
+        ctx.reply(error.message)
+    }
 }
 
 

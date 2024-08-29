@@ -9,13 +9,13 @@ subscribeScene.enter(async (ctx) => {
         const channels = await channelModel.find();
         let nonMembers = [];
 
-        if(!channels?.length) return ctx.scene.enter("registerScene");
-        
+        if (!channels?.length) return ctx.scene.enter("registerScene");
+
         for (const channel of channels) {
             const botId = ctx.botInfo.id;
-           
+
             const nonMembersBot = await ctx.telegram.getChatMember(channel.username, botId)
-            .catch(err => ctx.scene.enter("registerScene"));
+                .catch(err => ctx.scene.enter("registerScene"));
 
             let nonMembersUser = await ctx.telegram.getChatMember(channel.username, ctx.from.id)
             if (nonMembersUser.status == 'left') nonMembers.push(nonMembersUser.status);
@@ -60,6 +60,7 @@ subscribeScene.enter(async (ctx) => {
 
     } catch (error) {
         console.log(error);
+        ctx.reply(error.message)
     }
 
 });
@@ -67,17 +68,22 @@ subscribeScene.enter(async (ctx) => {
 
 
 subscribeScene.action("subscribeScened", async ctx => {
-    const channels = await channelModel.find();
-    let nonMembers = [];
+    try {
+        const channels = await channelModel.find();
+        let nonMembers = [];
 
-    for (const channel of channels) {
-        let mem = await ctx.telegram.getChatMember(channel.username, ctx.from.id);
-        if (mem.status == 'left') nonMembers.push(mem.status);
+        for (const channel of channels) {
+            let mem = await ctx.telegram.getChatMember(channel.username, ctx.from.id);
+            if (mem.status == 'left') nonMembers.push(mem.status);
+        }
+
+        if (nonMembers.includes("left"))
+            return ctx.answerCbQuery("Botdan foydalanish uchun ko'rsatilgan kanallarga obuna bo'ling!", { show_alert: true });
+        return ctx.scene.enter("registerScene")
+    } catch (error) {
+        console.log(error);
+        ctx.reply(error.message)
     }
-
-    if (nonMembers.includes("left"))
-        return ctx.answerCbQuery("Botdan foydalanish uchun ko'rsatilgan kanallarga obuna bo'ling!", { show_alert: true });
-    return ctx.scene.enter("registerScene")
 
 })
 

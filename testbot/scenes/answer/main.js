@@ -5,9 +5,13 @@ const userModel = require("../../models/user.model");
 
 const answerMainScene = new WizardScene("answerMainScene",
     async (ctx) => {
-        const keyboard = Markup.keyboard([['🔙 Orqaga qaytish']]).resize();
-        await ctx.replyWithHTML('✍️ Test kodini yuboring.', keyboard);
-        ctx.wizard.next();
+        try {
+            const keyboard = Markup.keyboard([['🔙 Orqaga qaytish']]).resize();
+            await ctx.replyWithHTML('✍️ Test kodini yuboring.', keyboard);
+            ctx.wizard.next();
+        } catch (error) {
+            console.log(error);
+        }
     },
 
     async (ctx) => {
@@ -34,22 +38,22 @@ const answerMainScene = new WizardScene("answerMainScene",
             }
 
             if (test.photo) {
-                ctx.session.history.push(ctx.scene.current.id) 
+                ctx.session.history.push(ctx.scene.current.id)
                 return ctx.scene.enter("answerSpecialScene", { test });
             }
 
             if (test.keywords.length) {
-                ctx.session.history.push(ctx.scene.current.id) 
+                ctx.session.history.push(ctx.scene.current.id)
                 return ctx.scene.enter("answerMultipleScene", { test });
             }
 
             if (test.title) {
-                ctx.session.history.push(ctx.scene.current.id) 
+                ctx.session.history.push(ctx.scene.current.id)
                 return ctx.scene.enter("answerSubjectScene", { test });
             }
 
             else {
-                ctx.session.history.push(ctx.scene.current.id) 
+                ctx.session.history.push(ctx.scene.current.id)
                 return ctx.scene.enter("answerSimpleScene", { test })
             }
 
@@ -57,13 +61,14 @@ const answerMainScene = new WizardScene("answerMainScene",
 
         } catch (error) {
             console.log(error)
+            await ctx.reply(error.message);
         }
     }
 );
 
 
 // answerMainScene.use((ctx, next) => ctx?.message?.text && next());
-answerMainScene.hears('/start', ctx => ctx.scene.enter('start'));
+answerMainScene.hears('/start', ctx => ctx.scene.enter('startScene'));
 
 answerMainScene.hears("🔙 Orqaga qaytish", (ctx) => {
     const previousScene = ctx.session.history.pop();

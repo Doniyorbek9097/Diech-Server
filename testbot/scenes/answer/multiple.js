@@ -16,6 +16,7 @@ const answerMultipleScene = new WizardScene("answerMultipleScene",
             ctx.wizard.next();
         } catch (error) {
             console.log(error)
+            await ctx.reply(error.message);
         }
     },
     async (ctx) => {
@@ -94,17 +95,18 @@ const answerMultipleScene = new WizardScene("answerMultipleScene",
                     Markup.button.callback("⌛️Yakunlash", `closed-${test._id}`)
                 ])
             });
-            await ctx.scene.enter("homeScene");
+            await ctx.scene.enter("startScene");
 
         } catch (error) {
             console.log(error);
+            await ctx.reply(error.message);
         }
     },
 
 );
 
 // answerMultipleScene.use((ctx, next) => ctx?.message?.text && next());
-answerMultipleScene.hears('/start', ctx => ctx.scene.enter('start'));
+answerMultipleScene.hears('/start', ctx => ctx.scene.enter('startScene'));
 
 answerMultipleScene.hears("🔙 Orqaga qaytish", (ctx) => {
     const previousScene = ctx.session.history.pop();
