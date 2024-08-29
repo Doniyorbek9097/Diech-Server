@@ -21,14 +21,12 @@ bot.on("callback_query", async (ctx) => {
       const queryArray = query.split("-");
 
       const [event, testId, userId] = queryArray;
-      console.log(queryArray);
+      
       if (event == "stat") {
           const test = await testModel.findOne({ '_id': testId, 'answers.user': userId })
               .populate({
                   path: "answers.user",
               })
-
-          console.log(test)
 
           await ctx.reply("test yaklandi")
           await ctx.scene.enter("homeScene")

@@ -80,7 +80,7 @@ const answerScene = new WizardScene("answerScene",
                     Markup.button.callback("⌛Yakunlash", `closed-${test._id}`)
                 ])
             });
-            await ctx.scene.enter("homeScene");
+            await ctx.scene.enter("startScene");
 
         } catch (error) {
             console.log(error);
@@ -105,16 +105,14 @@ answerScene.on("callback_query", async (ctx) => {
         path:"answers.user",
       })
 
-      console.log(test)
-
         await ctx.reply("test yaklandi")
-        await ctx.scene.enter("homeScene") 
+        await ctx.scene.enter("startScene") 
     }
 
     if (queryArray[0] == "closed") {
         await testModel.findOneAndUpdate({'_id': queryArray[1]}, { 'closed': true });
         await ctx.reply("test yaklandi")
-        await ctx.scene.enter("homeScene")
+        await ctx.scene.enter("startScene")
     }
 
 

@@ -35,6 +35,6 @@ const sendScene = new WizardScene('sendScene',
 )
 
 
-sendScene.hears("🔙 Bekor qilish", (ctx) => ctx.scene.enter("adminScene"));
+sendScene.hears("🔙 Bekor qilish", (ctx) => ctx.scene.enter("startScene"));
 
 module.exports = sendScene;

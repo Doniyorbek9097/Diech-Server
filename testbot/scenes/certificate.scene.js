@@ -11,7 +11,7 @@ certificateScene.enter(async (ctx) => {
     const tests = await testModel.find({ 'answers.user': { $in: [user._id] } })
     if (!tests?.length) {
         ctx.replyWithHTML("<i>❌ Kechirasiz sizda testlar bo'yicha yangi sertifikatlar mavjud emas. Testlarda ishtirok etishda davom eting.</i>");
-        return ctx.scene.enter("homeScene")
+        return ctx.scene.enter("startScene")
     }
 
     const buttons = tests.map(item => item.code.toString()); // Each code in a new line
@@ -29,7 +29,7 @@ certificateScene.on("text", async (ctx) => {
     try {
 
         if (ctx.message.text == `🔙 Orqaga qaytish` || ctx.message.text == `/start`) {
-            return ctx.scene.enter("homeScene")
+            return ctx.scene.enter("startScene")
         }
 
         const test = await testModel.findOne({ 'code': ctx.message.text })
@@ -105,7 +105,7 @@ certificateScene.hears("🔙 Orqaga qaytish", async (ctx) => {
     if (previousScene) {
         ctx.scene.enter(previousScene);
     } else {
-        ctx.scene.enter('homeScene');
+        ctx.scene.enter('startScene');
     }
 })
 

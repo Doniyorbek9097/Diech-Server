@@ -72,7 +72,7 @@ const answerMultipleScene = new WizardScene("answerMultipleScene",
                   answers: {
                     user: user._id,
                     tgid: ctx.chat.id,
-                    ball: allball,
+                    ball: allball.toFixed(1),
                     status: result,
                     correctAnswerCount: correctAnswerCount,
                     wrongAnswerCount: wrongAnswerCount,
@@ -82,9 +82,9 @@ const answerMultipleScene = new WizardScene("answerMultipleScene",
               });
 
 
-            const userText = `<b>💡 Umumiy natija:</b>\n<b>Blok 1:</b> ${correctAnswerCount} ball\n<b>❌ Noto'g'ri javoblar:</b> ${wrongAnswerCount} ta\n<b>📊 Sifat:</b> ${allball}% \n\n${result}`;
+            const userText = `<b>💡 Umumiy natija:</b>\n<b>Blok 1:</b> ${allball.toFixed(1)} ball\n<b>❌ Noto'g'ri javoblar:</b> ${wrongAnswerCount} ta\n<b>✅To'g'ri javoblar:</b> ${correctAnswerCount} ta \n\n${result}`;
 
-            const authorText = `${test.code} kodli oddiy testda ${user?.firstname} ${user?.lastname} qatnashdi!\n✅ Natija: ${correctAnswerCount} ta\n🎯 Sifat darajasi: ${allball}%\n⏱ ${date}`;
+            const authorText = `${test.code} kodli oddiy testda ${user?.firstname} ${user?.lastname} qatnashdi!\n✅ Natija: ${correctAnswerCount} ta\n🎯 ummumiy ball: ${allball.toFixed(1)} ball\n⏱ ${date}`;
 
             await ctx.replyWithHTML(userText);
 
@@ -106,32 +106,14 @@ const answerMultipleScene = new WizardScene("answerMultipleScene",
 // answerMultipleScene.use((ctx, next) => ctx?.message?.text && next());
 answerMultipleScene.hears('/start', ctx => ctx.scene.enter('start'));
 
-
-// answerMultipleScene.action('closed', async (ctx) => {
-//     try {
-//         const author = await userModel.findOne({'userid': ctx.chat.id});
-
-//         if (!author) {
-//             return ctx.reply("Foydalanuvchi topilmadi.");
-//         }
-
-//         const test = await testModel.findOneAndUpdate(
-//             { 'author': author._id },
-//             { 'closed': true },
-//             { new: true } // yangilangan hujjatni qaytaradi
-//         );
-
-//         if (!test) {
-//             return ctx.reply("Test topilmadi yoki yangilab bo'lmadi.");
-//         }
-
-//         await ctx.reply("Test yakunlandi.");
-//         await ctx.scene.enter("homeScene");
-//     } catch (err) {
-//         console.error("Xatolik yuz berdi:", err);
-//         await ctx.reply("Xatolik yuz berdi. Iltimos, qayta urinib ko'ring.");
-//     }
-// });
+answerMultipleScene.hears("🔙 Orqaga qaytish", (ctx) => {
+    const previousScene = ctx.session.history.pop();
+    if (previousScene) {
+        ctx.scene.enter(previousScene);
+    } else {
+        ctx.scene.enter('startScene');
+    }
+})
 
 
 module.exports = answerMultipleScene;

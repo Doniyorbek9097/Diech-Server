@@ -36,7 +36,7 @@ const getCertificate = async (ctx) => {
         parse_mode: 'HTML',
     })
 
-    await ctx.scene.enter("homeScene");
+    await ctx.scene.enter("startScene");
     
 }
 
@@ -46,7 +46,7 @@ templatesScene.hears("🔙 Orqaga qaytish", async (ctx) => {
     if (previousScene) {
         ctx.scene.enter(previousScene);
     } else {
-        ctx.scene.enter('homeScene');
+        ctx.scene.enter('startScene');
     }
 })
 

@@ -35,6 +35,13 @@ homeScene.hears("⚙️ Sozlamalar", async (ctx) => {
     ctx.scene.enter("settingsScene")
 })
 
+homeScene.hears("📘 Qo'llanma", (ctx) => {
+    ctx.reply("Hozircha qo'llanma mavjud emas!")
+})
+
+homeScene.hears("👨‍⚕️ Admin", (ctx) => {
+    ctx.reply("@fakhraddini_matematik")
+})
 
 
 

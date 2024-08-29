@@ -6,7 +6,7 @@ const backPage = async (ctx) => {
     if (previousScene) {
         ctx.scene.enter(previousScene);
     } else {
-        ctx.scene.enter('homeScene');
+        ctx.scene.enter('startScene');
     }
 }
 

@@ -75,59 +75,14 @@ const answerSimpleScene = new WizardScene("answerSimpleScene",
 // answerSimpleScene.use((ctx, next) => ctx?.message?.text && next());
 answerSimpleScene.hears('/start', ctx => ctx.scene.enter('start'));
 
-answerSimpleScene.on("callback_query", async (ctx) => {
-    const query = ctx.callbackQuery.data;
-    const queryArray = query.split("-");
-
-    const [event, testId, userId] = queryArray;
-    console.log(queryArray);
-    
-    if (event == "stat") {
-        const test = await testModel.findOne({ '_id': testId, 'answers.user': userId })
-            .populate({
-                path: "answers.user",
-            })
-
-        console.log(test)
-
-        await ctx.reply("test yaklandi")
-        await ctx.scene.enter("homeScene")
+answerSimpleScene.hears("🔙 Orqaga qaytish", (ctx) => {
+    const previousScene = ctx.session.history.pop();
+    if (previousScene) {
+        ctx.scene.enter(previousScene);
+    } else {
+        ctx.scene.enter('startScene');
     }
-
-    if (event == "closed") {
-        await testModel.findOneAndUpdate({ '_id': testId }, { 'closed': true });
-        await ctx.reply("test yaklandi")
-        await ctx.scene.enter("homeScene")
-    }
-
-
 })
-
-// answerSimpleScene.action('closed', async (ctx) => {
-//     try {
-//         const author = await userModel.findOne({'userid': ctx.chat.id});
-
-//         if (!author) {
-//             return ctx.reply("Foydalanuvchi topilmadi.");
-//         }
-
-//         const test = await testModel.findOneAndUpdate(
-//             { 'author': author._id },
-//             { 'closed': true },
-//             { new: true } // yangilangan hujjatni qaytaradi
-//         );
-
-//         if (!test) {
-//             return ctx.reply("Test topilmadi yoki yangilab bo'lmadi.");
-//         }
-
-//         await ctx.reply("Test yakunlandi.");
-//         await ctx.scene.enter("homeScene");
-//     } catch (err) {
-//         console.error("Xatolik yuz berdi:", err);
-//         await ctx.reply("Xatolik yuz berdi. Iltimos, qayta urinib ko'ring.");
-//     }
-// });
 
 
 module.exports = answerSimpleScene;

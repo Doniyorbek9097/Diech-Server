@@ -23,7 +23,7 @@ const removeChannelScene = new WizardScene(
             if (!channel) return ctx.reply(`${ username } Bunday kanal topilmadi!`);
             const deleted = await channelModel.findOneAndRemove({username:channel.username})
             await ctx.replyWithHTML(`<b>${deleted.username} kanal o'chirildi</b>`);
-            return ctx.scene.enter("adminScene");
+            return ctx.scene.enter("startScene");
         } catch (error) {
             console.log(error)
         }
@@ -32,7 +32,7 @@ const removeChannelScene = new WizardScene(
 );
 
 
-removeChannelScene.hears("🔙Bekor qilish", ctx => ctx.scene.enter("adminScene"))
+removeChannelScene.hears("🔙Bekor qilish", ctx => ctx.scene.enter("startScene"))
 
 
 module.exports = removeChannelScene;
