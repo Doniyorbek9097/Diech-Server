@@ -1,11 +1,11 @@
 const { Scenes:{BaseScene}, Markup } = require("telegraf");
 
 
-const start = new BaseScene("start")
+const startScene = new BaseScene("startScene")
 
-start.enter((ctx) => {
+startScene.enter((ctx) => {
     ctx.session.history = []; 
     ctx.scene.enter("subscribeScene");
 })
 
-module.exports = start;
+module.exports = startScene;

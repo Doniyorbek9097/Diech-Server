@@ -13,7 +13,7 @@ const bot = new Telegraf(process.env.TEST_BOT_TOKEN)
 bot.use(session())
 bot.use(stage.middleware())
 
-bot.start(ctx => ctx.scene.enter("start"));
+bot.start(ctx => ctx.scene.enter("startScene"));
 
 bot.on("callback_query", async (ctx) => {
   try {
