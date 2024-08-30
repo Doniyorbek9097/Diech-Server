@@ -30,9 +30,9 @@ subscribeScene.enter(async (ctx) => {
 
 
         if (!nonMembers.includes("left")) return ctx.scene.enter("registerScene");
-        let txt = `<b>Assalomu alaykum!
+        let txt = `<b>Assalomu alaykum! <b>@${ctx.chat.first_name}</b>”
  
- “❗️<b>@PaynetIshlaBot</b>” dan pul ishlash uchun avval quyidagi kanallarga obuna bo‘ling:</b>`;
+  Siz “❗️<b>@${ctx.botInfo.username}</b>” dan foydalanish uchun avval quyidagi kanallarga obuna bo‘ling:</b>`;
 
 
         let btns = [];
