@@ -42,11 +42,11 @@ adminScene.hears("⚙️ Sozlamalar", async (ctx) => {
 adminScene.hears("📊 Statistika", async (ctx) => {
     try {
         ctx.session.history.push(ctx.scene.current.id)
-    const user = await userModel.findOne({ 'userid': ctx.chat.id })
-    if (!user) return;
-    const totalDocuments = await userModel.countDocuments()
-    const text = `<b>Bot azolari hozirda:</b> ${totalDocuments} ta`;
-    await ctx.replyWithHTML(text)
+        const user = await userModel.findOne({ 'userid': ctx.chat.id })
+        if (!user && !user.isAdmin) return;
+        const totalDocuments = await userModel.countDocuments()
+        const text = `<b>Bot azolari hozirda:</b> ${totalDocuments} ta`;
+        await ctx.replyWithHTML(text)
     } catch (error) {
         console.log(error);
         await ctx.replyWithHTML(text)
@@ -57,19 +57,21 @@ adminScene.hears("📊 Statistika", async (ctx) => {
 adminScene.hears("📤 Habar yuborish", async (ctx) => {
     ctx.session.history.push(ctx.scene.current.id)
     const user = await userModel.findOne({ 'userid': ctx.chat.id })
-    if (!user) return;
+    if (!user && !user.isAdmin) return;
     await ctx.scene.enter("sendScene")
 })
 
 
 adminScene.hears("📢 Kanallar", async (ctx) => {
     try {
+        const user = await userModel.findOne({ 'userid': ctx.chat.id })
+        if (!user && !user.isAdmin) return;
         const channels = await channelModel.find();
         let txt = `<b>Barcha 📢 Kanallar:</b>\n`;
         channels.forEach((channel, index) => {
             txt += `${index + 1}. ${channel.username}\n`;
         })
-        
+
         const keyboard = Markup.keyboard([
             ["Qo'shish"],
             ["O'chirish"],
