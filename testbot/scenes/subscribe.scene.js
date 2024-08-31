@@ -52,8 +52,6 @@ subscribeScene.enter(async (ctx) => {
         let btn = Markup.inlineKeyboard([
             ...btns,
             Markup.button.callback("Azo bo'ldim ✅", "subscribeScened")
-
-
         ], { columns: 1 });
 
         return await ctx.replyWithHTML(txt, btn);
@@ -87,8 +85,6 @@ subscribeScene.action("subscribeScened", async ctx => {
 
 })
 
-subscribeScene.command("start", ctx => ctx.scene.enter("start"));
-
-subscribeScene.on("text", ctx => ctx.scene.reenter())
+subscribeScene.command("start", ctx => ctx.scene.enter("startScene"));
 
 module.exports = subscribeScene;

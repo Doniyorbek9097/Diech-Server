@@ -20,6 +20,7 @@ const registerScene = new WizardScene("registerScene",
 
     async (ctx) => {
         try {
+            if(!ctx?.message?.text) return;
             if (ctx.message?.text == "/start") return ctx.scene.enter("startScene")
             const messages = ctx.message.text.split(" ");
             const text = `Ism familyangizni kiriting\nMasalan: Alisher Zokirov`;
@@ -39,8 +40,10 @@ const registerScene = new WizardScene("registerScene",
 )
 
 
-registerScene.use((ctx, next) => {
-    if (!ctx?.message?.text) return;
+registerScene.use(async (ctx, next) => {
+    if(ctx?.callbackQuery) {
+        await ctx.deleteMessage()
+     }
     next()
 })
 
