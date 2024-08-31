@@ -4,6 +4,44 @@ const { serverDB } = require("../config/db")
 const shopProductVariantModel = require("./shop.product.variant.model")
 const reviewSchema = require("./review.model")
 
+
+const attributesSchema = Schema({
+    label: {
+        type: String,
+        intl: true,
+        validate: {
+            validator: function(value) {
+              // Agar label object bo'lsa va {uz: "", ru: ""} ga teng bo'lsa, noto'g'ri qiymat qaytarish
+              return !(typeof value === 'object' && value.uz === "" && value.ru === "");
+            },
+            message: props => `${props.value} label qabul qilinmaydi.`
+          }
+    },
+
+    type: {
+        type: String
+    },
+
+    value: {
+        type: String,
+        intl: true,
+        validate: {
+            validator: function(value) {
+              // Agar label object bo'lsa va {uz: "", ru: ""} ga teng bo'lsa, noto'g'ri qiymat qaytarish
+              return !(typeof value === 'object' && value.uz === "" && value.ru === "");
+            },
+            message: props => `${props.value} label qabul qilinmaydi.`
+          }
+    },
+
+    values: [{
+        type: Schema.Types.Mixed,
+        intl: true,
+        default: undefined
+      }]
+    
+}, { toJSON: { virtuals: true } })
+
 const propertyOptionsSchema = Schema({
     key: {
         type: String,
@@ -29,58 +67,69 @@ const propertiesSchema = Schema({
 );
 
 
+const keywordsSchema = Schema({
+    uz: Array,
+    ru: Array
+},
+
+{ toJSON: { virtuals: true } })
+
 
 const shopProductsSchema = Schema({
     parent: {
         type: Schema.Types.ObjectId,
         ref: "Product",
+        required: true
     },
 
-    product: {
+    shop: {
         type: Schema.Types.ObjectId,
-        ref: "Product",
-    }, 
+        ref: "Shop",
+        required: true
+    },
 
-    slug: String,
-    categories: [{
-        type: Schema.Types.ObjectId,
-        ref: "Category"
-    }],
+    owner: {
+        type:Schema.Types.ObjectId,
+        ref:"User",
+        required: true
+    },
+
     name: {
-        type:String,
-        intl:true
+        type: String,
+        intl: true,
+        required: true
     },
-    
+
+    slug: {
+        type: String,
+        required: true
+    },
     description: {
         type: String,
-        intl: true
+        intl: true,
+        required: true
     },
-    exactname: {
-        type: String,
-        intl: true
-    },
+
+    images: [],
+    properteis: [propertiesSchema],
+
+    categories: [{
+        type: Schema.Types.ObjectId,
+        ref: "Category",
+        required: true
+    }],
+
+    keywords: keywordsSchema,
+    barcode: String,
+
     method_sale: {
         type: String,
         enum:["piece", "weight"],
         default: "piece"
     },
-    images: [],
-    properteis: [propertiesSchema],
-
-    
-
-    barcode:String,
-    discount: Number,
-    orginal_price: Number,
-    sale_price: Number,
-    inStock: Number,
-    shop: {
-        type: Schema.Types.ObjectId,
-        ref: "Shop"
-    },
 
     reviews: {
-        type: [reviewSchema]
+        type: [reviewSchema],
     },
 
     views: {
@@ -119,10 +168,38 @@ const shopProductsSchema = Schema({
         default: 0,
     },
 
-    owner: {
-        type:Schema.Types.ObjectId,
-        ref:"User"
+    discount: {
+        type: Number
     },
+
+
+    returnedCount: {
+        type: Number,
+        default: 0
+    },
+
+    brend: {
+        type: Schema.Types.ObjectId,
+        ref: "Brend",
+    },
+
+    weight: {
+        type: Boolean,
+        default: false
+    },
+
+    attributes: [attributesSchema],
+
+    mixed: {
+        type: Boolean,
+        default: false
+    },
+
+    type: {
+        type: String,
+        enum: ["product"],
+        default: "product"
+    }
 
 },
 

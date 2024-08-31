@@ -29,7 +29,7 @@ router.post("/product-add", checkToken, async (req, res) => {
                 item.discount = parseInt(((item.orginal_price - item.sale_price) / item.orginal_price) * 100);
 
                 if (isNaN(item.discount)) item.discount = 0;
-                console.log(item);
+                console.log(product);
                 return {
                     ...productData,
                     ...item,
