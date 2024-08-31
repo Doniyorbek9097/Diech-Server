@@ -29,7 +29,7 @@ router.post("/product-add", checkToken, async (req, res) => {
                 item.discount = parseInt(((item.orginal_price - item.sale_price) / item.orginal_price) * 100);
 
                 if (isNaN(item.discount)) item.discount = 0;
-
+                console.log(item);
                 return {
                     ...productData,
                     ...item,
@@ -128,21 +128,10 @@ router.get('/custom-product', async (req, res) => {
 
 
 // one product by id 
-router.get("/product-one/:id", checkToken, async (req, res) => {
+router.get("/product-id/:id", checkToken, async (req, res) => {
     try {
         let product = await shopProductModel.findOne({ _id: req.params.id })
-            .populate({
-                path: "product",
-                populate: {
-                    path: "variants",
-                }
-            })
-            .populate({
-                path: "variants",
-                populate: {
-                    path: "variant"
-                }
-            })
+            .populate("categories").lean();
 
         return res.status(200).json(product);
     } catch (error) {
@@ -155,27 +144,20 @@ router.get("/product-one/:id", checkToken, async (req, res) => {
 
 // update product 
 router.put("/product-edit/:id", checkToken, async (req, res) => {
+    redisClient.FLUSHALL()
     try {
-        redisClient.FLUSHALL()
-
-        const { variants } = req.body
-        let product = req.body;
-        if (variants.length) {
-            variants.forEach(item => {
-                item.discount = parseInt(((item.orginal_price - item.sale_price) / item.orginal_price) * 100);
-            })
-        }
-
-        product.variants = variants;
+        const { id } = req.params;
+        let { body: product } = req;
+        product.slug = slugify(`${product.name.ru} ${generateOTP(30)}`);
         product.discount = parseInt(((product.orginal_price - product.sale_price) / product.orginal_price) * 100);
-        const updated = await shopProductModel.findByIdAndUpdate(req.params.id, product);
+        if (isNaN(product.discount)) product.discount = 0;
 
-        res.status(200).json(updated);
+        const newProduct = await shopProductModel.findByIdAndUpdate(id, product)
+        return res.status(200).json({ data: newProduct, message: "success added" });
 
     } catch (error) {
         console.log(error);
-        res.status(500).send("Server Xatosi: " + error);
-
+        return res.status(500).json("serverda Xatolik")
     }
 });
 
@@ -254,14 +236,14 @@ router.get('/replace', async (req, res) => {
 
 router.get('/replaced', async (req, res) => {
     try {
-        const products = await productModel.find({description: {$exists: false}}).select('_id name').lean();
+        const products = await productModel.find({ description: { $exists: false } }).select('_id name').lean();
 
         for (const item of products) {
-                await productModel.updateOne({ _id: item._id }, {
-                    $set: {
-                        description: item.name
-                    }
-                })
+            await productModel.updateOne({ _id: item._id }, {
+                $set: {
+                    description: item.name
+                }
+            })
         }
 
 
