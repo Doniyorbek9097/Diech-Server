@@ -8,7 +8,7 @@ const { algolia } = require("../../config/algolia");
 const productsIndex = algolia.initIndex("ShopProducts");
 const slugify = require("slugify")
 const { generateOTP } = require("../../utils/otpGenrater");
-const { $exists } = require("sift");
+const fieldModel = require("../../models/field.model")
 
 
 // create new Product 
@@ -236,19 +236,7 @@ router.get('/replace', async (req, res) => {
 
 router.get('/replaced', async (req, res) => {
     try {
-        const products = await productModel.find().select('_id name images attributes').lean();
-
-        for (const item of products) {
-            await shopProductModel.updateOne({ parent: item._id }, {
-                $set: {
-                    name: item.name,
-                    attributes: item.attributes,
-                    images: item.images
-                }
-            })
-        }
-
-
+        await fieldModel.deleteMany({'type':'input'})
         res.status(200).send(`Fields renamed successfully. Modified `);
     } catch (error) {
         console.log(error);
