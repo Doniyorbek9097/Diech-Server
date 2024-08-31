@@ -236,12 +236,14 @@ router.get('/replace', async (req, res) => {
 
 router.get('/replaced', async (req, res) => {
     try {
-        const products = await productModel.find({ description: { $exists: false } }).select('_id name').lean();
+        const products = await productModel.find().select('_id name images attributes').lean();
 
         for (const item of products) {
-            await productModel.updateOne({ _id: item._id }, {
+            await shopProductModel.updateOne({ parent: item._id }, {
                 $set: {
-                    description: item.name
+                    name: item.name,
+                    attributes: item.attributes,
+                    images: item.images
                 }
             })
         }
