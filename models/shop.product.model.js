@@ -3,6 +3,7 @@ const { serverDB } = require("../config/db")
 
 const shopProductVariantModel = require("./shop.product.variant.model")
 const reviewSchema = require("./review.model")
+const { count } = require("console")
 
 
 const attributesSchema = Schema({
@@ -100,6 +101,22 @@ const shopProductsSchema = Schema({
         required: true
     },
 
+    orginal_price: {
+        type: Number,
+        required: true
+    },
+
+    sale_price: {
+        type: Number,
+        required: true
+    },
+
+    inStock: {
+        type: Number,
+        required: true
+    },
+
+
     slug: {
         type: String,
         required: true
@@ -183,23 +200,8 @@ const shopProductsSchema = Schema({
         ref: "Brend",
     },
 
-    weight: {
-        type: Boolean,
-        default: false
-    },
 
     attributes: [attributesSchema],
-
-    mixed: {
-        type: Boolean,
-        default: false
-    },
-
-    type: {
-        type: String,
-        enum: ["product"],
-        default: "product"
-    }
 
 },
 
