@@ -13,13 +13,6 @@ class Category {
             const search = req.query.search || "";
             const { lang = "" } = req.headers;
 
-            redisClient.FLUSHALL()
-            const cacheKey = `categories:${lang}:${page}:${limit}:${search}`;
-            const cacheData = await redisClient.get(cacheKey);
-            if (cacheData) {
-                return res.json(JSON.parse(cacheData));
-            }
-
             const categories = await categoryModel.find({ parent: undefined })
                 .populate({
                     path: "children",
@@ -32,8 +25,6 @@ class Category {
                 .select("name slug icon image children")
 
             const data = { page: page + 1, limit, categories };
-
-            redisClient.SETEX(cacheKey, 3600, JSON.stringify(data));
 
             return res.status(200).json(data);
         } catch (err) {
@@ -49,12 +40,6 @@ class Category {
             let limit = parseInt(req.query?.limit) || 10;
             let { search = "" } = req.query;
             const { lang = "" } = req.headers;
-
-            redisClient.FLUSHALL()
-
-            const cacheKey = `category-slug:${lang}:${slug}:${page}:${limit}:${search}`;
-            const cacheData = await redisClient.get(cacheKey)
-            if (cacheData) return res.json(JSON.parse(cacheData))
 
             let category = await categoryModel.findOne({ slug })
                 .populate("fields")
@@ -96,7 +81,6 @@ class Category {
                 products
             }
 
-            redisClient.SETEX(cacheKey, 3600, JSON.stringify(data))
             return res.json(data);
 
         } catch (error) {
