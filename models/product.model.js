@@ -211,13 +211,13 @@ productSchema.virtual("details", {
 async function productUpdate(doc, next) {
     if (doc) {
         // Yangilangan hujjatni olish uchun qayta so'rov qilamiz
-        const updatedDoc = await this.model.findOne(this.getQuery());
-
+        const updatedDoc = await this.model.findOne(this.getQuery()).populate("variants");
+        const variants = updatedDoc?.variants || [];
         if (updatedDoc) {
             const {_id, ...newData} = updatedDoc.toObject();
 
             // `shopProductModel` ni yangilash
-            await shopProductModel.updateMany({parent: _id}, {...newData});
+            await shopProductModel.updateMany({parent: _id}, {...newData, variants});
         }
     }
     // `next()` chaqirilishi `updateMany` tugaganidan keyin

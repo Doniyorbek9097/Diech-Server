@@ -13,9 +13,6 @@ class Product {
 
     async add(req, res) {
         try {
-            // Redis'ni tozalash
-            await redisClient.FLUSHALL();
-
             const { body: products } = req;
 
             const processedProducts = await Promise.all(products.map(async (product) => {
@@ -133,7 +130,6 @@ class Product {
 
 
     async updateById(req, res) {
-        await redisClient.FLUSHALL()
 
         const { body: product } = req;
        
@@ -153,7 +149,6 @@ class Product {
 
     async deleteById(req, res) {
         try {
-            redisClient.FLUSHALL()
             const deleted = await productModel.findOneAndDelete({ _id: req.params.id });
             const { images } = deleted;
 

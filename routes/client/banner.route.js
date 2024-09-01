@@ -6,9 +6,6 @@ const router = require("express").Router();
 
 router.get("/banner-all", async(req,res) => {
     try {
-        const cacheKey = "banners";
-        const cacheData = await redisClient.get(cacheKey)
-        if(cacheData) return res.json(JSON.parse(cacheData));
         const { category_id } = req.query;
         const query = {};
         if(category_id) query.category_id = category_id;
@@ -21,7 +18,6 @@ router.get("/banner-all", async(req,res) => {
             data: banners
         }
 
-       redisClient.SETEX(cacheKey, 3600, JSON.stringify(data));
        res.json(data);
 
     } catch (error) {

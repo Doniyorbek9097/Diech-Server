@@ -73,11 +73,6 @@ router.get("/products", async (req, res) => {
 
     } = req.query;
 
-    const cacheKey = `product:${lang}:${search}:${page}:${limit}`;
-    const cacheData = await redisClient.get(cacheKey);
-    redisClient.FLUSHALL();
-
-    if (cacheData) return res.json(JSON.parse(cacheData));
 
     const sort = {};
   
@@ -141,7 +136,6 @@ router.get("/products", async (req, res) => {
     };
 
 
-    await redisClient.SETEX(cacheKey, 3600, JSON.stringify(data));
     return res.json(data);
 
   } catch (error) {
@@ -162,11 +156,6 @@ router.get("/product-slug/:slug", async (req, res) => {
   const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
   const limit = parseInt(req.query.limit, 10) || 10;
 
-
-  redisClient.FLUSHALL()
-  const cacheKey = `product:${lang}:${slug}:${sku}`;
-  const cacheData = await redisClient.get(cacheKey)
-  if (cacheData) return res.json(JSON.parse(cacheData))
   const searchTerms = req.query.search?.split(",") || [];
   const regexTerms = searchTerms.map(term => new RegExp(term, 'i'));
 
@@ -272,7 +261,6 @@ router.get("/product-slug/:slug", async (req, res) => {
       message: "success"
     };
 
-    redisClient.SETEX(cacheKey, 3600, JSON.stringify(data));
     return res.json(data);
 
   } catch (error) {
@@ -284,7 +272,6 @@ router.get("/product-slug/:slug", async (req, res) => {
 
 
 router.post("/add-review/:id", async (req, res) => {
-  await redisClient.FLUSHALL()
   try {
     const { rating, comment, user } = req.body;
     const product = await productModel.findById(req.params.id)
@@ -327,8 +314,6 @@ router.post("/add-review/:id", async (req, res) => {
 
 
 router.post("/delete-review/:id", async (req, res) => {
-  await redisClient.FLUSHALL()
-
   try {
     const product = await productModel.findById(req.params.id)
     if (product) {

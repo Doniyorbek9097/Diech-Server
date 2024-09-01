@@ -13,7 +13,6 @@ const fieldModel = require("../../models/field.model")
 
 // create new Product 
 router.post("/product-add", checkToken, async (req, res) => {
-    redisClient.FLUSHALL()
     try {
         let { body: products } = req;
 
@@ -106,7 +105,10 @@ router.get("/custom-products", async (req, res) => {
         }
 
         let products = await productModel.find(query)
+            .populate("variants")
             .limit(5)
+            .lean()
+
         res.json(products);
 
     } catch (error) {
@@ -117,7 +119,7 @@ router.get("/custom-products", async (req, res) => {
 
 router.get('/custom-product', async (req, res) => {
     const barcode = req.query?.barcode;
-    const product = await productModel.findOne({ barcode });
+    const product = await productModel.findOne({ barcode })
     if (!product) return res.json({ message: "Mahsulot topilmadi" })
 
     return res.json({
@@ -144,7 +146,6 @@ router.get("/product-id/:id", checkToken, async (req, res) => {
 
 // update product 
 router.put("/product-edit/:id", checkToken, async (req, res) => {
-    redisClient.FLUSHALL()
     try {
         const { id } = req.params;
         let { body: product } = req;
@@ -165,8 +166,6 @@ router.put("/product-edit/:id", checkToken, async (req, res) => {
 
 router.delete("/product-delete/:id", checkToken, async (req, res) => {
     try {
-        redisClient.FLUSHALL()
-
         const deleted = await shopProductModel.findByIdAndDelete(req.params.id).populate('variants')
         for (const variant of deleted.variants) {
             await shopProductVariantModel.deleteMany({ _id: variant._id })

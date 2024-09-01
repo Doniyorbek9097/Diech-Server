@@ -24,8 +24,9 @@ bot.on("callback_query", async (ctx) => {
 
         if (event == "stat") {
             const test = await testModel.findOne({ '_id': testId, 'answers.user': userId }).populate('answers.user');
-            await ctx.reply("hozircha test stat ishlamaydi")
-            await ctx.scene.enter("startScene")
+            const txt = `hozircha test stat ishlamaydi`;
+            await ctx.reply(txt)
+            
         }
 
         if (event == "closed") {

@@ -9,7 +9,6 @@ const fileService = require("../../services/file.service")
 class Category {
     async create(req, res) {
         try {
-            redisClient.FLUSHALL()
             const formData = req.body;
             for (const cate of formData) {
                 cate.slug = slugify(`${cate.name.ru.toLowerCase()}-${generateOTP(5)}`)
@@ -163,7 +162,6 @@ class Category {
 
 
     async updateById(req, res) {
-        redisClient.FLUSHALL()
         const {body: category } = req;
         const { id, fileName } = req.params;
 
@@ -188,7 +186,6 @@ class Category {
 
     async deleteById(req, res) {
         try {
-            redisClient.FLUSHALL()
 
             let deleted = await categoryModel.findByIdAndDelete(req.params.id);
             if (!deleted) return res.status(404).json("Category not found");

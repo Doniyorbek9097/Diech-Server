@@ -5,7 +5,7 @@ const reviewSchema = require("./review.model")
 
 const variantsSchema = Schema({
     product: { type: Schema.Types.ObjectId, ref: "Product", required: true },
-    shopDetail: {type: Schema.Types.ObjectId, ref:"ShopProducts", required: true},
+    shopProduct: {type: Schema.Types.ObjectId, ref:"ShopProducts", required: true},
     variant: { type: Schema.Types.ObjectId, ref:"Variant"},
     shop: { type: Schema.Types.ObjectId, ref:"Shop" },
     soldOut: [{ type: Schema.Types.ObjectId, ref: "Order" }],

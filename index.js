@@ -99,6 +99,27 @@ io.on('connection', (socket) => {
 
 
 
+const sharp = require('sharp');
+
+async function removeBackground(imagePath, outputPath, backgroundColor) {
+    try {
+        // Tasvirni PNG formatiga o'tkazish va shaffof qilish
+        await sharp(imagePath)
+            .resize({ width: 800 }) // Tasvir o'lchamini o'zgartirish (istalgan)
+            .flatten({ background: backgroundColor }) // Orqa fonni ma'lum rang bilan shaffof qilish
+            .png()
+            .toFile(outputPath);
+
+        console.log(`Orqa foni olib tashlangan rasm saqlandi: ${outputPath}`);
+    } catch (error) {
+        console.error('Xatolik:', error.message);
+    }
+}
+
+removeBackground('./input-image.jpg', './output-image.png', { background: { r: 0, g: 255, b: 0 } });
+
+
+
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`server is runinng on port ${PORT}`))
 

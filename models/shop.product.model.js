@@ -83,6 +83,11 @@ const shopProductsSchema = Schema({
         required: true
     },
 
+    variants: {
+        type: Array,
+        default: undefined
+    },
+
     shop: {
         type: Schema.Types.ObjectId,
         ref: "Shop",
@@ -212,11 +217,11 @@ const shopProductsSchema = Schema({
 )
 
 
-shopProductsSchema.virtual("variants", {
-    ref: "ShopVariant",
-    localField: "_id",
-    foreignField: "shopDetail"
-})
+// shopProductsSchema.virtual("variants", {
+//     ref: "ShopVariant",
+//     localField: "_id",
+//     foreignField: "shopDetail"
+// })
 
 
 // Statik metodni qo'shish
