@@ -57,6 +57,7 @@ class Category {
             if (cacheData) return res.json(JSON.parse(cacheData))
 
             let category = await categoryModel.findOne({ slug })
+                .populate("fields")
                 .populate("banners")
                 .populate({
                     path: "children",

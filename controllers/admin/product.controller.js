@@ -140,7 +140,7 @@ class Product {
 
         try {
             const updated = await productModel.findByIdAndUpdate(req.params.id, product);
-            product?.deletedImages?.length && await fileService.remove(product?.deletedImages)
+            product?.deletedImages?.length && await fileService.remove(product?.deletedImages);
             return res.json(updated);
 
         } catch (error) {

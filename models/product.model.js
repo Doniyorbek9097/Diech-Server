@@ -95,13 +95,6 @@ const productSchema = Schema({
         intl: true,
     },
 
-    discription: {
-        type: String,
-        intl: true,
-        es_indexed: true
-
-    },
-
     images: [],
     properteis: [propertiesSchema],
 
@@ -174,10 +167,6 @@ const productSchema = Schema({
         ref: "Brend",
     },
 
-    weight: {
-        type: Boolean,
-        default: false
-    },
 
     attributes: [attributesSchema],
     owner: {
@@ -219,12 +208,23 @@ productSchema.virtual("details", {
 })
 
 
+const productUpdate = async (doc, next) => {
+    if (doc) {
+        const {_id, ...newData} = doc.toObject();
+        await shopProductModel.updateMany({parent: _id}, {...newData});
+    }
+    next();
+}
 
-const deleteDetails = async function (next) {
+productSchema.post('findByIdAndUpdate', productUpdate)
+productSchema.post('findOneAndUpdate', productUpdate)
+
+
+const deleteDetails = async function (docs, next) {
     try {
         const doc = await this.model.findOne(this.getFilter());
         if (doc) {
-            await shopProductModel.deleteMany({ product: doc._id });
+            await shopProductModel.deleteMany({ parent: doc._id });
             await productVariantModel.deleteMany({ product_id: doc._id });
         }
         next();
