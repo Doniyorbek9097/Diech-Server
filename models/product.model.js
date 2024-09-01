@@ -208,11 +208,19 @@ productSchema.virtual("details", {
 })
 
 
-const productUpdate = async (doc, next) => {
+async function productUpdate(doc, next) {
     if (doc) {
-        const {_id, ...newData} = doc.toObject();
-        await shopProductModel.updateMany({parent: _id}, {...newData});
+        // Yangilangan hujjatni olish uchun qayta so'rov qilamiz
+        const updatedDoc = await this.model.findOne(this.getQuery());
+
+        if (updatedDoc) {
+            const {_id, ...newData} = updatedDoc.toObject();
+
+            // `shopProductModel` ni yangilash
+            await shopProductModel.updateMany({parent: _id}, {...newData});
+        }
     }
+    // `next()` chaqirilishi `updateMany` tugaganidan keyin
     next();
 }
 

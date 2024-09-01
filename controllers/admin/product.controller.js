@@ -136,8 +136,8 @@ class Product {
         await redisClient.FLUSHALL()
 
         const { body: product } = req;
-        product?.images?.length && (product.images = await fileService.upload(req, product.images))
-
+       
+        product?.images?.length && (product.images = await fileService.upload(req, product.images).catch(err => console.log(err.message)))
         try {
             const updated = await productModel.findByIdAndUpdate(req.params.id, product);
             product?.deletedImages?.length && await fileService.remove(product?.deletedImages);
