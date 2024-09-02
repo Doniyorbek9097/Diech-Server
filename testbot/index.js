@@ -23,9 +23,16 @@ bot.on("callback_query", async (ctx) => {
         const [event, testId, userId] = queryArray;
 
         if (event == "stat") {
-            const test = await testModel.findOne({ '_id': testId, 'answers.user': userId }).populate('answers.user');
-            const txt = `hozircha test stat ishlamaydi`;
-            await ctx.reply(txt)
+            const test = await testModel.findOne({ '_id': testId})
+            .sort({'answers.ball': -1})
+            .populate('answers.user');
+            
+            let txt = `<b>${test.code}</b> sonli test natijalari\n`;
+            test.answers.forEach(({user, ball}, index) => {
+                txt += `${index+1}. ${user.firstname} ${user.lastname} - <b>${ball}</b> ball\n`; 
+            });
+
+            await ctx.replyWithHTML(txt)
             
         }
 

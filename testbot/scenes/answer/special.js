@@ -60,7 +60,7 @@ const answerSpecialScene = new WizardScene("answerSpecialScene",
             }).join(' ');
 
             // To'g'ri javoblar foizini hisoblash
-            const ball = (correctCount / test.keyword.length) * 100;
+            const ball = parseInt((correctCount / test.keyword.length) * 100);
             const incorrectCount = test.keyword.length - correctCount;
             const user = await userModel.findOne({ userid: ctx.chat.id });
             const date = format(new Date(), 'dd.MM.yyyy HH:mm:ss');

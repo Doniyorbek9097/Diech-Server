@@ -4,15 +4,21 @@ const { serverDB } = require("../config/db")
 const shopProductVariantModel = require("./shop.product.variant.model")
 const reviewSchema = require("./review.model")
 
+const capitalize = (value) => {
+    if (typeof value !== 'string') return value;
+    return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+  };
 
 const attributesSchema = Schema({
     label: {
         type: String,
-        intl: true 
+        intl: true,
+        set: capitalize
     },
     value: {
         type: String, 
-        intl: true
+        intl: true,
+        set: capitalize
     },
     images: {
         type: Array,
@@ -28,59 +34,9 @@ const variantsSchema = Schema({
         ref: "Product",
         required: true
     },
-    slug: String,
     sku: String,
-    product_name: String,
     attributes: [attributesSchema],
-    reviews: {
-        type: [reviewSchema]
-    },
-
-    views: {
-        type: [Schema.Types.ObjectId],
-        ref: "User"
-    },
-
-    viewsCount: {
-        type: Number,
-        default: 0
-    },
-
-    soldOut: [{
-        type: Schema.Types.ObjectId,
-        ref: "Order"
-    }],
-
-    soldOutCount: {
-        type: Number,
-        default: 0
-    },
-
-    returned: [{
-        type: Schema.Types.ObjectId,
-        ref: "Order"
-    }],
-
-    returnedCount: {
-        type: Number,
-        default: 0
-    },
-
-    rating: {
-        type: Number,
-        required: true,
-        default: 0,
-    },
-
-    discount: {
-        type: Number
-    },
-
-
-    returnedCount: {
-        type: Number,
-        default: 0
-    },
+   
 })
 
 

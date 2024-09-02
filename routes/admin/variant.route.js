@@ -10,7 +10,7 @@ const fileService = require("../../services/file.service")
 router.get("/get-product-variants/:product_id", async (req, res) => {
     try {
         const { product_id } = req.params;
-        const variants = await productVariantModel.find({ product_id })
+        const variants = await productVariantModel.find({ product_id }).lean();
 
         res.json(variants)
     } catch (error) {
@@ -36,6 +36,7 @@ router.put("/update-variant/:id", async (req, res) => {
     const { id } = req.params;
     let variant = req.body
     variant.sku = slugify(`${variant.sku}`);
+
     for (const attr of variant.attributes) {
         attr?.images?.length && (attr.images = await fileService.upload(req, attr.images))
     }
@@ -66,12 +67,12 @@ router.delete("/variant-delete/:id", async (req, res) => {
         for (const attr of deleted.attributes) {
             attr?.images?.length && (attr.images = await fileService.remove(attr.images))
         }
-        
+
         res.json({
             message: "success deleted",
             data: deleted
         })
-    
+
 
     } catch (error) {
         console.log(error)

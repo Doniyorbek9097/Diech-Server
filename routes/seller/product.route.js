@@ -16,23 +16,29 @@ router.post("/product-add", checkToken, async (req, res) => {
     try {
         let { body: products } = req;
 
+
         if (Array.isArray(products)) {
             products = await Promise.all(products.map(async (item) => { // Promise.all bilan map ichidagi async funktsiyani kutish
+            
                 const product = await productModel.findById(item.parent).lean();
-                if (!product) {
-                    throw new Error(`Product not found for parent ID: ${item.parent}`);
+                if (product) {
+                    const { _id, ...productData } = product;
+                    item.slug = slugify(`${product.name.ru} ${generateOTP(30)}`);
+                    item.discount = parseInt(((item.orginal_price - item.sale_price) / item.orginal_price) * 100);
+
+                    if (isNaN(item.discount)) item.discount = 0;
+
+                    return {
+                        products: [{
+                            ...productData,
+                            ...item,
+                        }],
+                        variants: [{
+                            
+                        }]
+                    };;
                 }
 
-                const { _id, ...productData } = product;
-                item.slug = slugify(`${product.name.ru} ${generateOTP(30)}`);
-                item.discount = parseInt(((item.orginal_price - item.sale_price) / item.orginal_price) * 100);
-
-                if (isNaN(item.discount)) item.discount = 0;
-                console.log(item);
-                return {
-                    ...productData,
-                    ...item,
-                };
             }));
         }
 
