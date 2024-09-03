@@ -5,7 +5,7 @@ const mongoose = require("mongoose")
 router.post("/add-cart", async (req, res) => {
     try {
         const { product: { quantity, variant_id, product_id }, cart_id } = req.body;
-
+        
         let cart = await cartModel.findOne({ "_id": cart_id })
         // Savatcha topilmasa, yangi savatcha yaratish
         if (!cart) {
@@ -36,28 +36,8 @@ router.post("/add-cart", async (req, res) => {
         cart = await cart.save()
 
         cart = await cartModel.findOne({ _id: cart.id })
-            .populate({
-                path: 'products.product_id',
-                populate: [
-                    {
-                        path: "product",
-                        select: ["name", "images"]
-                    }
-                ]
-            })
-
-            .populate({
-                path: 'products.variant_id',
-                populate: [
-                    {
-                        path: "product",
-                        select: ["name", "images"]
-                    },
-                    {
-                        path: "variant",
-                    }
-                ]
-            })
+        .populate('products.product_id')
+        .populate('products.variant_id')
 
         const products = cart?.products?.flatMap(item => ({
             variant: item?.variant_id,
@@ -84,28 +64,8 @@ router.post("/add-cart", async (req, res) => {
 router.get("/cart/:id", async (req, res) => {
     try {
         let cart = await cartModel.findOne({ _id: req.params.id })
-            .populate({
-                path: 'products.product_id',
-                populate: [
-                    {
-                        path: "product",
-                        select: ["name", "images"]
-                    }
-                ]
-            })
-
-            .populate({
-                path: 'products.variant_id',
-                populate: [
-                    {
-                        path: "product",
-                        select: ["name", "images"]
-                    },
-                    {
-                        path: "variant",
-                    }
-                ]
-            })
+            .populate('products.product_id')
+            .populate('products.variant_id')
 
         const products = cart?.products?.flatMap(item => ({
             variant: item?.variant_id,
