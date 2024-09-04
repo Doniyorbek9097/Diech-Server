@@ -90,7 +90,7 @@ routes.forEach(dir => {
   });
 });
 
-// Socket.io bilan ishlash uplanish
+// Socket.io bilan ishlash uplanis
 // io.on('connection', (socket) => {
 //   socket.on("add:category", (data) => {
 //     io.emit("add:category", data);
