@@ -8,8 +8,9 @@ const certificateScene = new BaseScene("certificateScene")
 
 certificateScene.enter(async (ctx) => {
     try {
+        certificate_issued
         const user = await userModel.findOne({ 'userid': ctx.chat.id });
-        const tests = await testModel.find({ 'answers.user': { $in: [user._id] } })
+        const tests = await testModel.find({ 'answers.user': { $in: [user._id] }, 'answers.certificate_issued': {$in: [false]} })
         if (!tests?.length) {
             ctx.replyWithHTML("<i>❌ Kechirasiz sizda testlar bo'yicha yangi sertifikatlar mavjud emas. Testlarda ishtirok etishda davom eting.</i>");
             return ctx.scene.enter("startScene")

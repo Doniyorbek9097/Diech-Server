@@ -154,11 +154,11 @@ class Product {
 
             images?.length && await fileService.remove(images)
 
-            return res.status(200).json({ result: deleted });
+            res.status(200).json({ result: deleted });
 
         } catch (error) {
             console.log(error);
-            return res.status(500).json("Serverda Xatolik")
+            res.status(500).json(error.message)
         }
     }
 

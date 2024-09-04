@@ -12,7 +12,11 @@ const answerSchema = Schema({
     found: String,
     correctAnswerCount: Number,
     wrongAnswerCount: Number,
-    date: String
+    date: String,
+    certificate_issued: {
+        type: Boolean,
+        default: false
+    }
 })
 
 const keywordsSchema = Schema({

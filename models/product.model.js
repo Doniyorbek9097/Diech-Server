@@ -228,7 +228,7 @@ productSchema.post('findByIdAndUpdate', productUpdate)
 productSchema.post('findOneAndUpdate', productUpdate)
 
 
-const deleteDetails = async function (docs, next) {
+const deleteProduct = async function (docs, next) {
     try {
         const doc = await this.model.findOne(this.getFilter());
         if (doc) {
@@ -237,9 +237,17 @@ const deleteDetails = async function (docs, next) {
         }
         next();
     } catch (err) {
+        console.log(err)
         next(err);
     }
 };
+
+
+productSchema.post('findByIdAndDelete', deleteProduct)
+productSchema.post('findOneAndDelete', deleteProduct)
+productSchema.pre('deleteMany', deleteProduct);
+productSchema.pre('deleteOne', deleteProduct);
+productSchema.pre('remove', deleteProduct);
 
 
 
@@ -299,11 +307,7 @@ productSchema.statics.getRandomProducts = async function({query = {}, limit = 10
 // });
 
 
-productSchema.pre('findOneAndDelete', deleteDetails);
-productSchema.pre('findByIdAndDelete', deleteDetails);
-productSchema.pre('deleteMany', deleteDetails);
-productSchema.pre('deleteOne', deleteDetails);
-productSchema.pre('remove', deleteDetails);
+
 
 
 
