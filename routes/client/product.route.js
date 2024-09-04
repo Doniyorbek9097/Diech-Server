@@ -6,7 +6,6 @@ const langReplace = require("../../utils/langReplace");
 const path = require("path")
 const fs = require("fs");
 const { Base64ToFile } = require("../../utils/base64ToFile");
-const { redisClient } = require("../../config/redisDB");
 const shopProductModel = require("../../models/shop.product.model");
 const { checkToken } = require("../../middlewares/authMiddleware")
 const { transformAttributes } = require('../../utils/transformAttributes')

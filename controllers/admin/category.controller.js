@@ -2,7 +2,6 @@ const slugify = require("slugify");
 const mongoose = require("mongoose");
 const categoryModel = require("../../models/category.model");
 const { Base64ToFile } = require("../../utils/base64ToFile");
-const { redisClient } = require("../../config/redisDB");
 const { generateOTP } = require("../../utils/otpGenrater")
 const fileService = require("../../services/file.service")
 

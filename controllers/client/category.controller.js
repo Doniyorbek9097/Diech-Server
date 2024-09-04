@@ -1,6 +1,5 @@
 const mongoose = require("mongoose")
 const categoryModel = require("../../models/category.model");
-const { redisClient } = require("../../config/redisDB");
 const _ = require('lodash');
 const shopProductModel = require("../../models/shop.product.model");
 

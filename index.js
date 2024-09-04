@@ -13,8 +13,6 @@ require('./prototypes');
 require('./testbot');
 const { serverDB } = require('./config/db');
 
-const productModel = require("./models/product.model")
-
 const app = fastify;
 
 // const io = new Server(server, {
@@ -110,7 +108,7 @@ const PORT = process.env.PORT || 5000;
 const start = async () => {
     try {
       await app.listen({ port: PORT });
-      app.log.info(`Server running at http://localhost:3000`);
+      console.log(`Server running at ${PORT}`);
     } catch (err) {
       app.log.error(err);
       process.exit(1);

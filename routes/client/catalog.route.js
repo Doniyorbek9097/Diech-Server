@@ -1,6 +1,5 @@
 // const router = require("express").Router()
 const catalogModel  = require('../../models/catalog')
-const { redisClient } = require("../../config/redisDB");
 
 const catalogRoutes = async(router, options) => {
     router.get('/catalog-all', async (req, res) => {

@@ -3,7 +3,6 @@ const productModel = require("../../models/product.model");
 const shopProductModel = require("../../models/shop.product.model");
 const shopProductVariantModel = require("../../models/shop.product.variant.model")
 const { checkToken } = require("../../middlewares/authMiddleware");
-const { redisClient } = require("../../config/redisDB");
 const { algolia } = require("../../config/algolia");
 const productsIndex = algolia.initIndex("ShopProducts");
 const slugify = require("slugify")

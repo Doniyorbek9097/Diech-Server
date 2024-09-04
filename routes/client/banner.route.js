@@ -1,4 +1,3 @@
-const { redisClient } = require("../../config/redisDB");
 const bannerModel = require("../../models/banner.model");
 // const router = require("express").Router();
 
