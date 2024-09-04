@@ -26,10 +26,10 @@ class Category {
 
             const data = { page: page + 1, limit, categories };
 
-            return res.status(200).json(data);
+            return data;
         } catch (err) {
             console.log(err);
-            res.status(500).json({ message: "Server is not working" });
+            res.status(500).send({ message: "Server is not working" });
         }
     }
 
@@ -50,7 +50,7 @@ class Category {
                 })
 
             if (!category) {
-                return res.json({ error: 'Category not found' });
+                return res.send({ error: 'Category not found' });
             }
 
             // const categories = _.uniqWith(_.flatMap(category.products, 'categories'),_.isEqual);
@@ -81,12 +81,12 @@ class Category {
                 products
             }
 
-            return res.json(data);
+            return data;
 
         } catch (error) {
             if (error) {
                 console.log(error);
-                res.status(500).json("server ishlamayapti")
+                res.status(500).send("server ishlamayapti")
             }
         }
     }

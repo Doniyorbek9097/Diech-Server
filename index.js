@@ -1,126 +1,119 @@
-const http = require("http");
-const fs = require('fs')
-const express = require("express");
-const cookieParser = require('cookie-parser');
+const fastify = require('fastify')({ logger: true });
+const fastifyCookie = require('@fastify/cookie');
+const fastifyCors = require('@fastify/cors');
+const fastifyHelmet = require('@fastify/helmet');
+const fastifyRateLimit = require('@fastify/rate-limit');
+const fastifyCompress = require('@fastify/compress');
+const fastifyStatic = require('@fastify/static');
+const path = require('path');
+const fs = require('fs');
 const { Server } = require('socket.io');
-const cors = require("cors");const morgan = require('morgan');
-var bodyParser = require('body-parser');
-const helmet = require('helmet');
-const rateLimit = require('express-rate-limit')
-const compression = require('compression');
-require("dotenv/config");
-require("./prototypes")
-// const redisClient = require("./config/redisDB")
-// require("./bot");
-require('./testbot')
+require('dotenv').config();
+require('./prototypes');
+require('./testbot');
+const { serverDB } = require('./config/db');
 
-const { serverDB } = require("./config/db")
+const productModel = require("./models/product.model")
 
-const mongoose = require("mongoose");
-const app = express();
+const app = fastify;
 
+// const io = new Server(server, {
+//   cors: {
+//     origin: "*",
+//     methods: "*"
+//   }
+// });
 
-const server = http.createServer(app);
-const io = new Server(server, {
-    cors: {
-        origin:"*",
-        methods: "*"
-    }
-})
+// Middleware'larni Fastifyga qo'shish
+// app.register(fastifyCors, {
+//   origin: function (origin, callback) {
+//     const allowedOrigins = ['http://frontend1.com', 'http://frontend2.com', 'http://frontend3.com'];
+//     if (allowedOrigins.includes(origin) || !origin) {
+//       callback(null, true);
+//     } else {
+//       callback(new Error('Not allowed by CORS'));
+//     }
+//   },
+//   credentials: true
+// });
 
+app.register(fastifyCookie);
 
+app.register(fastifyHelmet);
 
-const allowedOrigins = ['http://frontend1.com', 'http://frontend2.com', 'http://frontend3.com'];
+app.register(fastifyCompress);
 
-const corsOptions = {
-    origin: function (origin, callback) {
-        // Agar so'rovning origin qiymati ruxsat berilgan domenlardan biri bo'lsa, uni qabul qilamiz
-        if (allowedOrigins.includes(origin) || !origin) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-    credentials: true // cookie'larni ruxsat berish
-};
-
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 daqiqa
-    max: 100 // Har 15 daqiqada 100 ta so'rovdan oshmasligi kerak
-  });
-
-
-// app.use(limiter);
-// app.use(morgan('dev'));
-app.use(cors());
-// app.use(helmet());
-app.use(compression());
-app.use(bodyParser.json({limit: '100mb'}));
-app.use(bodyParser.urlencoded({limit: '100mb', extended: true}));
-app.use(cookieParser())
-
+app.register(fastifyRateLimit, {
+  max: 100,
+  timeWindow: '15 minutes'
+});
 
 const baseDir = process.env.NODE_ENV === 'production' ? "../../../../mnt/data/uploads" : "./uploads";
-app.use("/uploads", express.static(baseDir));
-
-
-
-app.use("/", (req, res, next) => {
-    const lang = req.headers['lang']
-    if(lang) serverDB.setDefaultLanguage(lang);
-    return next();
+app.register(fastifyStatic, {
+  root: path.join(__dirname, baseDir),
+  prefix: '/uploads/', // statik fayllar uchun URL prefiks
 });
 
+// Lang middleware
+app.addHook('preHandler', async (request, reply) => {
+  const lang = request.headers['lang'];
+  if (lang) serverDB.setDefaultLanguage(lang);
+});
 
-['client', 'admin', 'seller'].forEach(dir => {
-    fs.readdirSync(`./routes/${dir}`).forEach(route => {
-      app.use(`/api/${dir}/`, require(`./routes/${dir}/${route}`));
-    });
+const productRoutes = require("./routes/client/product.route")
+const categoryRoutes = require("./routes/client/category.route")
+const bannerRoutes = require("./routes/client/banner.route")
+const catalogRoutes = require("./routes/client/catalog.route")
+const orderRoutes = require("./routes/client/order.route")
+const userRoutes = require("./routes/client/user.route")
+const shopRoutes = require("./routes/client/shop.route")
+const pointRoutes = require("./routes/client/point.route")
+
+// app.register(productRoutes, {prefix:'/api/client/'})
+// app.register(categoryRoutes, {prefix:'/api/client/'})
+// app.register(catalogRoutes, {prefix:'/api/client/'})
+// app.register(orderRoutes, {prefix:'/api/client/'})
+// app.register(userRoutes, {prefix:'/api/client/'})
+// app.register(shopRoutes, {prefix:'/api/client/'})
+// app.register(pointRoutes, {prefix:'/api/client/'})
+
+
+
+
+// Routes papkalarini yuklash
+const routes = ['client'];
+routes.forEach(dir => {
+  fs.readdirSync(`./routes/${dir}`).forEach(route => {
+    if (route.endsWith('.js')) { // Faqat .js fayllarni yuklash
+      app.register(require(`./routes/${dir}/${route}`), { prefix: `/api/${dir}/` });
+    }
   });
-
+});
 
 // Socket.io bilan ishlash uplanish
-io.on('connection', (socket) => {
-    // console.log('Foydalanuvchi bog\'landi '+ socket.id);
-    
-    socket.on("add:category", (data) => {
-        io.emit("add:category", data)
-    })
+// io.on('connection', (socket) => {
+//   socket.on("add:category", (data) => {
+//     io.emit("add:category", data);
+//   });
 
-    socket.on("delete:category", (data) => {
-        io.emit("delete:category", data)
-    })
+//   socket.on("delete:category", (data) => {
+//     io.emit("delete:category", data);
+//   });
 
+//   socket.on('disconnect', () => {
+//     console.log('Foydalanuvchi ayirildi');
+//   });
+// });
 
-    socket.on('disconnect', () => {
-        console.log('Foydalanuvchi ayirildi');
-    });
-});
-
-
-
-const sharp = require('sharp');
-
-async function removeBackground(imagePath, outputPath, backgroundColor) {
-    try {
-        // Tasvirni PNG formatiga o'tkazish va shaffof qilish
-        await sharp(imagePath)
-            .resize({ width: 800 }) // Tasvir o'lchamini o'zgartirish (istalgan)
-            .flatten({ background: backgroundColor }) // Orqa fonni ma'lum rang bilan shaffof qilish
-            .png()
-            .toFile(outputPath);
-
-        console.log(`Orqa foni olib tashlangan rasm saqlandi: ${outputPath}`);
-    } catch (error) {
-        console.error('Xatolik:', error.message);
-    }
-}
-
-removeBackground('./input-image.jpg', './output-image.png', { background: { r: 0, g: 255, b: 0 } });
-
-
-
+// Serverni ishga tushirish
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => console.log(`server is runinng on port ${PORT}`))
-
-
+const start = async () => {
+    try {
+      await app.listen({ port: PORT });
+      app.log.info(`Server running at http://localhost:3000`);
+    } catch (err) {
+      app.log.error(err);
+      process.exit(1);
+    }
+  };
+  start();

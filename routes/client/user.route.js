@@ -4,139 +4,142 @@ const otpModel = require("../../models/otp.model");
 const userModel = require("../../models/user.model");
 const crypto = require("crypto");
 const bcrypt = require("bcrypt")
-const router = require("express").Router();
+// const router = require("express").Router();
 const sendEmail = require("../../utils/sendEmail");
 const { checkToken } = require("../../middlewares/authMiddleware");
 const { sendSms, getSmsToken } = require("../../utils/sendSms");
 const { generateOTP } = require("../../utils/otpGenrater");
 
-router.post("/signup", async (req, res) => {
-    try {
-        let { phone_number } = req.body;
-        if (!phone_number) return res.status(404).send("Telefon raqam topilmadi");
-
-        const otpCode = generateOTP(4);
-        const otp = new otpModel({ phone_number: phone_number, otp: otpCode });
-
-        const salt = await bcrypt.genSalt(10);
-        otp.otp = await bcrypt.hash(otp.otp, salt);
-
-        const otpResult = await otp.save();
-
-        const txt = `Diech market Tasdiqlash kodi ${otpCode}\nKodni hech kimga bermang.\nFiribgarlardan saqlaning.\nKompaniya Diech.uz`
-        const getsmstoken = getSmsToken()
-        // const respon = await sendSms(getsmstoken, phone_number, txt);
-        // console.log(respon);
-        return res.json({
-            message: `Diech market Tasdiqlash kodi ${phone_number} ga yuborildi`,
-            data: otpCode
-        });
-
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json(`${error.message}`);
-
-    }
-});
 
 
+async function userRoutes(fastify, options) {
+    fastify.post("/signup", async (req, reply) => {
+        try {
+            let { phone_number } = req.body;
+            if (!phone_number) return reply.status(400).send("Telefon raqam topilmadi");
 
-router.post("/signup/verify", async (req, res) => {
-    try {
-        let { phone_number, otp } = req.body;
+            const otpCode = generateOTP(4);
+            const otp = new otpModel({ phone_number: phone_number, otp: otpCode });
 
-        const otpHoder = await otpModel.find({ phone_number: phone_number });
+            const salt = await bcrypt.genSalt(10);
+            otp.otp = await bcrypt.hash(otp.otp, salt);
 
-        if (otpHoder.length == 0) return res.json({
-            message: "You use an Expired OTP!"
-        });
-        const lastOtpFind = otpHoder[otpHoder.length - 1];
+            const otpResult = await otp.save();
 
-        const validUser = await bcrypt.compare(otp, lastOtpFind.otp);
+            const txt = `Diech market Tasdiqlash kodi ${otpCode}\nKodni hech kimga bermang.\nFiribgarlardan saqlaning.\nKompaniya Diech.uz`;
+            const getsmstoken = getSmsToken();
+            // const respon = await sendSms(getsmstoken, phone_number, txt);
+            // console.log(respon);
 
-        if (lastOtpFind.phone_number === phone_number && validUser) {
-            let user = await userModel.findOne({ phone_number: phone_number });
-            
-            if (!user) {
-                user = new userModel({
-                    otp,
-                    phone_number,
+            return reply.send({
+                message: `Diech market Tasdiqlash kodi ${phone_number} ga yuborildi`,
+                data: otpCode
+            });
+
+        } catch (error) {
+            console.log(error);
+            return reply.status(500).send(error.message);
+        }
+    });
+
+    fastify.post("/signup/verify", async (req, reply) => {
+        try {
+            let { phone_number, otp } = req.body;
+
+            const otpHoder = await otpModel.find({ phone_number: phone_number });
+
+            if (otpHoder.length === 0) return reply.status(400).send({
+                message: "You use an Expired OTP!"
+            });
+
+            const lastOtpFind = otpHoder[otpHoder.length - 1];
+
+            const validUser = await bcrypt.compare(otp, lastOtpFind.otp);
+
+            if (lastOtpFind.phone_number === phone_number && validUser) {
+                let user = await userModel.findOne({ phone_number: phone_number });
+
+                if (!user) {
+                    user = new userModel({
+                        otp,
+                        phone_number,
+                    });
+                }
+
+                user.verified = true;
+
+                const token = await generateToken({
+                    _id: user._id,
+                    phone_number: phone_number
+                });
+                const result = await user.save();
+
+                await otpModel.deleteMany({ phone_number: lastOtpFind.phone_number });
+                // reply.cookie('token', token, { 
+                //         httpOnly: true, 
+                //         secure: true,
+                //         maxAge: 3600000
+                //     });
+                
+                return reply.send({ message: "Success", data: result });
+            }
+
+            return reply.status(400).send({
+                message: "Kod Xato"
+            });
+
+        } catch (error) {
+            console.log(error);
+            return reply.status(500).send(error.message);
+        }
+    });
+
+    fastify.get("/user/:id", async (req, reply) => {
+        try {
+            const user = await userModel.findById(req.params.id)
+                .populate({
+                    path: "orders"
+                });
+
+            if (user) {
+                return reply.send({
+                    message: "Success",
+                    data: user
                 });
             }
 
-            user.verified = true;
-
-            const token = await generateToken({
-                _id: user._id,
-                phone_number: phone_number
+            return reply.status(404).send({
+                message: "User not found"
             });
-            const result = await user.save();
 
-            const deleteOtp = await otpModel.deleteMany({ phone_number: lastOtpFind.phone_number });
-            // res.cookie('token', token, { 
-            //         httpOnly: true, 
-            //         secure: true,
-            //         maxAge: 3600000
-            //     });
-            return res.json({ message: "Success", data: result})
+        } catch (error) {
+            console.log(error);
+            return reply.status(500).send(error.message);
         }
+    });
 
-
-        return res.json({
-            message: "Kod Xato"
-        })
-
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json(error.message)
-    }
-})
-
-
-router.get("/user/:id", async (req, res) => {
-    try {
-        const user = await userModel.findById(req.params.id)
-            .populate({
-                path: "orders"
-            })
-
-        if (user) {
-            return res.json({
-                message: "Success",
-                data: user
+    fastify.put("/user-update/:id", { preHandler: checkToken }, async (req, reply) => {
+        try {
+            const existingUser = await userModel.findOne({ username: req.body.username });
+            if (existingUser) return reply.status(400).send({
+                message: "Bunday username foydalanuvchisi mavjud iltimos boshqa username kiriting"
             });
+
+            const updated = await userModel.findByIdAndUpdate(req.params.id, req.body, { new: true });
+
+            return reply.send({
+                message: "success updated",
+                data: updated
+            });
+
+        } catch (error) {
+            console.log(error);
+            return reply.status(500).send("Serverda Xatolik");
         }
+    });
+}
 
-        return res.send({
-            message: "Token xato"
-        });
-
-
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json(error.message)
-    }
-});
-
-
-
-router.put("/user-update/:id", checkToken, async (req, res) => {
-    try {
-        const user = await userModel.findOne({ username: req.body.username });
-        if (user) return res.json({
-            message: "Bunday username foydalanuvchisi mavjud iltimos boshqa username kiriting"
-        })
-        const updated = await userModel.findByIdAndUpdate(req.params.id, req.body);
-        console.log(updated)
-        res.send({
-            message: "success updated",
-            data: updated
-        })
-    } catch (error) {
-        console.log(error);
-        res.status(500).send("Serverda Xatolik")
-    }
-});
+module.exports = userRoutes;
 
 
 
@@ -353,7 +356,7 @@ router.put("/user-update/:id", checkToken, async (req, res) => {
 //     }
 // });
 
-module.exports = router;
+module.exports = userRoutes;
 
 
 

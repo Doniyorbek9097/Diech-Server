@@ -1,4 +1,4 @@
-const router = require("express").Router();
+// const router = require("express").Router();
 const productModel = require("../../models/product.model");
 const categoryModel = require("../../models/category.model");
 const slugify = require("slugify");
@@ -15,7 +15,8 @@ const productsIndex = algolia.initIndex("products");
 const mongoose = require("mongoose");
 
 
-// get all products search
+async function productRoutes(router, options) {
+  // get all products search
 router.get("/products-search", async (req, res) => {
   try {
 
@@ -46,17 +47,17 @@ router.get("/products-search", async (req, res) => {
       page,
       totalPages
     };
-    return res.json(data);
+
+    return data;
 
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: error.message });
+    res.status(500).send({ message: error.message });
   }
 });
 
 
-
-
+// all products 
 router.get("/products", async (req, res) => {
   try {
 
@@ -136,11 +137,11 @@ router.get("/products", async (req, res) => {
     };
 
 
-    return res.json(data);
+    return data;
 
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: error.message });
+    res.status(500).send({ message: error.message });
   }
 });
 
@@ -185,7 +186,7 @@ router.get("/product-slug/:slug", async (req, res) => {
 
     product = await shopProductModel.findOne({ slug: slug })
       .populate("categories", "name slug")
-      .populate("shop","slug name")
+      // .populate("shop","slug name")
       .populate({
           path: "variants",
           populate: {
@@ -193,7 +194,7 @@ router.get("/product-slug/:slug", async (req, res) => {
           }
       })
 
-
+    console.log(product);
     // const attributes = transformAttributes((product?.details || []).flatMap(item => item.variants || []));
 
     // const matchesFilter = variant =>
@@ -236,7 +237,7 @@ router.get("/product-slug/:slug", async (req, res) => {
       const randomProductIds = result ? result.ids : [];
       const products = await shopProductModel.find({ _id: { $in: randomProductIds } })
       .populate("categories", "name slug")
-      .populate("shop","slug name")
+      // .populate("shop","slug name")
       .populate({
           path: "variants",
           populate: {
@@ -261,15 +262,16 @@ router.get("/product-slug/:slug", async (req, res) => {
       message: "success"
     };
 
-    return res.json(data);
+    return data;
 
   } catch (error) {
     console.log(error);
-    return res.status(500).send("Server Ishlamayapti");
+    return res.status(500).send(error.message);
   }
 });
 
 
+// addrewies 
 
 router.post("/add-review/:id", async (req, res) => {
   try {
@@ -282,7 +284,7 @@ router.post("/add-review/:id", async (req, res) => {
       )
 
       if (alreadyReviewed) {
-        return res.status(400).send('Product already reviewed')
+        return 'Product already reviewed'
       }
 
       const review = {
@@ -301,16 +303,18 @@ router.post("/add-review/:id", async (req, res) => {
 
       const newProduct = await product.save();
 
-      res.status(201).json(newProduct.reviews.shift())
+      return newProduct.reviews.shift();
 
     } else {
-      res.status(404)
-      throw new Error('Product not found')
+      return 'Product not found';
     }
   } catch (error) {
     console.log(error);
+    res.status(500).send(error.message)
+
   }
 });
+
 
 
 router.post("/delete-review/:id", async (req, res) => {
@@ -321,53 +325,30 @@ router.post("/delete-review/:id", async (req, res) => {
       if (index !== -1) {
         product.reviews.splice(index, 1)
         await product.save()
-        res.status(200).json({ message: 'Review deleted' })
+        return { message: 'Review deleted' };
       }
 
-      else res.status(404).json("Product not found")
+      else return "Product not found";
 
     }
 
     else {
-      res.status(404).json("Product not found")
+      return "Product not found";
     }
 
   } catch (error) {
     console.log(error);
-    res.status(500).json("Server is don't working")
+    res.status(500).send("Server is don't working")
 
   }
 })
 
 
-router.get("/random-products", async (req, res) => {
-  const [result] = await productModel.aggregate([
-    {
-      $match: {
-        $or: [
-          { mixed: false },        // `mixed` maydoni false bo'lgan hujjatlar
-          { mixed: { $exists: false } }  // `mixed` maydoni mavjud bo'lmagan hujjatlar
-        ]
-      }
-    },  // Kategoriyaga mos mahsulotlarni topish
-    { $sample: { size: 100 } },  // Randomlashtirish
-    { $project: { _id: 1 } },  // Faqat _id maydonini qaytarish
-    { $group: { _id: null, ids: { $push: '$_id' } } },  // _idlarni arrayga yig'ish
-    { $project: { _id: 0, ids: 1 } }  // Yig'ilgan arrayni qaytarish
-  ]);
 
-  const randomProductIds = result ? result.ids : [];
- 
+}
 
 
-await productModel.updateMany(
-  { _id: { $in: randomProductIds } },  // Filterni belgilash
-  { $set: {mixed: true } }  // Yangilash so'rovi
-);
 
-
-})
-
-module.exports = router;
+module.exports = productRoutes;
 
 

@@ -8,7 +8,7 @@ const certificateScene = new BaseScene("certificateScene")
 
 certificateScene.enter(async (ctx) => {
     try {
-        certificate_issued
+        
         const user = await userModel.findOne({ 'userid': ctx.chat.id });
         const tests = await testModel.find({ 'answers.user': { $in: [user._id] }, 'answers.certificate_issued': {$in: [false]} })
         if (!tests?.length) {
@@ -52,6 +52,7 @@ certificateScene.on("text", async (ctx) => {
             return;
         }
 
+
         // Faqat mavjud bo'lgan 'answers' massivdan biror narsa topish
         const answer = test.answers.find(item => {
             if (item.user && item.user.userid.toString() === ctx.chat.id.toString()) {
@@ -67,7 +68,6 @@ certificateScene.on("text", async (ctx) => {
                     caption: "Sertifikatingiz tayyor!",
                     parse_mode: 'HTML'
                 });
-
                 break;
             case 'image-2.jpg':
                 await generate.certificate2({ user: answer, test })
@@ -97,6 +97,11 @@ certificateScene.on("text", async (ctx) => {
                 break;
         }
 
+    
+        await testModel.updateOne(
+            { 'answers.user': answer.user._id },
+            { $set: { 'answers.$.certificate_issued': true } }
+          );
         await ctx.scene.enter("startScene")
 
     } catch (error) {
