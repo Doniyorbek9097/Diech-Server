@@ -13,8 +13,6 @@ require('./prototypes');
 require('./testbot');
 const { serverDB } = require('./config/db');
 
-const app = fastify;
-
 // const io = new Server(server, {
 //   cors: {
 //     origin: "*",
@@ -22,14 +20,14 @@ const app = fastify;
 //   }
 // });
 
-app.register(fastifyCors, { 
-  origin: '*', // Adjust as needed for your application
+fastify.register(fastifyCors, { 
+  origin: '*', // Adjust as needed for your aplication
   methods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS'],
 });
 
 
 // Middleware'larni Fastifyga qo'shish
-// app.register(fastifyCors, {
+// fastify.register(fastifyCors, {
 //   origin: function (origin, callback) {
 //     const allowedOrigins = ['http://frontend1.com', 'http://frontend2.com', 'http://frontend3.com'];
 //     if (allowedOrigins.includes(origin) || !origin) {
@@ -41,25 +39,25 @@ app.register(fastifyCors, {
 //   credentials: true
 // });
 
-app.register(fastifyCookie);
+fastify.register(fastifyCookie);
 
-app.register(fastifyHelmet);
+fastify.register(fastifyHelmet);
 
-app.register(fastifyCompress);
+fastify.register(fastifyCompress);
 
-app.register(fastifyRateLimit, {
+fastify.register(fastifyRateLimit, {
   max: 100,
   timeWindow: '15 minutes'
 });
 
 const baseDir = process.env.NODE_ENV === 'production' ? "../../../../mnt/data/uploads" : "./uploads";
-app.register(fastifyStatic, {
+fastify.register(fastifyStatic, {
   root: path.join(__dirname, baseDir),
   prefix: '/uploads/', // statik fayllar uchun URL prefiks
 });
 
 // Lang middleware
-app.addHook('preHandler', async (request, reply) => {
+fastify.addHook('preHandler', async (request, reply) => {
   const lang = request.headers['lang'];
   if (lang) serverDB.setDefaultLanguage(lang);
 });
@@ -73,13 +71,13 @@ const userRoutes = require("./routes/client/user.route")
 const shopRoutes = require("./routes/client/shop.route")
 const pointRoutes = require("./routes/client/point.route")
 
-// app.register(productRoutes, {prefix:'/api/client/'})
-// app.register(categoryRoutes, {prefix:'/api/client/'})
-// app.register(catalogRoutes, {prefix:'/api/client/'})
-// app.register(orderRoutes, {prefix:'/api/client/'})
-// app.register(userRoutes, {prefix:'/api/client/'})
-// app.register(shopRoutes, {prefix:'/api/client/'})
-// app.register(pointRoutes, {prefix:'/api/client/'})
+// fastify.register(productRoutes, {prefix:'/api/client/'})
+// fastify.register(categoryRoutes, {prefix:'/api/client/'})
+// fastify.register(catalogRoutes, {prefix:'/api/client/'})
+// fastify.register(orderRoutes, {prefix:'/api/client/'})
+// fastify.register(userRoutes, {prefix:'/api/client/'})
+// fastify.register(shopRoutes, {prefix:'/api/client/'})
+// fastify.register(pointRoutes, {prefix:'/api/client/'})
 
 
 
@@ -91,7 +89,7 @@ routesFolder.forEach(dir => {
   fs.readdirSync(path.join(__dirname, 'routes', dir)).forEach(route => {
     if (route.endsWith('.js')) { // Faqat .js fayllarni yuklash
       const routePath = path.join(__dirname, 'routes', dir, route);
-      app.register(require(routePath), { prefix: `/api/${dir}` }, (err) => {
+      fastify.register(require(routePath), { prefix: `/api/${dir}` }, (err) => {
         if (err) {
           console.error(`Failed to load route ${routePath}:`, err);
           process.exit(1); // Serverni to'xtatish
@@ -122,10 +120,10 @@ routesFolder.forEach(dir => {
 const PORT = process.env.PORT || 5000;
 const start = async () => {
     try {
-      await app.listen({ port: PORT });
+      await fastify.listen({ port: PORT });
       console.log(`Server running at ${PORT}`);
     } catch (err) {
-      app.log.error(err);
+      fastify.log.error(err);
       process.exit(1);
     }
   };
