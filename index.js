@@ -51,6 +51,7 @@ fastify.register(fastifyRateLimit, {
 });
 
 const baseDir = process.env.NODE_ENV === 'production' ? "../../../../mnt/data/uploads" : "./uploads";
+console.log(baseDir);
 fastify.register(fastifyStatic, {
   root: path.join(__dirname, baseDir),
   prefix: '/uploads/', // statik fayllar uchun URL prefiks
