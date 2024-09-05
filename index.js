@@ -118,13 +118,15 @@ routesFolder.forEach(dir => {
 
 // Serverni ishga tushirish
 const PORT = process.env.PORT || 5000;
+
 const start = async () => {
-    try {
-      await fastify.listen(PORT, '0.0.0.0');
-      console.log(`Server running at ${PORT}`);
-    } catch (err) {
-      fastify.log.error(err);
-      process.exit(1);
-    }
-  };
-  start();
+  try {
+    await fastify.listen({ port: PORT, host: '0.0.0.0' }); // Yangi uslubda port va hostni ko'rsatish
+    console.log(`Server running at http://0.0.0.0:${PORT}`);
+  } catch (err) {
+    fastify.log.error(err);
+    process.exit(1);
+  }
+};
+
+start();
