@@ -18,10 +18,11 @@ class Field {
     async all(req, reply) {
         try {
             const fields = await fieldModel.find();
-            reply.send(fields);
+            return reply.send(fields)
+            
         } catch (error) {
             console.log(error);
-            reply.status(500).send({ message: "Error retrieving fields", error: error.message });
+            return reply.status(500).send({ message: "Error retrieving fields", error: error.message });
         }
     }
 
@@ -61,10 +62,12 @@ class Field {
                 { fields: req.params.id },
                 { $pull: { fields: req.params.id } }
             );
-            reply.send(deleted);
+
+            return reply.send(deleted);
+
         } catch (error) {
             console.log(error);
-            reply.status(500).send({ message: "Error deleting field", error: error.message });
+           return reply.status(500).send({ message: "Error deleting field", error: error.message });
         }
     }
 }

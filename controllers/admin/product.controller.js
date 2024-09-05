@@ -141,7 +141,7 @@ class Product {
         } catch (error) {
             product?.images?.length && await fileService.remove(images)
             console.log(error);
-            reply.status(500).send("Server Xatosi: " + error);
+            return reply.status(500).send("Server Xatosi: " + error);
         }
     }
 
@@ -153,11 +153,11 @@ class Product {
 
             images?.length && await fileService.remove(images)
 
-            reply.status(200).send({ replyult: deleted });
+            return reply.status(200).send({ replyult: deleted });
 
         } catch (error) {
             console.log(error);
-            reply.status(500).send(error.message)
+            return reply.status(500).send(error.message)
         }
     }
 
@@ -190,7 +190,7 @@ class Product {
             });
 
             await productsIndex.saveObjects(body);
-            reply.send("Indeksatsiya qilindi")
+            return reply.send("Indeksatsiya qilindi")
 
         } catch (error) {
             console.error('Indeksatsiya xatosi:', error);
