@@ -8,9 +8,10 @@ const certificateScene = new BaseScene("certificateScene")
 
 certificateScene.enter(async (ctx) => {
     try {
-        
+
         const user = await userModel.findOne({ 'userid': ctx.chat.id });
-        const tests = await testModel.find({ 'answers.user': { $in: [user._id] }, 'answers.certificate_issued': {$in: [false]} })
+        const tests = await testModel.find({ 'answers.user': { $in: [user._id] }, 'answers.certificate_issued': { $in: [false] } })
+
         if (!tests?.length) {
             ctx.replyWithHTML("<i>❌ Kechirasiz sizda testlar bo'yicha yangi sertifikatlar mavjud emas. Testlarda ishtirok etishda davom eting.</i>");
             return ctx.scene.enter("startScene")
@@ -60,8 +61,14 @@ certificateScene.on("text", async (ctx) => {
             }
         });
 
+        // Typing ko'rsatib beradigan funksiya
+        const typing = async (chatId) => {
+            await ctx.telegram.sendChatAction(chatId, "upload_document");
+        };
+
         switch (test.author.template) {
             case 'image-1.jpg':
+                await typing(ctx.chat.id)
                 await generate.certificate1({ user: answer, test })
                 await ctx.replyWithDocument({
                     source: "./testbot/certificate.jpg",
@@ -70,6 +77,7 @@ certificateScene.on("text", async (ctx) => {
                 });
                 break;
             case 'image-2.jpg':
+                await typing(ctx.chat.id)
                 await generate.certificate2({ user: answer, test })
                 await ctx.replyWithDocument({
                     source: "./testbot/certificate.jpg",
@@ -79,6 +87,7 @@ certificateScene.on("text", async (ctx) => {
 
                 break;
             case 'image-3.jpg':
+                await typing(ctx.chat.id)
                 await generate.certificate3({ user: answer, test })
                 await ctx.replyWithDocument({
                     source: "./testbot/certificate.jpg",
@@ -88,6 +97,7 @@ certificateScene.on("text", async (ctx) => {
 
                 break;
             case 'image-4.jpg':
+                await typing(ctx.chat.id)
                 await generate.certificate4({ user: answer, test })
                 await ctx.replyWithDocument({
                     source: "./testbot/certificate.jpg",
@@ -97,11 +107,14 @@ certificateScene.on("text", async (ctx) => {
                 break;
         }
 
-    
+
         await testModel.updateOne(
-            { 'answers.user': answer.user._id },
+            {
+                'code': test.code,
+                'answers.user': answer.user._id
+            },
             { $set: { 'answers.$.certificate_issued': true } }
-          );
+        );
         await ctx.scene.enter("startScene")
 
     } catch (error) {

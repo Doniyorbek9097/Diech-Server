@@ -1,7 +1,7 @@
 const { Scenes: { BaseScene }, Markup } = require("telegraf");
 const userModel = require('../models/user.model')
 const channelModel = require("../models/channnel.model")
-
+const testModel = require("../models/test.model")
 
 const adminScene = new BaseScene("adminScene")
 
@@ -9,7 +9,8 @@ const keyboards = Markup.keyboard([
     ["✍️ Test yaratish", "✅ Javobni tekshirish"],
     ["🎉 Sertifikatlar", "⚙️ Sozlamalar"],
     ["📊 Statistika", "📤 Habar yuborish"],
-    ["📢 Kanallar"]
+    ["📢 Kanallar"],
+    ["🧹 Barcha testlarni o'chirish"]
 
 ]).resize()
 
@@ -62,6 +63,31 @@ adminScene.hears("📤 Habar yuborish", async (ctx) => {
 })
 
 
+adminScene.hears("🧹 Barcha testlarni o'chirish", async (ctx) => {
+    try {
+        const txt = `<b>Rostdan ham o'chirmoqchimisiz ?</b>\nBarcha testlar o'chib ketadi va hammasi 0 dan boshlanadi`;
+        const keyboard = Markup.keyboard([
+            ["🗑️ Barchasini tozalash"],
+            ["🔙 Orqaga qaytish"]
+        ]).resize()
+
+        return await ctx.replyWithHTML(txt, keyboard);
+    } catch (error) {
+        console.log(error)
+    }
+})
+
+
+adminScene.hears("🗑️ Barchasini tozalash", async (ctx) => {
+    try {
+        await testModel.deleteMany({});
+        ctx.reply("Barchasi testlar o'chirildi")
+    } catch (error) {
+        console.log(error);
+    }
+})
+
+
 adminScene.hears("📢 Kanallar", async (ctx) => {
     try {
         const user = await userModel.findOne({ 'userid': ctx.chat.id })
@@ -75,7 +101,7 @@ adminScene.hears("📢 Kanallar", async (ctx) => {
         const keyboard = Markup.keyboard([
             ["Qo'shish"],
             ["O'chirish"],
-            ["🔙 Bekor qilish"],
+            ["🔙 Orqaga qaytish"],
 
         ]).resize()
 
@@ -98,7 +124,7 @@ adminScene.hears("O'chirish", async ctx => {
     return ctx.scene.enter("removeChannelScene")
 })
 
-adminScene.hears("🔙 Bekor qilish", (ctx) => ctx.scene.enter("startScene"))
+adminScene.hears("🔙 Orqaga qaytish", (ctx) => ctx.scene.enter("startScene"))
 
 
 module.exports = adminScene;

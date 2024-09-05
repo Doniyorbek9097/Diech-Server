@@ -39,7 +39,7 @@ async certificate3({user:{ user, date, ball }, test: {keyword, code, author}}) {
 
     const certGen = new CreateImage('./testbot/certificates/image-3.jpg');
     await certGen.init()
-    await certGen.addText({text:`${user.firstname} ${user.lastname}`, x:1000, x:620, fontSize: 100})  // Matnni rasm ustiga chizish
+    await certGen.addText({text:`${user.firstname} ${user.lastname}`, x:1000, y:620, fontSize: 100})  // Matnni rasm ustiga chizish
     await certGen.addText({text, x:1000, y:750})
     await certGen.addText({text:date, x:610, y:1150})
     await certGen.addText({text:`${author.firstname} ${author.lastname}`, x:1400, y:1150})
