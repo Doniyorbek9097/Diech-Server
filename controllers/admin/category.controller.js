@@ -110,7 +110,7 @@ class Category {
                 .limit(limit)
                 .sort({ _id: -1 })
 
-                return reply.send({
+                reply.send({
                     message: "success get products",
                     data: categories,
                     limit,
@@ -174,13 +174,12 @@ class Category {
             const upadted = await categoryModel.findByIdAndUpdate(id, req.body);
             
             category.deletedImages.length && category.deletedImages.forEach(async item => await fileService.remove(item));
-            
-            return reply.status(200).send(upadted);
+            reply.status(200).send(upadted);
 
         } catch (error) {
             category?.icon && await fileService.remove(category.icon)
             category?.image && await fileService.remove(category.image)
-            return reply.status(500).send(error.message)
+            reply.status(500).send(error.message)
         }
     }
 

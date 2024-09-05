@@ -18,10 +18,10 @@ class Field {
     async all(req, reply) {
         try {
             const fields = await fieldModel.find();
-            return reply.send(fields);
+            reply.send(fields);
         } catch (error) {
             console.log(error);
-            return reply.status(500).send({ message: "Error retrieving fields", error: error.message });
+            reply.status(500).send({ message: "Error retrieving fields", error: error.message });
         }
     }
 
@@ -64,7 +64,7 @@ class Field {
             reply.send(deleted);
         } catch (error) {
             console.log(error);
-            return  reply.status(500).send({ message: "Error deleting field", error: error.message });
+            reply.status(500).send({ message: "Error deleting field", error: error.message });
         }
     }
 }

@@ -22,8 +22,9 @@ const { serverDB } = require('./config/db');
 
 fastify.register(fastifyCors, { 
   origin: '*', // Adjust as needed for your aplication
-  methods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'PUT', 'POST', 'DELETE'],
 });
+
 
 
 // Middleware'larni Fastifyga qo'shish
@@ -47,7 +48,7 @@ fastify.register(fastifyCompress);
 
 // fastify.register(fastifyRateLimit, {
 //   max: 100,
-//   timeWindow: '15 minutes'
+//   timeWindow: '1 minutes'
 // });
 
 const baseDir = process.env.NODE_ENV === 'production' ? "../../../../mnt/data/uploads" : "./uploads";
@@ -67,7 +68,7 @@ fastify.addHook('preHandler', async (request, reply) => {
 
 
 // Routes papkalarini yuklash
-const routesFolder = ['client','seller'];
+const routesFolder = ['client','seller','admin'];
 
 routesFolder.forEach(dir => {
   fs.readdirSync(path.join(__dirname, 'routes', dir)).forEach(route => {
@@ -114,3 +115,23 @@ const start = async () => {
 };
 
 start();
+
+
+
+
+// const fieldController = require("../../controllers/admin/field.controller")
+
+// const fieldRoutes = (fastify, options) => {
+
+//     fastify.post('/add-field', fieldController.create)
+
+//     fastify.get('/get-fields', fieldController.all)
+
+//     fastify.get('/get-field/:id', fieldController.oneById)
+
+//     fastify.put('/edit-field/:id', fieldController.updateById)
+
+//     fastify.delete('/delete-field/:id', fieldController.deleteById)
+// }
+
+// module.exports = fieldRoutes;
