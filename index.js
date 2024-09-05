@@ -50,13 +50,8 @@ fastify.register(fastifyRateLimit, {
   timeWindow: '15 minutes'
 });
 
-// const baseDir = process.env.NODE_ENV === 'production' ? "../../../../mnt/data/uploads" : "./uploads";
+const baseDir = process.env.NODE_ENV === 'production' ? "../../../../mnt/data/uploads" : "./uploads";
 
-const baseDir = process.env.NODE_ENV === 'production'
-  ? path.resolve('/mnt/data/uploads') // Absolute yo'l
-  : path.join(__dirname, './uploads'); // Lokal yo'l
-  
-console.log(baseDir);
 fastify.register(fastifyStatic, {
   root: path.join(__dirname, baseDir),
   prefix: '/uploads/', // statik fayllar uchun URL prefiks
