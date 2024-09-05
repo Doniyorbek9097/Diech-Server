@@ -44,7 +44,7 @@ fastify.register(fastifyCookie);
 
 // fastify.register(fastifyHelmet);
 
-fastify.register(fastifyCompress);
+// fastify.register(fastifyCompress);
 
 // fastify.register(fastifyRateLimit, {
 //   max: 100,

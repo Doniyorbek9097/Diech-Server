@@ -3,11 +3,11 @@ const { checkToken } = require("../../middlewares/authMiddleware")
 
 
 
-const FieldRoutes = async (fastify, options) => {
+const fieldRoutes = async (fastify, options) => {
     try {
         fastify.post('/add-field', { preHandler: checkToken }, fieldController.create)
 
-        fastify.get('/get-fields', fieldController.all)
+        fastify.get('/get-fields', { preHandler: checkToken }, fieldController.all)
 
         fastify.get('/get-field/:id', { preHandler: checkToken }, fieldController.oneById)
 
@@ -21,6 +21,6 @@ const FieldRoutes = async (fastify, options) => {
 
 }
 
-module.exports = FieldRoutes;
+module.exports = fieldRoutes;
 
 
