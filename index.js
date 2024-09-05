@@ -120,7 +120,7 @@ routesFolder.forEach(dir => {
 const PORT = process.env.PORT || 5000;
 const start = async () => {
     try {
-      await fastify.listen({ port: PORT });
+      await fastify.listen(PORT, '0.0.0.0');
       console.log(`Server running at ${PORT}`);
     } catch (err) {
       fastify.log.error(err);
