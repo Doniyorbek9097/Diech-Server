@@ -127,8 +127,6 @@ router.get("/products", async (req, res) => {
     .limit(limit)
     .select("name slug disription images orginal_price sale_price discount reviews viewsCount shop")
 
-    console.log(result[0]);
-    
     const data = {
       message: "success get products",
       products: result,

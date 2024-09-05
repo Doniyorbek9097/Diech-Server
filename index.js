@@ -41,14 +41,14 @@ fastify.register(fastifyCors, {
 
 fastify.register(fastifyCookie);
 
-fastify.register(fastifyHelmet);
+// fastify.register(fastifyHelmet);
 
 fastify.register(fastifyCompress);
 
-fastify.register(fastifyRateLimit, {
-  max: 100,
-  timeWindow: '15 minutes'
-});
+// fastify.register(fastifyRateLimit, {
+//   max: 100,
+//   timeWindow: '15 minutes'
+// });
 
 const baseDir = process.env.NODE_ENV === 'production' ? "../../../../mnt/data/uploads" : "./uploads";
 
@@ -62,23 +62,6 @@ fastify.addHook('preHandler', async (request, reply) => {
   const lang = request.headers['lang'];
   if (lang) serverDB.setDefaultLanguage(lang);
 });
-
-const productRoutes = require("./routes/client/product.route")
-const categoryRoutes = require("./routes/client/category.route")
-const bannerRoutes = require("./routes/client/banner.route")
-const catalogRoutes = require("./routes/client/catalog.route")
-const orderRoutes = require("./routes/client/order.route")
-const userRoutes = require("./routes/client/user.route")
-const shopRoutes = require("./routes/client/shop.route")
-const pointRoutes = require("./routes/client/point.route")
-
-// fastify.register(productRoutes, {prefix:'/api/client/'})
-// fastify.register(categoryRoutes, {prefix:'/api/client/'})
-// fastify.register(catalogRoutes, {prefix:'/api/client/'})
-// fastify.register(orderRoutes, {prefix:'/api/client/'})
-// fastify.register(userRoutes, {prefix:'/api/client/'})
-// fastify.register(shopRoutes, {prefix:'/api/client/'})
-// fastify.register(pointRoutes, {prefix:'/api/client/'})
 
 
 
