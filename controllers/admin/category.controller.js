@@ -6,7 +6,7 @@ const { generateOTP } = require("../../utils/otpGenrater")
 const fileService = require("../../services/file.service")
 
 class Category {
-    async create(req, res) {
+    async create(req, reply) {
         try {
             const formData = req.body;
             for (const cate of formData) {
@@ -14,18 +14,20 @@ class Category {
             }
 
             const newCategory = await categoryModel.insertMany(formData);
-            return res.json({
+            return reply.send({
                 data: newCategory,
                 message: "Success"
             })
         } catch (error) {
             console.log(error)
-            res.status(500).json(error.message)
-        }
+            reply.status(500).send(error.message)
+        
     }
 
+}
 
-    async getAll(req, res) {
+
+    async getAll(req, reply) {
         try {
             const search = req.query.search || "";
             const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
@@ -53,7 +55,7 @@ class Category {
                 .limit(limit)
                 .sort({ _id: -1 })
 
-                return res.json({
+                return reply.send({
                     message: "success get products",
                     data: categories,
                     limit,
@@ -63,11 +65,11 @@ class Category {
 
         } catch (error) {
             console.log(error)
-            res.status(500).json(error.message)
+            reply.status(500).send(error.message)
         }
     }
 
-    async getAllByParentId(req, res) {
+    async getAllByParentId(req, reply) {
         try {
             const { id } = req.params;
             const search = req.query.search || "";
@@ -108,7 +110,7 @@ class Category {
                 .limit(limit)
                 .sort({ _id: -1 })
 
-                return res.json({
+                return reply.send({
                     message: "success get products",
                     data: categories,
                     limit,
@@ -118,14 +120,14 @@ class Category {
 
         } catch (error) {
             console.log(error)
-            res.status(500).json(error.message)
+            reply.status(500).send(error.message)
         }
     }
 
-    async oneById(req, res) {
+    async oneById(req, reply) {
         try {
             if (!mongoose.isValidObjectId(req.params.id)) {
-                return res.status(404).send("Category Id haqiqiy emas");
+                return reply.status(404).send("Category Id haqiqiy emas");
             }
 
             let category = await categoryModel.findById(req.params.id)
@@ -133,34 +135,34 @@ class Category {
                     path: "children",
                 })
             
-            if (!category) return res.status(404).send("Category topilmadi");
-            return res.status(200).json(category.toObject());
+            if (!category) return reply.status(404).send("Category topilmadi");
+            return reply.status(200).send(category.toObject());
 
         } catch (error) {
             console.log(error)
-            res.status(500).send(error.message)
+            reply.status(500).send(error.message)
         }
     }
 
 
-    async oneBySlug(req, res) {
+    async oneBySlug(req, reply) {
         try {
             const { slug } = req.params
             let category = await categoryModel.findOne({ slug })
                 .populate("children")
                 .populate('fields')
 
-            if (!category) return res.status(404).send("Category topilmadi");
-            return res.status(200).json(category);
+            if (!category) return reply.status(404).send("Category topilmadi");
+            return reply.status(200).send(category);
 
         } catch (error) {
             console.log(error)
-            res.status(500).send(error.message)
+            reply.status(500).send(error.message)
         }
     }
 
 
-    async updateById(req, res) {
+    async updateById(req, reply) {
         const {body: category } = req;
         const { id, fileName } = req.params;
 
@@ -173,29 +175,29 @@ class Category {
             
             category.deletedImages.length && category.deletedImages.forEach(async item => await fileService.remove(item));
             
-            return res.status(200).json(upadted);
+            return reply.status(200).send(upadted);
 
         } catch (error) {
             category?.icon && await fileService.remove(category.icon)
             category?.image && await fileService.remove(category.image)
-            return res.status(500).json(error.message)
+            return reply.status(500).send(error.message)
         }
     }
 
 
-    async deleteById(req, res) {
+    async deleteById(req, reply) {
         try {
 
             let deleted = await categoryModel.findByIdAndDelete(req.params.id);
-            if (!deleted) return res.status(404).json("Category not found");
+            if (!deleted) return reply.status(404).send("Category not found");
             deleted?.image && await fileService.remove(deleted?.image)
             deleted?.icon && await fileService.remove(deleted?.icon)
 
-            res.status(200).json(deleted);
+            reply.status(200).send(deleted);
 
         } catch (error) {
             console.log(error);
-            res.status(500).json("category o'chirib bo'lmadi")
+            reply.status(500).send("category o'chirib bo'lmadi")
         }
     }
 

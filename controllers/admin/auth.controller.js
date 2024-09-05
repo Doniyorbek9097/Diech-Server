@@ -9,21 +9,21 @@ const { generateOTP } = require("../../utils/otpGenrater");
 const { generateToken } = require("../../utils/generateToken")
 
 class Auth {
-   async user(req, res) {
+   async user(req, reply) {
         try {
             const user = await userModel.findById(req.params.id)
-            !user ? res.status(500).send({
+            !user ? reply.status(500).send({
                 message: "Token xato"
             })
             :
-            res.json({
+            reply.send({
                 message: "success",
                 data: user
             })
     
         } catch (error) {
             console.log(error);
-            return res.status(500).json("Serverda Xatolik " + error.message)
+            return reply.status(500).send("Serverda Xatolik " + error.message)
         }
     }
 }

@@ -1,105 +1,126 @@
-const router = require("express").Router();
 const slugify = require("slugify");
 const shopModel = require("../../models/shop.model");
 const { generateToken } = require("../../utils/generateToken");
 const { checkToken } = require("../../middlewares/authMiddleware")
 const fileService = require("../../services/file.service")
 
-router.post("/shop", checkToken, async(req,res) => {
+const shopRoutes = async (fastify, options) => {
+  try {
+    
+// POST /shop
+fastify.post('/shop', { preHandler: checkToken }, async (req, reply) => {
     const shopData = req.body;
     try {
-        shopData.slug = slugify(shopData.name);
-
-        const shop = await shopModel.findOne({slug: shopData.slug})
-        if(shop) return res.json({
-            message:"Bu Do'kon yaratilgan",
-            errShop: true
+      shopData.slug = slugify(shopData.name);
+  
+      const shop = await shopModel.findOne({ slug: shopData.slug });
+      if (shop) {
+        return reply.send({
+          message: "Bu Do'kon yaratilgan",
+          errShop: true
         });
-
-        shopData?.image && (shopData.image = await fileService.upload(req, shopData.image))
-        shopData?.bannerImage && (shopData.bannerImage = await fileService.upload(req, shopData.bannerImage))
-       
-        const result = await new shopModel(shopData).save();
-        res.json({
-            message: "Muoffaqiyatli yaratildi",
-            data: result
-        })
+      }
+  
+      if (shopData.image) {
+        shopData.image = await fileService.upload(req.raw, shopData.image);
+      }
+      if (shopData.bannerImage) {
+        shopData.bannerImage = await fileService.upload(req.raw, shopData.bannerImage);
+      }
+  
+      const result = await new shopModel(shopData).save();
+      reply.send({
+        message: "Muoffaqiyatli yaratildi",
+        data: result
+      });
     } catch (error) {
-        shopData?.image && await fileService.remove(req, shopData.image)
-        shopData?.bannerImage && await fileService.remove(req, shopData.bannerImage)
-
-        console.log(error);
-        res.status(500).json("Serverda Xatolik")
+      if (shopData.image) {
+        await fileService.remove(req.raw, shopData.image);
+      }
+      if (shopData.bannerImage) {
+        await fileService.remove(req.raw, shopData.bannerImage);
+      }
+      console.log(error);
+      reply.status(500).send("Serverda Xatolik");
     }
-});
-
-
-router.get("/shops", checkToken, async(req,res) => {
+  });
+  
+  // GET /shops
+  fastify.get('/shops', { preHandler: checkToken }, async (req, reply) => {
     try {
-        const shops = await shopModel.find()
-        .populate("employees")
-        .populate("products")
-        .populate("point")
-
-        res.status(200).json(shops);
+      const shops = await shopModel.find()
+        .populate('employees')
+        .populate('products')
+        .populate('point');
+      reply.send(shops);
     } catch (error) {
-        
+      console.log(error);
+      reply.status(500).send("Serverda Xatolik");
     }
-});
-
-
-router.get("/shop/:id", checkToken, async(req,res) => {
+  });
+  
+  // GET /shop/:id
+  fastify.get('/shop/:id', { preHandler: checkToken }, async (req, reply) => {
     try {
-        const result = await shopModel.findById(req.params.id)
-        .populate("employees")
-        .populate("products")
-        .populate({
-            path:"products",
-        })
-        res.json(result)
+      const result = await shopModel.findById(req.params.id)
+        .populate('employees')
+        .populate('products')
+        .populate('products');
+      reply.send(result);
     } catch (error) {
-        console.log(error);
+      console.log(error);
+      reply.status(500).send("Serverda Xatolik");
     }
-});
-
-
-
-router.put("/shop-update/:id", checkToken, async(req,res) => {
+  });
+  
+  // PUT /shop-update/:id
+  fastify.put('/shop-update/:id', { preHandler: checkToken }, async (req, reply) => {
     const shopData = req.body;
-
+  
     try {
-        shopData.slug = slugify(req.body.name);
-        shopData?.image && (shopData.image = await fileService.upload(req, shopData.image))
-        shopData?.bannerImage && (shopData.bannerImage = await fileService.upload(req, shopData.bannerImage))
-       
-        const result = await shopModel.findByIdAndUpdate(req.params.id, shopData);
-        res.json({
-            data:result, 
-            message:"success updated!"
-        })
-        shopData?.deletedImages?.length && await fileService.remove(shopData.deletedImages)
-
+      shopData.slug = slugify(req.body.name);
+      if (shopData.image) {
+        shopData.image = await fileService.upload(req.raw, shopData.image);
+      }
+      if (shopData.bannerImage) {
+        shopData.bannerImage = await fileService.upload(req.raw, shopData.bannerImage);
+      }
+  
+      const result = await shopModel.findByIdAndUpdate(req.params.id, shopData, { new: true });
+      reply.send({
+        data: result,
+        message: "success updated!"
+      });
+      if (shopData.deletedImages?.length) {
+        await fileService.remove(shopData.deletedImages);
+      }
     } catch (error) {
-        shopData?.image && await fileService.remove(req, shopData.image)
-        shopData?.bannerImage && await fileService.remove(req, shopData.bannerImage)
-
-        console.log(error)
-        res.status(500).json(error.message)
+      if (shopData.image) {
+        await fileService.remove(req.raw, shopData.image);
+      }
+      if (shopData.bannerImage) {
+        await fileService.remove(req.raw, shopData.bannerImage);
+      }
+      console.log(error);
+      reply.status(500).send(error.message);
     }
-});
-
-
-router.delete("/shop-delete/:id", checkToken, async(req,res)=> {
+  });
+  
+  // DELETE /shop-delete/:id
+  fastify.delete('/shop-delete/:id', { preHandler: checkToken }, async (req, reply) => {
     try {
-        const data = await shopModel.findByIdAndDelete(req.params.id);
-        res.json({data, message:"success deleted!"});
+      const data = await shopModel.findByIdAndDelete(req.params.id);
+      reply.send({ data, message: "success deleted!" });
     } catch (error) {
-        console.log(error)
-        res.json("Serverda xatolik");
+      console.log(error);
+      reply.status(500).send("Serverda xatolik");
     }
-});
+  });
+  } catch (error) {
+    console.log(error);
+  }
+}
 
 
 
-
-module.exports = router;
+module.exports = shopRoutes;

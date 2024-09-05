@@ -2,108 +2,96 @@ const tokenModel = require("../../models/token.model");
 const otpModel = require("../../models/otp.model");
 const userModel = require("../../models/user.model");
 const crypto = require("crypto");
-const bcrypt = require("bcrypt")
-const router = require("express").Router();
+const bcrypt = require("bcrypt");
 const sendEmail = require("../../utils/sendEmail");
 const { checkToken } = require("../../middlewares/authMiddleware");
 const { sendSms } = require("../../utils/sendSms");
 const { generateOTP } = require("../../utils/otpGenrater");
-const { generateToken } = require("../../utils/generateToken")
+const { generateToken } = require("../../utils/generateToken");
 
+async function userRoutes(fastify, options) {
+    
+    // GET user by ID
+    fastify.get("/user/:id", { preHandler: checkToken }, async (request, reply) => {
+        try {
+            const user = await userModel.findById(request.params.id)
+                .populate({
+                    path: "shop",
+                });
 
-router.get("/user/:id", checkToken, async (req, res) => {
-    try {
+            if (user) {
+                return reply.send({
+                    message: "success",
+                    data: user
+                });
+            }
 
-        const user = await userModel.findById(req.params.id)
-            .populate({
-                path: "shop",
-            });
+            return reply.status(500).send("Token xato");
 
-
-        if (user) {
-            return res.json({
-                message: "success",
-                data: user
-            });
+        } catch (error) {
+            console.log(error);
+            return reply.status(500).send(`Serverda Xatolik ${error.message}`);
         }
+    });
 
-        return res.status(500).send("Token xato");
+    // POST to add a new user
+    fastify.post("/user-add", { preHandler: checkToken }, async (request, reply) => {
+        try {
+            let user = await userModel.findOne({ username: request.body?.username });
+            if (user) return reply.send({ message: "bunday username mavjud boshqa username kiriting" });
 
+            user = await userModel.findOne({ phone_number: request.body?.phone_number });
+            if (user) return reply.send({ message: "bunday telefon raqam mavjud boshqa raqam kiriting" });
 
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json("Serverda Xatolik " + error.message)
-    }
-});
+            let newUser = new userModel(request.body);
+            newUser.verified = true;
+            newUser.username = `user-${newUser._id}`;
+            const saltPassword = await bcrypt.genSalt(10);
+            newUser.password = await bcrypt.hash(newUser.password, saltPassword);
+            newUser.token = await generateToken({
+                _id: newUser._id,
+                phone_number: newUser.phone_number,
+                role: newUser.role
+            });
+            newUser = await newUser.save();
 
+            return reply.send({
+                message: "success created",
+                data: newUser
+            });
+        } catch (error) {
+            console.log(error);
+            return reply.status(500).send("Serverda Xatolik");
+        }
+    });
 
+    // PUT to update user
+    fastify.put("/user-update/:id", { preHandler: checkToken }, async (request, reply) => {
+        try {
+            let user = await userModel.findOne({ username: request.body?.username });
+            if (user) return reply.send({ message: "bunday username mavjud boshqa username kiriting" });
 
+            user = await userModel.findOne({ phone_number: request.body?.phone_number });
+            if (user) return reply.send({ message: "bunday telefon raqam mavjud boshqa raqam kiriting" });
 
-router.post("/user-add", checkToken, async (req, res) => {
-    try {
+            const updated = await userModel.updateOne({ _id: request.params.id }, request.body);
+            return reply.send("success updated");
+        } catch (error) {
+            console.log(error);
+            return reply.status(500).send("Serverda Xatolik");
+        }
+    });
 
-        let user = await userModel.findOne({ username: req.body?.username });
-        if (user) return res.json({ message: "bunday username mavjud boshqa username kiriting" });
+    // DELETE user by ID
+    fastify.delete("/user-delete/:id", { preHandler: checkToken }, async (request, reply) => {
+        try {
+            const deleted = await userModel.findByIdAndDelete(request.params.id);
+            return reply.status(200).send(deleted);
+        } catch (error) {
+            console.log(error);
+            return reply.status(500).send(`Server xatosi: ${error.message}`);
+        }
+    });
+}
 
-        user = await userModel.findOne({ phone_number: req.body?.phone_number });
-        if (user) return res.json({ message: "bunday telefon raqam mavjud boshqa raqam kiriting" });
-
-
-        let newUser = await new userModel(req.body);
-        newUser.verified = true;
-        newUser.username = `user-${newUser._id}`;
-        const saltPassword = await bcrypt.genSalt(10);
-        newUser.password = await bcrypt.hash(newUser.password, saltPassword)
-        newUser.token = await generateToken({
-            _id: newUser._id,
-            phone_number: newUser.phone_number,
-            role: newUser.role
-        })
-        newUser = newUser.save()
-        return res.json({
-            message: "success created",
-            data: newUser
-        })
-    } catch (error) {
-        console.log(error)
-        res.status(500).json("Serverda Xatolik")
-    }
-})
-
-
-
-
-router.put("/user-update/:id", checkToken, async (req, res) => {
-    try {
-
-        let user = await userModel.findOne({ username: req.body?.username });
-        if (user) return res.json({ message: "bunday username mavjud boshqa username kiriting" });
-
-        user = await userModel.findOne({ phone_number: req.body?.phone_number });
-        if (user) return res.json({ message: "bunday telefon raqam mavjud boshqa raqam kiriting" });
-
-        const updated = await userModel.updateOne({ _id: req.params.id }, req.body);
-        res.send("success updated")
-    } catch (error) {
-        console.log(error);
-        res.status(500).send("Serverda Xatolik")
-    }
-});
-
-
-
-router.delete("/user-delete/:id", checkToken, async (req, res) => {
-    try {
-        const deleted = await userModel.findByIdAndDelete(req.params.id);
-        res.status(200).json(deleted);
-    } catch (error) {
-        console.log(error);
-        res.status(500).json(`Server xatosi: ${error.message}`)
-    }
-})
-
-
-module.exports = router;
-
-
-
+module.exports = userRoutes;

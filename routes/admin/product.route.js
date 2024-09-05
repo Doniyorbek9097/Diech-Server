@@ -1,27 +1,33 @@
-const router = require("express").Router();
 const { checkToken } = require("../../middlewares/authMiddleware");
 const productController = require("../../controllers/admin/product.controller")
 const productModel = require("../../models/product.model")
 
-// add product 
-router.post("/product-add", checkToken, productController.add);
+const productRoutes = async (fastify, options) => {
+    try {
+        // add product 
+        fastify.post("/product-add", { preHandler: checkToken }, productController.add);
 
-// get all products 
-router.get("/product-all", checkToken, productController.all)
+        // get all products 
+        fastify.get("/product-all", { preHandler: checkToken }, productController.all)
 
-// get one by id 
-router.get("/product-one/:id", checkToken, productController.oneById);
+        // get one by id 
+        fastify.get("/product-one/:id", { preHandler: checkToken }, productController.oneById);
 
-// update by id 
-router.put("/product-edit/:id", checkToken, productController.updateById);
+        // update by id 
+        fastify.put("/product-edit/:id", { preHandler: checkToken }, productController.updateById);
 
-//delete by id
-router.delete("/product-delete/:id", checkToken, productController.deleteById);
+        //delete by id
+        fastify.delete("/product-delete/:id", { preHandler: checkToken }, productController.deleteById);
 
-router.get("/product-all-indexed", productController.indexed)
+        fastify.get("/product-all-indexed", productController.indexed)
+
+    } catch (error) {
+        console.log(error);
+    }
+}
 
 
-module.exports = router;
+module.exports = productRoutes;
 
 
 

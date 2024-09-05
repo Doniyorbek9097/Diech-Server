@@ -1,83 +1,99 @@
-const router = require("express").Router();
 const productVariantModel = require("../../models/product.varinat.model");
 const slugify = require("slugify")
 const path = require("path")
 const fs = require("fs")
 const { baseDir } = require("../../config/uploadFolder");
 const { Base64ToFile } = require("../../utils/base64ToFile")
-const fileService = require("../../services/file.service")
+const fileService = require("../../services/file.service");
 
-router.get("/get-product-variants/:product_id", async (req, res) => {
+const variantRoutes = async(fastify, options) => {
+try {
+    // GET /get-product-variants/:product_id
+fastify.get('/get-product-variants/:product_id', async (req, reply) => {
     try {
         const { product_id } = req.params;
         const variants = await productVariantModel.find({ product_id }).lean();
-
-        res.json(variants)
+        reply.send(variants);
     } catch (error) {
-        console.log(error)
+        console.log(error);
+        reply.status(500).send('Serverda Xatolik');
     }
-})
+});
 
-router.post("/add-variant", async (req, res) => {
+// POST /add-variant
+fastify.post('/add-variant', async (req, reply) => {
     try {
-        const variants = await productVariantModel.insertMany(req.body)
-        res.json({
+        const variants = await productVariantModel.insertMany(req.body);
+        reply.send({
             data: variants,
-            message: "success updated"
-        })
-
+            message: 'success updated',
+        });
     } catch (error) {
-        console.log(error)
+        console.log(error);
+        reply.status(500).send('Serverda Xatolik');
     }
-})
+});
 
-
-router.put("/update-variant/:id", async (req, res) => {
+// PUT /update-variant/:id
+fastify.put('/update-variant/:id', async (req, reply) => {
     const { id } = req.params;
-    let variant = req.body
+    let variant = req.body;
     variant.sku = slugify(`${variant.sku}`);
 
+    // Fayl yuklash jarayoni
     for (const attr of variant.attributes) {
-        attr?.images?.length && (attr.images = await fileService.upload(req, attr.images))
+        if (attr?.images?.length) {
+            attr.images = await fileService.upload(req, attr.images);
+        }
     }
 
     try {
-        const updated = await productVariantModel.findOneAndUpdate({ _id: id }, req.body)
-        res.json({
+        const updated = await productVariantModel.findOneAndUpdate({ _id: id }, variant, { new: true });
+        reply.send({
             data: updated,
-            message: "success updated"
-        })
-
+            message: 'success updated',
+        });
     } catch (error) {
-        console.log(error)
+        console.log(error);
+
+        // Xatolik yuz bersa, yuklangan rasmlarni o'chirish
         for (const attr of variant.attributes) {
-            attr?.images?.length && (attr.images = await fileService.remove(attr.images))
+            if (attr?.images?.length) {
+                await fileService.remove(attr.images);
+            }
         }
 
-
-
+        reply.status(500).send('Serverda Xatolik');
     }
-})
+});
 
-
-router.delete("/variant-delete/:id", async (req, res) => {
+// DELETE /variant-delete/:id
+fastify.delete('/variant-delete/:id', async (req, reply) => {
     try {
         const { id } = req.params;
-        const deleted = await productVariantModel.findOneAndDelete({ _id: id })
+        const deleted = await productVariantModel.findOneAndDelete({ _id: id });
+
+        // O'chirilgan variantning rasmlarini o'chirish
         for (const attr of deleted.attributes) {
-            attr?.images?.length && (attr.images = await fileService.remove(attr.images))
+            if (attr?.images?.length) {
+                await fileService.remove(attr.images);
+            }
         }
 
-        res.json({
-            message: "success deleted",
-            data: deleted
-        })
-
-
+        reply.send({
+            message: 'success deleted',
+            data: deleted,
+        });
     } catch (error) {
-        console.log(error)
+        console.log(error);
+        reply.status(500).send('Serverda Xatolik');
     }
-})
+});
+} catch (error) {
+   console.log(error); 
+}
+
+}
 
 
-module.exports = router
+module.exports = variantRoutes;

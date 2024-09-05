@@ -1,51 +1,54 @@
-const router = require("express").Router();
 const pointModel = require("../../models/point.model");
 
-router.post("/point-add", async (req, res) => {
+const pointRoutes = async(fastify, options) => {
+try {
+    
+// POST /point-add
+fastify.post('/point-add', async (req, reply) => {
     try {
         const newPoint = await new pointModel(req.body).save();
-        
-        res.json({
-            message:"success",
-            data: newPoint
-        })
+        reply.send({
+            message: 'success',
+            data: newPoint,
+        });
     } catch (error) {
-        console.log(error.message)
-        res.status(500).json(error.message)
-
+        console.log(error.message);
+        reply.status(500).send(error.message);
     }
-})
+});
 
-
-router.get("/point-all", async (req, res) => {
+// GET /point-all
+fastify.get('/point-all', async (req, reply) => {
     try {
         const points = await pointModel.find();
-        res.json({
-            message: "success",
-            data: points
-        })
-
+        reply.send({
+            message: 'success',
+            data: points,
+        });
     } catch (error) {
-        console.log(error)
-        res.status(500).json(error.message)
+        console.log(error);
+        reply.status(500).send(error.message);
     }
-})
+});
 
-
-router.get("/point-delete/:id", async (req, res) => {
+// GET /point-delete/:id
+fastify.delete('/point-delete/:id', async (req, reply) => {
     try {
-        const deleted = await pointModel.findByIdAndDelete(req.params.id);
-        res.json({
-            message: "success",
-            data: deleted
-        })
-
+        const { id } = req.params;
+        const deleted = await pointModel.findByIdAndDelete(id);
+        reply.send({
+            message: 'success',
+            data: deleted,
+        });
     } catch (error) {
-        console.log(error)
-        res.status(500).json(error.message)
+        console.log(error);
+        reply.status(500).send(error.message);
     }
-})
+});
+} catch (error) {
+   console.log(error); 
+}
 
+}
 
-
-module.exports = router;
+module.exports = pointRoutes;

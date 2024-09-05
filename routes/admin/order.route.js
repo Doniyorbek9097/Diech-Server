@@ -1,6 +1,5 @@
 const orderModel = require("../../models/order.model");
 const otpModel = require("../../models/otp.model");
-const router = require("express").Router();
 const { sendSms } = require("../../utils/sendSms");
 const { generateOTP } = require("../../utils/otpGenrater");
 const bcrypt = require("bcrypt");
@@ -8,10 +7,13 @@ const productModel = require("../../models/product.model")
 const { checkToken } = require("../../middlewares/authMiddleware");
 const shopProductModel = require("../../models/shop.product.model")
 
-router.get('/order-all', checkToken, async (req, res) => {
+const orderRoutes = async(fastify, options) => {
+try {
+        // GET /order-all
+fastify.get('/order-all', { preHandler: checkToken }, async (req, reply) => {
     try {
         const orders = await orderModel.find();
-        res.json({ message: "success", data: orders });
+        reply.send({ message: 'success', data: orders });
 
         for (const order of orders) {
             for (const productData of order.products) {
@@ -29,7 +31,7 @@ router.get('/order-all', checkToken, async (req, res) => {
                                 const returnedIndex = target.returned.findIndex(item => item.toString() === order._id.toString());
                                 if (returnedIndex !== -1 && target.returnedCount > 0) {
                                     target.returned.splice(returnedIndex, 1);
-                                    target.returnedCount -= productData.quantity; 
+                                    target.returnedCount -= productData.quantity;
                                 }
                                 target.soldOut.push(order._id);
                                 target.soldOutCount += productData.quantity;
@@ -44,7 +46,7 @@ router.get('/order-all', checkToken, async (req, res) => {
                                     target.soldOutCount -= productData.quantity;
                                 }
                                 target.returned.push(order._id);
-                                target.returnedCount += productData.quantity; 
+                                target.returnedCount += productData.quantity;
                                 target.quantity += productData.quantity;
                             }
                         }
@@ -57,58 +59,47 @@ router.get('/order-all', checkToken, async (req, res) => {
         }
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: error.message });
+        reply.status(500).send({ message: error.message });
     }
 });
 
-
-
-
-
-router.get("/order/:id", checkToken, async (req, res) => {
+// GET /order/:id
+fastify.get('/order/:id', { preHandler: checkToken }, async (req, reply) => {
     try {
-        let order = await orderModel.findById(req.params.id)
-        .populate({
-            path:"products.shop",
-        })
-        res.json({
-            data: order,
-            message: "success"
-        })
+        const order = await orderModel.findById(req.params.id).populate({ path: 'products.shop' });
+        reply.send({ data: order, message: 'success' });
     } catch (error) {
-        console.log(error)
-        res.status(500).json(error.message)
+        console.log(error);
+        reply.status(500).send(error.message);
     }
-})
+});
 
-
-router.put("/order-update/:id", checkToken, async (req, res) => {
+// PUT /order-update/:id
+fastify.put('/order-update/:id', { preHandler: checkToken }, async (req, reply) => {
     try {
-
         const updated = await orderModel.findByIdAndUpdate(req.params.id, req.body);
-        res.json({
-            data: updated,
-            message: `success updated`
-        });
-
+        reply.send({ data: updated, message: 'success updated' });
     } catch (error) {
-        console.log(error.message)
-        res.status(500).json(error.message)
+        console.log(error.message);
+        reply.status(500).send(error.message);
     }
-})
+});
 
-
-router.delete("/order-delete/:id", checkToken, async (req, res) => {
+// DELETE /order-delete/:id
+fastify.delete('/order-delete/:id', { preHandler: checkToken }, async (req, reply) => {
     try {
-        const deleted = await orderModel.findByIdAndDelete(req.params.id)
-        res.json({
-            data: deleted,
-            message: "Success deleted"
-        })
+        const deleted = await orderModel.findByIdAndDelete(req.params.id);
+        reply.send({ data: deleted, message: 'Success deleted' });
     } catch (error) {
-        console.log(error)
-        res.status(500).json(error.message)
+        console.log(error);
+        reply.status(500).send(error.message);
     }
-})
+});
 
-module.exports = router;
+} catch (error) {
+    console.log(error);    
+}
+
+}
+
+module.exports = orderRoutes;

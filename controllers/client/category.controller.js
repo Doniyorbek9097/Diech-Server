@@ -4,7 +4,7 @@ const _ = require('lodash');
 const shopProductModel = require("../../models/shop.product.model");
 
 class Category {
-    async all(req, res) {
+    async all(req, reply) {
         try {
 
             const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
@@ -28,11 +28,11 @@ class Category {
             return data;
         } catch (err) {
             console.log(err);
-            res.status(500).send({ message: "Server is not working" });
+            reply.status(500).send({ message: "Server is not working" });
         }
     }
 
-    async oneBySlug(req, res) {
+    async oneBySlug(req, reply) {
         try {
             let { slug = "" } = req.params;
             let page = parseInt(req.query?.page) - 1 || 0;
@@ -49,7 +49,7 @@ class Category {
                 })
 
             if (!category) {
-                return res.send({ error: 'Category not found' });
+                return reply.send({ error: 'Category not found' });
             }
 
             // const categories = _.uniqWith(_.flatMap(category.products, 'categories'),_.isEqual);
@@ -85,7 +85,7 @@ class Category {
         } catch (error) {
             if (error) {
                 console.log(error);
-                res.status(500).send("server ishlamayapti")
+                reply.status(500).send("server ishlamayapti")
             }
         }
     }

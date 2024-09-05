@@ -1,91 +1,70 @@
-const router = require("express").Router();
 const shopModel = require("../../models/shop.model");
-const fileService = require('../../services/file.service')
+const fileService = require('../../services/file.service');
 
-router.get("/shops/:user_id", async(req,res) => {
-    try {
-        const shops = await shopModel.find({owner: req.params.user_id})
-        .populate({
-            path:"products",
-            populate: {
-                path:'product'
+async function shopRoutes(fastify, options) {
+
+    // GET all shops by user ID
+    fastify.get("/shops/:user_id", async (request, reply) => {
+        try {
+            const shops = await shopModel.find({ owner: request.params.user_id })
+                .populate({
+                    path: "products",
+                    populate: {
+                        path: 'product'
+                    }
+                });
+            return reply.status(200).send(shops);
+        } catch (error) {
+            console.log(error);
+            return reply.status(500).send("Serverda Xatolik");
+        }
+    });
+
+    // GET shop by ID
+    fastify.get("/shop_id/:id", async (request, reply) => {
+        try {
+            const result = await shopModel.findById(request.params.id)
+                .populate({
+                    path: "products",
+                    populate: {
+                        path: 'product'
+                    }
+                });
+
+            return reply.status(200).send(result.toObject());
+        } catch (error) {
+            console.log(error.message);
+            return reply.status(500).send(`Serverda Xatolik ${error.message}`);
+        }
+    });
+
+    // PUT update shop by ID
+    fastify.put("/shop/:id", async (request, reply) => {
+        const shopData = request.body;
+        try {
+            if (shopData?.image) {
+                shopData.image = await fileService.upload(request, shopData.image);
             }
-        })
-        res.status(200).json(shops);
-    } catch (error) {
-        
-    }
-});
-
-
-// router.get("/shop/:user_id/:shop_slug/", async(req,res) => {
-//     try {
-//         console.log('ddd')
-//         const { user_id, shop_slug } = req.params;
-//         const result = await shopModel.findOne({slug: shop_slug, owner: user_id})
-//         .populate({
-//             path:"products",
-//             populate: [
-//                 {
-//                     path:"shop",
-//                 },
-//                 {
-//                     path:"product",
-//                 }
-//             ]
-//         })
-
-//         res.status(200).json(result)
-//     } catch (error) {
-//         console.log(error.message);
-//         res.status(500).json(`Serverda Xatolik ${error.message}`)
-
-//     }
-// });
-
-
-router.get("/shop_id/:id", async(req,res) => {
-    try {
-        const result = await shopModel.findById(req.params.id)
-        .populate({
-            path:"products",
-            populate: {
-                path:'product'
+            if (shopData?.bannerImage) {
+                shopData.bannerImage = await fileService.upload(request, shopData.bannerImage);
             }
-        })
 
-        res.status(200).json(result.toObject())
-    } catch (error) {
-        console.log(error.message);
-        res.status(500).json(`Serverda Xatolik ${error.message}`)
+            const result = await shopModel.findByIdAndUpdate(request.params.id, shopData, { new: true });
+            await fileService.remove(shopData?.deletedImages);
+            
+            return reply.status(200).send(result);
+        } catch (error) {
+            if (shopData?.image) {
+                await fileService.remove(shopData.image);
+            }
+            if (shopData?.bannerImage) {
+                await fileService.remove(shopData.bannerImage);
+            }
 
-    }
-});
+            console.log(error.message);
+            return reply.status(500).send("Serverda Xatolik " + error.message);
+        }
+    });
+}
 
-
-router.put("/shop/:id", async(req,res) => {
-    const shopData = req.body;
-    try {
-        shopData?.image && (shopData.image = await fileService.upload(req, shopData.image))
-        shopData?.bannerImage && (shopData.bannerImage = await fileService.upload(req, shopData.bannerImage))
-
-        const result = await shopModel.findByIdAndUpdate(req.params.id, shopData)
-        res.status(200).json(result)
-        shopData?.deletedImages?.length && await fileService.remove(shopData.deletedImages)
-
-        
-    } catch (error) {
-        shopData?.image && await fileService.remove(shopData.image)
-        shopData?.bannerImage && await fileService.remove(shopData.bannerImage)
-
-        res.status(500).json("Serverda Xatolik "+ error.message)
-        console.log(error.message);
-
-    }
-});
-
-
-
-
-
-module.exports = router;
+module.exports = shopRoutes;

@@ -1,16 +1,17 @@
-const router = require("express").Router()
 const fieldController = require("../../controllers/admin/field.controller")
 
-router.post('/add-field', fieldController.create)
+const fieldRoutes = (fastify, options) => {
 
-router.get('/get-fields', fieldController.all)
+    fastify.post('/add-field', fieldController.create)
 
-router.get('/get-field/:id', fieldController.oneById)
+    fastify.get('/get-fields', fieldController.all)
 
-router.put('/edit-field/:id', fieldController.updateById)
+    fastify.get('/get-field/:id', fieldController.oneById)
 
-router.delete('/delete-field/:id', fieldController.deleteById)
+    fastify.put('/edit-field/:id', fieldController.updateById)
 
+    fastify.delete('/delete-field/:id', fieldController.deleteById)
 
+}
 
-module.exports = router
+module.exports = fieldRoutes;

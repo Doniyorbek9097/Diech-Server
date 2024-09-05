@@ -1,4 +1,4 @@
-const fastify = require('fastify')({ logger: true });
+const fastify = require('fastify')({ logger: false });
 const fastifyCookie = require('@fastify/cookie');
 const fastifyCors = require('@fastify/cors');
 const fastifyHelmet = require('@fastify/helmet');
@@ -21,6 +21,12 @@ const app = fastify;
 //     methods: "*"
 //   }
 // });
+
+app.register(fastifyCors, { 
+  origin: '*', // Adjust as needed for your application
+  methods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS'],
+});
+
 
 // Middleware'larni Fastifyga qo'shish
 // app.register(fastifyCors, {
@@ -79,11 +85,20 @@ const pointRoutes = require("./routes/client/point.route")
 
 
 // Routes papkalarini yuklash
-const routes = ['client'];
-routes.forEach(dir => {
-  fs.readdirSync(`./routes/${dir}`).forEach(route => {
+const routesFolder = ['client','seller'];
+
+routesFolder.forEach(dir => {
+  fs.readdirSync(path.join(__dirname, 'routes', dir)).forEach(route => {
     if (route.endsWith('.js')) { // Faqat .js fayllarni yuklash
-      app.register(require(`./routes/${dir}/${route}`), { prefix: `/api/${dir}/` });
+      const routePath = path.join(__dirname, 'routes', dir, route);
+      app.register(require(routePath), { prefix: `/api/${dir}` }, (err) => {
+        if (err) {
+          console.error(`Failed to load route ${routePath}:`, err);
+          process.exit(1); // Serverni to'xtatish
+        } else {
+          console.log(`Route ${routePath} successfully registered`);
+        }
+      });
     }
   });
 });

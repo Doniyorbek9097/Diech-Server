@@ -10,7 +10,7 @@ const fileService = require("../../services/file.service")
 
 class Product {
 
-    async add(req, res) {
+    async add(req, reply) {
         try {
             const { body: products } = req;
 
@@ -35,7 +35,7 @@ class Product {
             // Mahsulotlarni saqlash
             const newProducts = await productModel.insertMany(processedProducts);
 
-            res.json({ data: newProducts, message: "success added" });
+            reply.send({ data: newProducts, message: "success added" });
 
         } catch (error) {
             console.error(error);
@@ -47,12 +47,12 @@ class Product {
                 }
             }
 
-            res.status(500).json({ error: error.message });
+            reply.status(500).send({ error: error.message });
         }
     }
 
 
-    async all(req, res) {
+    async all(req, reply) {
         const search = req.query.search || "";
         const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
         const limit = parseInt(req.query.limit, 10) || 1;
@@ -103,7 +103,7 @@ class Product {
                 }
             })
 
-            return res.json({
+            return reply.send({
                 message: "success get products",
                 data: products,
                 limit,
@@ -117,18 +117,18 @@ class Product {
     }
 
 
-    async oneById(req, res) {
+    async oneById(req, reply) {
         try {
             let product = await productModel.findOne({ _id: req.params.id }).populate("categories").lean();
-            return res.status(200).json(product);
+            return reply.status(200).send(product);
         } catch (error) {
             console.log(error);
-            return res.status(500).send("Server Ishlamayapti");
+            return reply.status(500).send("Server Ishlamayapti");
         }
     }
 
 
-    async updateById(req, res) {
+    async updateById(req, reply) {
 
         const { body: product } = req;
        
@@ -136,33 +136,33 @@ class Product {
         try {
             const updated = await productModel.findByIdAndUpdate(req.params.id, product);
             product?.deletedImages?.length && await fileService.remove(product?.deletedImages);
-            return res.json(updated);
+            return reply.send(updated);
 
         } catch (error) {
             product?.images?.length && await fileService.remove(images)
             console.log(error);
-            res.status(500).send("Server Xatosi: " + error);
+            reply.status(500).send("Server Xatosi: " + error);
         }
     }
 
 
-    async deleteById(req, res) {
+    async deleteById(req, reply) {
         try {
             const deleted = await productModel.findOneAndDelete({ _id: req.params.id });
             const { images } = deleted;
 
             images?.length && await fileService.remove(images)
 
-            res.status(200).json({ result: deleted });
+            reply.status(200).send({ replyult: deleted });
 
         } catch (error) {
             console.log(error);
-            res.status(500).json(error.message)
+            reply.status(500).send(error.message)
         }
     }
 
 
-    async indexed(req, res) {
+    async indexed(req, reply) {
         const products = await productModel.find().populate('variants').lean()
         try {
             const body = products.flatMap((item) => {
@@ -190,7 +190,7 @@ class Product {
             });
 
             await productsIndex.saveObjects(body);
-            res.send("Indeksatsiya qilindi")
+            reply.send("Indeksatsiya qilindi")
 
         } catch (error) {
             console.error('Indeksatsiya xatosi:', error);

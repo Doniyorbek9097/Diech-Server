@@ -1,62 +1,61 @@
 const router = require("express").Router()
 const catalogModel = require('../../models/catalog')
 
-
-router.post('/catalog-add', async (req, res) => {
+const catalogRoutes = async(fastify, options) => {
+    // POST /catalog-add
+fastify.post('/catalog-add', async (req, reply) => {
     try {
         const catalogForm = req.body;
         const savedCatalog = await new catalogModel(catalogForm).save();
-        res.json({
+        reply.send({
             data: savedCatalog,
             message: 'success added'
-        })
+        });
     } catch (error) {
-        console.log(error)
-        res.status(500).json("Serverda xatolik")
+        console.log(error);
+        reply.status(500).send("Serverda xatolik");
     }
-})
+});
 
-
-
-router.get('/catalog-all', async (req, res) => {
+// GET /catalog-all
+fastify.get('/catalog-all', async (req, reply) => {
     try {
-
         const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
         const limit = parseInt(req.query.limit, 10) || 8;
 
         const catalogs = await catalogModel.find()
-        .populate({
-            path: "products.product",
-            select: ['name', 'slug', 'images', 'orginal_price', 'sale_price', 'discount', 'reviews', 'rating', 'viewsCount', 'attributes'],
-            options: { limit, skip: page * limit }, // Apply pagination to shop_products
-        });
+            .populate({
+                path: "products.product",
+                select: ['name', 'slug', 'images', 'orginal_price', 'sale_price', 'discount', 'reviews', 'rating', 'viewsCount', 'attributes'],
+                options: { limit, skip: page * limit }, // Pagination
+            });
 
-        res.json({
+        reply.send({
             data: catalogs,
             message: "success"
-        })
-
+        });
     } catch (error) {
-        console.log(error)
-        res.status(500).json("Serverda xatolik")
+        console.log(error);
+        reply.status(500).send("Serverda xatolik");
     }
-})
+});
 
-
-
-router.delete("/catalog-delete/:id", async (req, res) => {
+// DELETE /catalog-delete/:id
+fastify.delete('/catalog-delete/:id', async (req, reply) => {
     try {
         const { id } = req.params;
-         const deleted = await catalogModel.findOneAndDelete({_id: id})
-         res.json({
-            message:"success deleted",
+        const deleted = await catalogModel.findOneAndDelete({ _id: id });
+        reply.send({
+            message: "success deleted",
             data: deleted
-         })
+        });
     } catch (error) {
-        console.log(error)
-        res.status(500).json(error.message)
+        console.log(error);
+        reply.status(500).send(error.message);
     }
-})
+});
+
+}
 
 
-module.exports = router
+module.exports = catalogRoutes;
