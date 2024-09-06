@@ -32,10 +32,10 @@ async function productRoutes(fastify, options) {
         query._id = { $in: ids };
       }
 
-      const totalDocuments = await productModel.countDocuments(query).exec()
+      const totalDocuments = await shopProductModel.countDocuments(query).exec()
       const totalPages = Math.ceil(totalDocuments / limit);
 
-      const products = await productModel.find(query)
+      const products = await shopProductModel.find(query)
         .populate('categories', 'name slug')
         .select('name slug images keywords category')
       
@@ -113,22 +113,21 @@ async function productRoutes(fastify, options) {
 
 
       let productsIds = [];
-      Boolean(random) && (productsIds = await productModel.getRandomProducts({ query, limit, sort, page }))
+      Boolean(random) && (productsIds = await shopProductModel.getRandomProducts({ query, limit, sort, page }))
       productsIds.length && (query._id = { $in: productsIds })
 
-      const totalDocuments = await productModel.countDocuments(query);
+      const totalDocuments = await shopProductModel.countDocuments(query);
       const totalPages = Math.ceil(totalDocuments / limit);
       
-      const replyult = await shopProductModel.find(query)
+      const result = await shopProductModel.find(query)
         .sort(sort)
         .skip(page * limit)
         .limit(limit)
         .select("name slug disription images orginal_price sale_price discount reviews viewsCount shop")
-      console.log(query);
 
       const data = {
         message: "success get products",
-        products: replyult,
+        products: result,
         limit,
         page,
         totalPages
