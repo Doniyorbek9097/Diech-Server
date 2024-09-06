@@ -118,7 +118,6 @@ async function productRoutes(fastify, options) {
       productsIds.length && (query._id = { $in: productsIds })
 
       const totalDocuments = await shopProductModel.countDocuments(query);
-      const totalPages = Math.ceil(totalDocuments / limit);
       
       const result = await shopProductModel.find(query)
         .sort(sort)
@@ -131,7 +130,7 @@ async function productRoutes(fastify, options) {
         products: result,
         limit,
         page,
-        totalPages
+        totalPage: Math.ceil(totalDocuments / limit),
       };
 
 
