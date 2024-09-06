@@ -1,13 +1,13 @@
-const mongooose = require("mongoose");
+const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const bcrypt  = require("bcrypt");
 const {  generateOTP } = require("../utils/otpGenrater");
 const slugify = require("slugify")
 const { body, validationResult } = require('express-validator');
 const { serverDB } = require("../config/db")
+const AutoIncrement = require('mongoose-sequence')(mongoose);
 
-
-const telegamSchema = mongooose.Schema({
+const telegamSchema = mongoose.Schema({
     id: String,
     username:String,
     fisrt_name:String,
@@ -18,7 +18,7 @@ const telegamSchema = mongooose.Schema({
 })
 
 
-const userSchema = new mongooose.Schema({
+const userSchema = new mongoose.Schema({
     telegramAccount: telegamSchema,
     firstname: {
         type:String,
@@ -85,12 +85,12 @@ const userSchema = new mongooose.Schema({
     },
 
     address: {
-        type: mongooose.Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref:"Address"
     },
 
     shop: {
-        type: mongooose.Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref:"Shop"
     }
 },
@@ -102,6 +102,8 @@ const userSchema = new mongooose.Schema({
 
 );
 
+// Auto increment raqamli id ishlatish
+userSchema.plugin(AutoIncrement, { inc_field: 'id' });
 
 
 userSchema.methods.comparePassword = async function(password) {
@@ -126,6 +128,8 @@ userSchema.virtual("saller-orders", {
 userSchema.pre("save", function(next) {
     if(this.firstname && this.phone_number) {
         this.username = slugify(`${this.firstname}_${this.phone_number.split(" ").join("").slice(-4)}`)
+    } else {
+        this.username = slugify(`${this.phone_number}`)
     }
 
     next()
