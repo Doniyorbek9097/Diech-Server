@@ -1,3 +1,4 @@
+const mongoose = require("mongoose")
 const productModel = require("../../models/product.model");
 const shopProductModel = require("../../models/shop.product.model");
 const shopProductVariantModel = require("../../models/shop.product.variant.model");
@@ -13,39 +14,49 @@ async function productRoutes(fastify, options) {
     // Create new Product
     fastify.post("/product-add", { preHandler: checkToken }, async (req, reply) => {
         try {
-            let products = req.body;
-            if (Array.isArray(products)) {
-                // Process each product item asynchronously
-                products = await Promise.all(products.map(async (item) => {
-                    const product = await productModel.findById(item.parent).lean();
-                    if (product) {
-                        const { _id, ...productData } = product;
-                        item.slug = slugify(`${product.name.ru} ${generateOTP(10)}`);
-                        item.discount = parseInt(((item.orginal_price - item.sale_price) / item.orginal_price) * 100);
-                        if (isNaN(item.discount)) item.discount = 0;
-
-                        return {
-                            ...productData,
-                            ...item,
-                        };
-                    }
-                    // Agar product topilmasa, undefined qaytariladi
-                    return null;
-                }));
-
-                // Filtrlangan mahsulotlar (null bo'lmaganlar)
-                products = products.filter(product => product !== null);
-            }
-
-
-            const newProduct = await shopProductModel.insertMany(products);
-            return reply.status(200).send({ data: newProduct, message: "success added" });
-
+          let products = req.body;
+          if (Array.isArray(products)) {
+            // Process each product item asynchronously
+            products = await Promise.all(products.map(async (item) => {
+              const product = await productModel.findById(item.parent).lean();
+              if (product) {
+                const { _id, ...productData } = product;
+      
+                // Yangi _id yarating
+                const newId = new mongoose.Types.ObjectId()
+      
+                // Slugni yaratish
+                item.slug = slugify(`${productData.name.uz.slice(0, 8)}-${newId.toString()}`);
+      
+                // Discountni hisoblash
+                item.discount = parseInt(((item.orginal_price - item.sale_price) / item.orginal_price) * 100);
+                if (isNaN(item.discount)) item.discount = 0;
+      
+                // Yangi _idni mahsulotga qo'shish
+                item._id = newId;
+      
+                return {
+                  ...productData,
+                  ...item,
+                };
+              }
+              // Agar product topilmasa, undefined qaytariladi
+              return null;
+            }));
+      
+            // Filtrlangan mahsulotlar (null bo'lmaganlar)
+            products = products.filter(product => product !== null);
+          }
+      
+          // Mahsulotlarni saqlash
+          const newProduct = await shopProductModel.insertMany(products);
+          return reply.status(200).send({ data: newProduct, message: "success added" });
+      
         } catch (error) {
-            console.error(error);
-            return reply.status(500).send("Serverda Xatolik");
+          console.error(error);
+          return reply.status(500).send("Serverda Xatolik");
         }
-    });
+      });
 
     // Get all products with pagination and search
     fastify.get("/product-all", async (req, reply) => {
