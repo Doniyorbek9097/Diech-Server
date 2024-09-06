@@ -35,7 +35,7 @@ class Product {
             // Mahsulotlarni saqlash
             const newProducts = await productModel.insertMany(processedProducts);
 
-            reply.send({ data: newProducts, message: "success added" });
+           return reply.send({ data: newProducts, message: "success added" });
 
         } catch (error) {
             console.error(error);

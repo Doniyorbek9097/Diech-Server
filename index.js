@@ -44,7 +44,7 @@ fastify.register(fastifyCookie);
 
 // fastify.register(fastifyHelmet);
 
-// fastify.register(fastifyCompress);
+fastify.register(fastifyCompress);
 
 // fastify.register(fastifyRateLimit, {
 //   max: 100,
@@ -64,6 +64,19 @@ fastify.addHook('preHandler', async (request, reply) => {
   if (lang) serverDB.setDefaultLanguage(lang);
 });
 
+
+
+// Custom error handler
+fastify.setErrorHandler(function (error, request, reply) {
+  // Log the error
+  fastify.log.error(error);
+
+  // Send a custom error response
+  reply.status(error.statusCode || 500).send({
+    error: error.message,
+    stack: error.stack, // Bu qismni qo'shsangiz stack trace ko'rsatiladi
+  });
+});
 
 
 

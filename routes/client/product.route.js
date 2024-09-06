@@ -38,16 +38,16 @@ async function productRoutes(fastify, options) {
       const products = await productModel.find(query)
         .populate('categories', 'name slug')
         .select('name slug images keywords category')
-
+      
       const data = {
         message: "success get products",
-        data: products,
+        products,
         limit,
         page,
         totalPages
       };
 
-      return data;
+      return reply.send(data);
 
     } catch (error) {
       console.error(error);
@@ -113,18 +113,18 @@ async function productRoutes(fastify, options) {
 
 
       let productsIds = [];
-      Boolean(random) && (productsIds = await shopProductModel.getRandomProducts({ query, limit, sort, page }))
+      Boolean(random) && (productsIds = await productModel.getRandomProducts({ query, limit, sort, page }))
       productsIds.length && (query._id = { $in: productsIds })
 
-      const totalDocuments = await shopProductModel.countDocuments(query);
+      const totalDocuments = await productModel.countDocuments(query);
       const totalPages = Math.ceil(totalDocuments / limit);
-
+      
       const replyult = await shopProductModel.find(query)
-        .populate("shop")
         .sort(sort)
         .skip(page * limit)
         .limit(limit)
         .select("name slug disription images orginal_price sale_price discount reviews viewsCount shop")
+      console.log(query);
 
       const data = {
         message: "success get products",

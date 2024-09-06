@@ -23,7 +23,7 @@ async function productRoutes(fastify, options) {
                         item.slug = slugify(`${product.name.ru} ${generateOTP(30)}`);
                         item.discount = parseInt(((item.orginal_price - item.sale_price) / item.orginal_price) * 100);
                         if (isNaN(item.discount)) item.discount = 0;
-
+                        
                         return {
                             ...productData,
                             ...item,
