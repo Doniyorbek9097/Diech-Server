@@ -3,9 +3,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt  = require("bcrypt");
 const {  generateOTP } = require("../utils/otpGenrater");
 const slugify = require("slugify")
-const { body, validationResult } = require('express-validator');
 const { serverDB } = require("../config/db")
-const AutoIncrement = require('mongoose-sequence')(mongoose);
 
 const telegamSchema = mongoose.Schema({
     id: String,
@@ -101,9 +99,6 @@ const userSchema = new mongoose.Schema({
     }
 
 );
-
-// Auto increment raqamli id ishlatish
-userSchema.plugin(AutoIncrement, { inc_field: 'id' });
 
 
 userSchema.methods.comparePassword = async function(password) {

@@ -1,4 +1,3 @@
-const router = require("express").Router()
 const catalogModel = require('../../models/catalog')
 
 const catalogRoutes = async(fastify, options) => {

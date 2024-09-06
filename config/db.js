@@ -1,13 +1,7 @@
 const mongoose = require("mongoose");
 const mongooseIntl = require('mongoose-intl');
-const mongoosastic = require("mongoosastic")
-
 
 mongoose.plugin(mongooseIntl, { languages: ['uz', 'ru'], defaultLanguage: 'uz', vertuals: {} });
-// mongoose.plugin(mongoosastic, {
-//   host: "localhost",
-//   port: 9200
-// })
 
 const serverDB = mongoose.createConnection(process.env.MONGO_URL, { useNewUrlParser: true, useUnifiedTopology: true });
 
