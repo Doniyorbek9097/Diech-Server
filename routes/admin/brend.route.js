@@ -12,10 +12,10 @@ const brendRoutes = async(fastify, options) => {
 fastify.get('/brends', async (req, reply) => {
     try {
         let brends = await brendModel.find().populate('products');
-        reply.status(200).send(brends);
+        return reply.status(200).send(brends);
     } catch (error) {
         console.log(error);
-        reply.status(500).send(`server xatosi: ${error.message}`);
+        return reply.status(500).send(`server xatosi: ${error.message}`);
     }
 });
 
@@ -35,13 +35,13 @@ fastify.post('/brend', async (req, reply) => {
         }
 
         const newBrend = await new brendModel(req.body).save();
-        reply.status(201).send(newBrend);
+        return reply.status(201).send(newBrend);
     } catch (error) {
         console.log(error);
         const { image, logo } = req.body;
         image && fs.unlink(`${baseDir}/${path.basename(image)}`, (err) => err && console.log(err));
         logo && fs.unlink(`${baseDir}/${path.basename(logo)}`, (err) => err && console.log(err));
-        reply.status(500).send(error.message);
+        return reply.status(500).send(error.message);
     }
 });
 
@@ -53,10 +53,10 @@ fastify.get('/brend-slug/:slug', async (req, reply) => {
             .populate('categories', 'name image slug')
             .populate('products')
             .populate('carousel', 'image slug');
-        reply.status(200).send(brend);
+            return reply.status(200).send(brend);
     } catch (error) {
         console.log(error);
-        reply.status(500).send("Serverda Xatolik");
+        return reply.status(500).send("Serverda Xatolik");
     }
 });
 
@@ -65,10 +65,10 @@ fastify.get('/brend/:id', async (req, reply) => {
     try {
         const { id } = req.params;
         let brend = await brendModel.findOne({ _id: id });
-        reply.status(200).send(brend.toObject());
+        return reply.status(200).send(brend.toObject());
     } catch (error) {
         console.log(error);
-        reply.status(500).send("Serverda Xatolik");
+        return reply.status(500).send("Serverda Xatolik");
     }
 });
 
@@ -82,14 +82,14 @@ fastify.put('/brend/:id', async (req, reply) => {
 
     try {
         const newBrend = await brendModel.findOneAndUpdate({ _id: id }, req.body);
-        reply.status(200).send(newBrend.toObject());
+        return reply.status(200).send(newBrend.toObject());
     } catch (error) {
         console.log(error);
         const { image, logo } = req.body;
         image?.uz && fs.unlink(`${baseDir}/${path.basename(image.uz)}`, (err) => err && console.log(err));
         image?.ru && fs.unlink(`${baseDir}/${path.basename(image.ru)}`, (err) => err && console.log(err));
         logo && fs.unlink(`${baseDir}/${path.basename(logo)}`, (err) => err && console.log(err));
-        reply.status(500).send("Serverda Xatolik");
+        return reply.status(500).send("Serverda Xatolik");
     }
 });
 
@@ -101,10 +101,10 @@ fastify.delete('/brend/:id', async (req, reply) => {
         image?.uz && fs.unlink(`${baseDir}/${path.basename(image.uz)}`, (err) => err && console.log(err));
         image?.ru && fs.unlink(`${baseDir}/${path.basename(image.ru)}`, (err) => err && console.log(err));
         logo && fs.unlink(`${baseDir}/${path.basename(logo)}`, (err) => err && console.log(err));
-        reply.status(200).send("success deleted!");
+        return reply.status(200).send("success deleted!");
     } catch (error) {
         console.log(error);
-        reply.status(500).send("Server xatosi: " + error.message);
+        return reply.status(500).send("Server xatosi: " + error.message);
     }
 });
 

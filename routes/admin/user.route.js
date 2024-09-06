@@ -23,18 +23,18 @@ fastify.get('/user/:id', { preHandler: checkToken }, async (req, reply) => {
         });
   
       if (!user) {
-        reply.status(500).send({
+        return reply.status(500).send({
           message: 'Token xato',
         });
       } else {
-        reply.send({
+        return  reply.send({
           message: 'success',
           data: user,
         });
       }
     } catch (error) {
       console.log(error);
-      reply.status(500).send('Serverda Xatolik ' + error.message);
+      return reply.status(500).send('Serverda Xatolik ' + error.message);
     }
   });
   
@@ -42,9 +42,9 @@ fastify.get('/user/:id', { preHandler: checkToken }, async (req, reply) => {
   fastify.get('/users', { preHandler: checkToken }, async (req, reply) => {
     try {
       const users = await userModel.find().populate('shop');
-      reply.send(users);
+      return reply.send(users);
     } catch (error) {
-      reply.status(500).send(`Serverda xatosi: ${error.message}`);
+      return reply.status(500).send(`Serverda xatosi: ${error.message}`);
     }
   });
   
@@ -67,13 +67,13 @@ fastify.get('/user/:id', { preHandler: checkToken }, async (req, reply) => {
         role: newUser.role,
       });
       newUser = await newUser.save();
-      reply.send({
+      return reply.send({
         message: 'success created',
         data: newUser,
       });
     } catch (error) {
       console.log(error);
-      reply.status(500).send('Serverda Xatolik');
+      return reply.status(500).send('Serverda Xatolik');
     }
   });
   
@@ -87,13 +87,13 @@ fastify.get('/user/:id', { preHandler: checkToken }, async (req, reply) => {
       if (user) return reply.send({ message: 'bunday telefon raqam mavjud boshqa raqam kiriting' });
   
       const updated = await userModel.findByIdAndUpdate(req.params.id, req.body, { new: true });
-      reply.send({
+      return reply.send({
         message: 'success updated',
         data: updated,
       });
     } catch (error) {
       console.log(error);
-      reply.status(500).send('Serverda Xatolik');
+      return reply.status(500).send('Serverda Xatolik');
     }
   });
   
@@ -101,10 +101,10 @@ fastify.get('/user/:id', { preHandler: checkToken }, async (req, reply) => {
   fastify.delete('/user-delete/:id', { preHandler: checkToken }, async (req, reply) => {
     try {
       const deleted = await userModel.findByIdAndDelete(req.params.id);
-      reply.send({ data: deleted });
+      return reply.send({ data: deleted });
     } catch (error) {
       console.log(error);
-      reply.status(500).send(`Server xatosi: ${error.message}`);
+      return  reply.status(500).send(`Server xatosi: ${error.message}`);
     }
   });
 } catch (error) {

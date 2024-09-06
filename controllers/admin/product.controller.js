@@ -47,7 +47,7 @@ class Product {
                 }
             }
 
-            reply.status(500).send({ error: error.message });
+            return  reply.status(500).send({ error: error.message });
         }
     }
 
@@ -153,7 +153,7 @@ class Product {
 
             images?.length && await fileService.remove(images)
 
-            return reply.status(200).send({ replyult: deleted });
+            return reply.status(200).send({ result: deleted });
 
         } catch (error) {
             console.log(error);

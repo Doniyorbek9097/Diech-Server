@@ -7,13 +7,13 @@ try {
 fastify.post('/point-add', async (req, reply) => {
     try {
         const newPoint = await new pointModel(req.body).save();
-        reply.send({
+        return reply.send({
             message: 'success',
             data: newPoint,
         });
     } catch (error) {
         console.log(error.message);
-        reply.status(500).send(error.message);
+        return reply.status(500).send(error.message);
     }
 });
 
@@ -21,13 +21,13 @@ fastify.post('/point-add', async (req, reply) => {
 fastify.get('/point-all', async (req, reply) => {
     try {
         const points = await pointModel.find();
-        reply.send({
+        return  reply.send({
             message: 'success',
             data: points,
         });
     } catch (error) {
         console.log(error);
-        reply.status(500).send(error.message);
+        return  reply.status(500).send(error.message);
     }
 });
 

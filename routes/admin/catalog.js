@@ -7,13 +7,13 @@ fastify.post('/catalog-add', async (req, reply) => {
     try {
         const catalogForm = req.body;
         const savedCatalog = await new catalogModel(catalogForm).save();
-        reply.send({
+        return reply.send({
             data: savedCatalog,
             message: 'success added'
         });
     } catch (error) {
         console.log(error);
-        reply.status(500).send("Serverda xatolik");
+        return reply.status(500).send("Serverda xatolik");
     }
 });
 
@@ -30,13 +30,13 @@ fastify.get('/catalog-all', async (req, reply) => {
                 options: { limit, skip: page * limit }, // Pagination
             });
 
-        reply.send({
+            return reply.send({
             data: catalogs,
             message: "success"
         });
     } catch (error) {
         console.log(error);
-        reply.status(500).send("Serverda xatolik");
+        return reply.status(500).send("Serverda xatolik");
     }
 });
 
@@ -45,13 +45,13 @@ fastify.delete('/catalog-delete/:id', async (req, reply) => {
     try {
         const { id } = req.params;
         const deleted = await catalogModel.findOneAndDelete({ _id: id });
-        reply.send({
+        return reply.send({
             message: "success deleted",
             data: deleted
         });
     } catch (error) {
         console.log(error);
-        reply.status(500).send(error.message);
+        return reply.status(500).send(error.message);
     }
 });
 

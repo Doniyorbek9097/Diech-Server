@@ -13,10 +13,10 @@ fastify.get('/get-product-variants/:product_id', async (req, reply) => {
     try {
         const { product_id } = req.params;
         const variants = await productVariantModel.find({ product_id }).lean();
-        reply.send(variants);
+        return reply.send(variants);
     } catch (error) {
         console.log(error);
-        reply.status(500).send('Serverda Xatolik');
+        return reply.status(500).send('Serverda Xatolik');
     }
 });
 
@@ -24,13 +24,13 @@ fastify.get('/get-product-variants/:product_id', async (req, reply) => {
 fastify.post('/add-variant', async (req, reply) => {
     try {
         const variants = await productVariantModel.insertMany(req.body);
-        reply.send({
+        return reply.send({
             data: variants,
             message: 'success updated',
         });
     } catch (error) {
         console.log(error);
-        reply.status(500).send('Serverda Xatolik');
+        return reply.status(500).send('Serverda Xatolik');
     }
 });
 
@@ -49,7 +49,7 @@ fastify.put('/update-variant/:id', async (req, reply) => {
 
     try {
         const updated = await productVariantModel.findOneAndUpdate({ _id: id }, variant, { new: true });
-        reply.send({
+        return reply.send({
             data: updated,
             message: 'success updated',
         });
@@ -63,7 +63,7 @@ fastify.put('/update-variant/:id', async (req, reply) => {
             }
         }
 
-        reply.status(500).send('Serverda Xatolik');
+        return  reply.status(500).send('Serverda Xatolik');
     }
 });
 
@@ -80,13 +80,13 @@ fastify.delete('/variant-delete/:id', async (req, reply) => {
             }
         }
 
-        reply.send({
+        return reply.send({
             message: 'success deleted',
             data: deleted,
         });
     } catch (error) {
         console.log(error);
-        reply.status(500).send('Serverda Xatolik');
+        return reply.status(500).send('Serverda Xatolik');
     }
 });
 } catch (error) {

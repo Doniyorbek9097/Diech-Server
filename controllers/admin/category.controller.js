@@ -20,7 +20,7 @@ class Category {
             })
         } catch (error) {
             console.log(error)
-            reply.status(500).send(error.message)
+            return reply.status(500).send(error.message)
         
     }
 
@@ -65,7 +65,7 @@ class Category {
 
         } catch (error) {
             console.log(error)
-            reply.status(500).send(error.message)
+            return reply.status(500).send(error.message)
         }
     }
 
@@ -109,8 +109,9 @@ class Category {
                 .skip(page * limit)
                 .limit(limit)
                 .sort({ _id: -1 })
-
-                reply.send({
+                
+            console.log(categories)
+            return reply.send({
                     message: "success get products",
                     data: categories,
                     limit,
@@ -120,7 +121,7 @@ class Category {
 
         } catch (error) {
             console.log(error)
-            reply.status(500).send(error.message)
+            return reply.status(500).send(error.message)
         }
     }
 
@@ -140,7 +141,7 @@ class Category {
 
         } catch (error) {
             console.log(error)
-            reply.status(500).send(error.message)
+            return reply.status(500).send(error.message)
         }
     }
 
@@ -157,7 +158,7 @@ class Category {
 
         } catch (error) {
             console.log(error)
-            reply.status(500).send(error.message)
+            return reply.status(500).send(error.message)
         }
     }
 
@@ -174,12 +175,12 @@ class Category {
             const upadted = await categoryModel.findByIdAndUpdate(id, req.body);
             
             category.deletedImages.length && category.deletedImages.forEach(async item => await fileService.remove(item));
-            reply.status(200).send(upadted);
+            return reply.status(200).send(upadted);
 
         } catch (error) {
             category?.icon && await fileService.remove(category.icon)
             category?.image && await fileService.remove(category.image)
-            reply.status(500).send(error.message)
+            return reply.status(500).send(error.message)
         }
     }
 
@@ -192,11 +193,11 @@ class Category {
             deleted?.image && await fileService.remove(deleted?.image)
             deleted?.icon && await fileService.remove(deleted?.icon)
 
-            reply.status(200).send(deleted);
+            return reply.status(200).send(deleted);
 
         } catch (error) {
             console.log(error);
-            reply.status(500).send("category o'chirib bo'lmadi")
+            return reply.status(500).send("category o'chirib bo'lmadi")
         }
     }
 

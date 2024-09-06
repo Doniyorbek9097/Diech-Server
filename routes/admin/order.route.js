@@ -13,7 +13,7 @@ try {
 fastify.get('/order-all', { preHandler: checkToken }, async (req, reply) => {
     try {
         const orders = await orderModel.find();
-        reply.send({ message: 'success', data: orders });
+        return reply.send({ message: 'success', data: orders });
 
         for (const order of orders) {
             for (const productData of order.products) {
@@ -59,7 +59,7 @@ fastify.get('/order-all', { preHandler: checkToken }, async (req, reply) => {
         }
     } catch (error) {
         console.error(error);
-        reply.status(500).send({ message: error.message });
+        return reply.status(500).send({ message: error.message });
     }
 });
 
@@ -67,10 +67,10 @@ fastify.get('/order-all', { preHandler: checkToken }, async (req, reply) => {
 fastify.get('/order/:id', { preHandler: checkToken }, async (req, reply) => {
     try {
         const order = await orderModel.findById(req.params.id).populate({ path: 'products.shop' });
-        reply.send({ data: order, message: 'success' });
+        return  reply.send({ data: order, message: 'success' });
     } catch (error) {
         console.log(error);
-        reply.status(500).send(error.message);
+        return reply.status(500).send(error.message);
     }
 });
 
@@ -78,10 +78,10 @@ fastify.get('/order/:id', { preHandler: checkToken }, async (req, reply) => {
 fastify.put('/order-update/:id', { preHandler: checkToken }, async (req, reply) => {
     try {
         const updated = await orderModel.findByIdAndUpdate(req.params.id, req.body);
-        reply.send({ data: updated, message: 'success updated' });
+        return reply.send({ data: updated, message: 'success updated' });
     } catch (error) {
         console.log(error.message);
-        reply.status(500).send(error.message);
+        return  reply.status(500).send(error.message);
     }
 });
 
@@ -89,10 +89,10 @@ fastify.put('/order-update/:id', { preHandler: checkToken }, async (req, reply) 
 fastify.delete('/order-delete/:id', { preHandler: checkToken }, async (req, reply) => {
     try {
         const deleted = await orderModel.findByIdAndDelete(req.params.id);
-        reply.send({ data: deleted, message: 'Success deleted' });
+        return reply.send({ data: deleted, message: 'Success deleted' });
     } catch (error) {
         console.log(error);
-        reply.status(500).send(error.message);
+        return reply.status(500).send(error.message);
     }
 });
 

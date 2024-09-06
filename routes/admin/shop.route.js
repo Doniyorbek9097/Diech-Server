@@ -41,7 +41,7 @@ fastify.post('/shop', { preHandler: checkToken }, async (req, reply) => {
         await fileService.remove(req.raw, shopData.bannerImage);
       }
       console.log(error);
-      reply.status(500).send("Serverda Xatolik");
+      return reply.status(500).send("Serverda Xatolik");
     }
   });
   
@@ -52,10 +52,10 @@ fastify.post('/shop', { preHandler: checkToken }, async (req, reply) => {
         .populate('employees')
         .populate('products')
         .populate('point');
-      reply.send(shops);
+        return  reply.send(shops);
     } catch (error) {
       console.log(error);
-      reply.status(500).send("Serverda Xatolik");
+      return  reply.status(500).send("Serverda Xatolik");
     }
   });
   
@@ -66,10 +66,10 @@ fastify.post('/shop', { preHandler: checkToken }, async (req, reply) => {
         .populate('employees')
         .populate('products')
         .populate('products');
-      reply.send(result);
+        return reply.send(result);
     } catch (error) {
       console.log(error);
-      reply.status(500).send("Serverda Xatolik");
+      return reply.status(500).send("Serverda Xatolik");
     }
   });
   
@@ -87,7 +87,7 @@ fastify.post('/shop', { preHandler: checkToken }, async (req, reply) => {
       }
   
       const result = await shopModel.findByIdAndUpdate(req.params.id, shopData, { new: true });
-      reply.send({
+      return reply.send({
         data: result,
         message: "success updated!"
       });
@@ -102,7 +102,7 @@ fastify.post('/shop', { preHandler: checkToken }, async (req, reply) => {
         await fileService.remove(req.raw, shopData.bannerImage);
       }
       console.log(error);
-      reply.status(500).send(error.message);
+      return reply.status(500).send(error.message);
     }
   });
   
@@ -110,10 +110,10 @@ fastify.post('/shop', { preHandler: checkToken }, async (req, reply) => {
   fastify.delete('/shop-delete/:id', { preHandler: checkToken }, async (req, reply) => {
     try {
       const data = await shopModel.findByIdAndDelete(req.params.id);
-      reply.send({ data, message: "success deleted!" });
+      return reply.send({ data, message: "success deleted!" });
     } catch (error) {
       console.log(error);
-      reply.status(500).send("Serverda xatolik");
+      return  reply.status(500).send("Serverda xatolik");
     }
   });
   } catch (error) {

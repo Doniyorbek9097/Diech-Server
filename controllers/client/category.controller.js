@@ -28,7 +28,7 @@ class Category {
             return data;
         } catch (err) {
             console.log(err);
-            reply.status(500).send({ message: "Server is not working" });
+            return reply.status(500).send({ message: "Server is not working" });
         }
     }
 
@@ -85,7 +85,7 @@ class Category {
         } catch (error) {
             if (error) {
                 console.log(error);
-                reply.status(500).send("server ishlamayapti")
+                return reply.status(500).send("server ishlamayapti")
             }
         }
     }

@@ -28,7 +28,7 @@ const orderRoutes = async (fastify, options) => {
 
         } catch (error) {
             console.error(error);
-            reply.status(500).send(error.message);
+            return reply.status(500).send(error.message);
         }
     });
 
@@ -45,7 +45,7 @@ const orderRoutes = async (fastify, options) => {
 
         } catch (error) {
             console.error(error);
-            reply.status(500).send(error.message);
+            return reply.status(500).send(error.message);
         }
     });
 };

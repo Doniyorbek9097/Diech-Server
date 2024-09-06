@@ -72,7 +72,7 @@ fastify.setErrorHandler(function (error, request, reply) {
   fastify.log.error(error);
 
   // Send a custom error response
-  reply.status(error.statusCode || 500).send({
+  return reply.status(error.statusCode || 500).send({
     error: error.message,
     stack: error.stack, // Bu qismni qo'shsangiz stack trace ko'rsatiladi
   });

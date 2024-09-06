@@ -12,7 +12,7 @@ class Auth {
    async user(req, reply) {
         try {
             const user = await userModel.findById(req.params.id)
-            !user ? reply.status(500).send({
+            !user ?  reply.status(500).send({
                 message: "Token xato"
             })
             :

@@ -20,7 +20,7 @@ class Banner {
             console.log(error);
             image?.uz && await fileService.remove(image.uz)
             image?.ru && await fileService.remove(image.uz)
-            reply.status(500).send(error.message);
+            return reply.status(500).send(error.message);
         }
     }
 
@@ -35,7 +35,7 @@ class Banner {
     
         } catch (error) {
             console.log(error);
-            reply.status(500).send(error.message)
+            return reply.status(500).send(error.message)
         }
     }
 
@@ -47,11 +47,11 @@ class Banner {
             image.uz && await fileService.remove(image.uz)
             image.ru && await fileService.remove(image.ru)    
     
-            reply.send({ data: replyult, message:"Success"});
+            return reply.send({ data: replyult, message:"Success"});
     
         } catch (error) {
             console.log(error)
-            reply.status(500).send(error.message)
+            return  reply.status(500).send(error.message)
         }
     }
 

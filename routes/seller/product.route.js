@@ -20,7 +20,7 @@ async function productRoutes(fastify, options) {
                     const product = await productModel.findById(item.parent).lean();
                     if (product) {
                         const { _id, ...productData } = product;
-                        item.slug = slugify(`${product.name.ru} ${generateOTP(30)}`);
+                        item.slug = slugify(`${product.name.ru} ${generateOTP(10)}`);
                         item.discount = parseInt(((item.orginal_price - item.sale_price) / item.orginal_price) * 100);
                         if (isNaN(item.discount)) item.discount = 0;
                         
