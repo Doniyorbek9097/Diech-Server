@@ -23,7 +23,7 @@ async function productRoutes(fastify, options) {
                         item.slug = slugify(`${product.name.ru} ${generateOTP(10)}`);
                         item.discount = parseInt(((item.orginal_price - item.sale_price) / item.orginal_price) * 100);
                         if (isNaN(item.discount)) item.discount = 0;
-                        
+
                         return {
                             ...productData,
                             ...item,
@@ -283,6 +283,33 @@ async function productRoutes(fastify, options) {
             return reply.status(500).send('An error occurred');
         }
     });
+
+
+    fastify.get("/all-product-updated", async (req, reply) => {
+        try {
+            const batchSize = 100;
+            let skip = 0;
+            while (true) {
+                const products = await shopProductModel.find({}).skip(skip).limit(batchSize).lean();
+                if (products.length === 0) {
+                    break;
+                }
+                for (const product of products) {
+                    await shopProductModel.updateOne(
+                        { _id: product._id },
+                        { $set: { slug: slugify(`${product.name.uz.slice(0,10)}-${product._id}`) } },
+                    );
+                }
+                skip += batchSize;
+            }
+
+            return reply.send("Success updated")
+        } catch (error) {
+            console.log(error);
+
+        }
+    })
+
 }
 
 module.exports = productRoutes;

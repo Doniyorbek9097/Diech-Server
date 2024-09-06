@@ -35,7 +35,7 @@ class Product {
             // Mahsulotlarni saqlash
             const newProducts = await productModel.insertMany(processedProducts);
 
-           return reply.send({ data: newProducts, message: "success added" });
+            return reply.send({ data: newProducts, message: "success added" });
 
         } catch (error) {
             console.error(error);
@@ -47,7 +47,7 @@ class Product {
                 }
             }
 
-            return  reply.status(500).send({ error: error.message });
+            return reply.status(500).send({ error: error.message });
         }
     }
 
@@ -131,7 +131,7 @@ class Product {
     async updateById(req, reply) {
 
         const { body: product } = req;
-       
+
         product?.images?.length && (product.images = await fileService.upload(req, product.images).catch(err => console.log(err.message)))
         try {
             const updated = await productModel.findByIdAndUpdate(req.params.id, product);
@@ -197,6 +197,7 @@ class Product {
         }
 
     }
+
 
 }
 
