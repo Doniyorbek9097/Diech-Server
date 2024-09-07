@@ -165,7 +165,7 @@ class Product {
 
 
     async indexed(req, reply) {
-        const products = await productModel.find().populate('variants').lean()
+        const products = await shopProductModel.find().populate('variants').lean()
         try {
             const body = products.flatMap((item) => {
                 const variant_uz = item?.variants?.flatMap(variant => variant?.attributes?.flatMap(attr => attr.value?.uz || [])) || [];

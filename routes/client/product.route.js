@@ -24,11 +24,12 @@ async function productRoutes(fastify, options) {
       const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
       const limit = parseInt(req.query.limit, 10) || 5;
       const query = {};
-
+      console.log(search);
+      
       if (search) {
         const options = { page: page, hitsPerPage: limit };
         const { hits } = await productsIndex.search(search, options)
-
+        console.log(hits)
         const ids = hits.map(item => item.objectID)
         query._id = { $in: ids };
       }
@@ -73,7 +74,6 @@ async function productRoutes(fastify, options) {
 
       } = req.query;
 
-
       const sort = {};
 
       !!viewsCount && (sort.viewsCount = -1)
@@ -90,6 +90,7 @@ async function productRoutes(fastify, options) {
         query._id = { $in: ids };
       }
 
+      
 
       function findMostFrequentCategory(arr) {
         const ids = arr.split(",");
@@ -117,14 +118,15 @@ async function productRoutes(fastify, options) {
       Boolean(random) && (productsIds = await shopProductModel.getRandomProducts({ query, limit, sort, page }))
       productsIds.length && (query._id = { $in: productsIds })
 
-      const totalDocuments = await shopProductModel.countDocuments(query);
+      const totalDocuments = await shopProductModel.countDocuments({_id: "66a3a96823a5f1c9fbe05cc2"});
       
       const result = await shopProductModel.find(query)
-        .sort(sort)
-        .skip(page * limit)
-        .limit(limit)
+        // .sort(sort)
+        // .skip(page * limit)
+        // .limit(limit)
         .select("name slug disription images orginal_price sale_price discount reviews viewsCount shop")
-
+      console.log(query);
+      
       const data = {
         message: "success get products",
         products: result,
