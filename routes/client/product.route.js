@@ -121,11 +121,10 @@ async function productRoutes(fastify, options) {
       const totalDocuments = await shopProductModel.countDocuments({_id: "66a3a96823a5f1c9fbe05cc2"});
       
       const result = await shopProductModel.find(query)
-        // .sort(sort)
-        // .skip(page * limit)
-        // .limit(limit)
+        .sort(sort)
+        .skip(page * limit)
+        .limit(limit)
         .select("name slug disription images orginal_price sale_price discount reviews viewsCount shop")
-      console.log(query);
       
       const data = {
         message: "success get products",
