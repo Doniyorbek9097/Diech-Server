@@ -15,48 +15,6 @@ fastify.get('/order-all', { preHandler: checkToken }, async (req, reply) => {
         const orders = await orderModel.find();
         return reply.send({ message: 'success', data: orders });
 
-        for (const order of orders) {
-            for (const productData of order.products) {
-                const product = await shopProductModel.findById(productData.product?._id);
-
-                if (product) {
-                    let target = product;
-                    if (product.variants && product.variants.length > 0) {
-                        target = product.variants.find(variant => variant._id.toString() === productData.selected_variant._id.toString()) || product;
-                    }
-
-                    const statusActions = {
-                        soldOut: () => {
-                            if (!target.soldOut.some(item => item.toString() === order._id.toString())) {
-                                const returnedIndex = target.returned.findIndex(item => item.toString() === order._id.toString());
-                                if (returnedIndex !== -1 && target.returnedCount > 0) {
-                                    target.returned.splice(returnedIndex, 1);
-                                    target.returnedCount -= productData.quantity;
-                                }
-                                target.soldOut.push(order._id);
-                                target.soldOutCount += productData.quantity;
-                                target.quantity -= productData.quantity;
-                            }
-                        },
-                        returned: () => {
-                            if (!target.returned.some(item => item.toString() === order._id.toString())) {
-                                const soldIndex = target.soldOut.findIndex(item => item.toString() === order._id.toString());
-                                if (soldIndex !== -1 && target.soldOutCount > 0) {
-                                    target.soldOut.splice(soldIndex, 1);
-                                    target.soldOutCount -= productData.quantity;
-                                }
-                                target.returned.push(order._id);
-                                target.returnedCount += productData.quantity;
-                                target.quantity += productData.quantity;
-                            }
-                        }
-                    };
-
-                    statusActions[productData.status]?.();
-                    await product.save();
-                }
-            }
-        }
     } catch (error) {
         console.error(error);
         return reply.status(500).send({ message: error.message });
@@ -66,7 +24,10 @@ fastify.get('/order-all', { preHandler: checkToken }, async (req, reply) => {
 // GET /order/:id
 fastify.get('/order/:id', { preHandler: checkToken }, async (req, reply) => {
     try {
-        const order = await orderModel.findById(req.params.id).populate({ path: 'products.shop' });
+        const order = await orderModel.findById(req.params.id)
+        .populate('products.owner')
+        .populate('products.shop')
+
         return  reply.send({ data: order, message: 'success' });
     } catch (error) {
         console.log(error);
@@ -77,13 +38,67 @@ fastify.get('/order/:id', { preHandler: checkToken }, async (req, reply) => {
 // PUT /order-update/:id
 fastify.put('/order-update/:id', { preHandler: checkToken }, async (req, reply) => {
     try {
-        const updated = await orderModel.findByIdAndUpdate(req.params.id, req.body);
-        return reply.send({ data: updated, message: 'success updated' });
+        const order = await orderModel.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        if (!order) {
+            return reply.status(404).send({ message: 'Order not found' });
+        }
+
+        // Har bir mahsulot uchun loop
+        for (const productData of order.products || []) {
+            const product = await shopProductModel.findById(productData?._id);
+
+            if (product) {
+                let target = product;
+                
+                // Agar variantlar mavjud bo'lsa va tanlangan bo'lsa
+                if (product.variants?.length > 0 && productData.selected_variant?._id) {
+                    target = product.variants.find(variant => variant._id.toString() === productData.selected_variant._id.toString()) || product;
+                }
+
+                // Sotish holati
+                if (productData.status === 'soldOut') {
+                    if (!target.soldOut.includes(order._id.toString())) {
+                        // Mahsulotni qaytarilgan ro'yxatdan olib tashlaymiz
+                        const returnedIndex = target.returned.indexOf(order._id.toString());
+                        if (returnedIndex !== -1 && target.returnedCount > 0) {
+                            target.returned.splice(returnedIndex, 1);
+                            target.returnedCount -= productData.quantity;
+                        }
+                        // Sotilgan ro'yxatga qo'shamiz va miqdorini yangilaymiz
+                        target.soldOut.push(order._id);
+                        target.soldOutCount += productData.quantity;
+                        target.quantity -= productData.quantity;
+                    }
+                }
+                
+                // Qaytarish holati
+                if (productData.status === 'returned') {
+                    if (!target.returned.includes(order._id.toString())) {
+                        // Mahsulotni sotilgan ro'yxatdan olib tashlaymiz
+                        const soldIndex = target.soldOut.indexOf(order._id.toString());
+                        if (soldIndex !== -1 && target.soldOutCount > 0) {
+                            target.soldOut.splice(soldIndex, 1);
+                            target.soldOutCount -= productData.quantity;
+                        }
+                        // Qaytarilgan ro'yxatga qo'shamiz va miqdorini yangilaymiz
+                        target.returned.push(order._id);
+                        target.returnedCount += productData.quantity;
+                        target.quantity += productData.quantity;
+                    }
+                }
+
+                // Mahsulotni saqlash
+                await product.save();
+            }
+        }
+
+        return reply.send({ data: order, message: 'Order successfully updated' });
     } catch (error) {
-        console.log(error.message);
-        return  reply.status(500).send(error.message);
+        console.error(error.message);
+        return reply.status(500).send({ message: error.message });
     }
 });
+
 
 // DELETE /order-delete/:id
 fastify.delete('/order-delete/:id', { preHandler: checkToken }, async (req, reply) => {

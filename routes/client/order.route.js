@@ -7,12 +7,21 @@ const { generateOTP } = require("../../utils/otpGenrater");
 const bcrypt = require("bcrypt");
 // const bot = require("../../bot");
 const userModel = require("../../models/user.model")
-const { Markup } = require("telegraf")
+const { Markup } = require("telegraf");
+const shopProductModel = require("../../models/shop.product.model");
 const orderRoutes = async (fastify, options) => {
-    fastify.post('/order-add', async (request, reply) => {
+    fastify.post('/order-add', async (req, reply) => {
         try {
-            const { customerInfo, products, cart_id } = request.body;
-            const newOrder = await new orderModel(request.body).save();
+            const { customerInfo, products, cart_id } = req.body;
+            req.body.products = await Promise.all(products.map(async(item) => {
+                const product = await shopProductModel.findById(item.product_id).lean()
+                return {
+                    quantity: item.quantity,
+                    ...product,
+                }
+            }));
+
+            const newOrder = await new orderModel(req.body).save();
             await cartModel.findByIdAndDelete(cart_id);
             const deliverers = await userModel.find({ role: "deliverer" });
 
@@ -32,9 +41,9 @@ const orderRoutes = async (fastify, options) => {
         }
     });
 
-    fastify.get('/product-statistic', async (request, reply) => {
+    fastify.get('/product-statistic', async (req, reply) => {
         try {
-            const sort = request.query.sort || "";
+            const sort = req.query.sort || "";
             const orders = await orderModel.find()
                 .sort({ createdAt: -1 });
 

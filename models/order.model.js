@@ -1,6 +1,38 @@
 const { Schema,  } = require("mongoose");
 const { serverDB } = require("../config/db")
 
+const productSchema = Schema({
+    _id: String,
+    name: {
+        type: String,
+        intl: true,
+    },
+    images:[String],
+    orginal_price: Number,
+    sale_price: Number,
+    discount: Number,
+    quantity: Number,
+    slug: String,
+    owner: {
+        type: Schema.Types.ObjectId,
+        ref: "User"
+    },
+
+    shop: {
+        type: Schema.Types.ObjectId,
+        ref: "Shop"
+    },
+
+    status: {
+        type: String,
+        enum: ["notSold", "soldOut", "returned"],
+        default: 'notSold'
+    }
+
+},
+{ toJSON: { virtuals: true } }
+)
+
 const orderSchema = new Schema({
     user: {
         type: Schema.Types.ObjectId,
@@ -53,35 +85,7 @@ const orderSchema = new Schema({
         phone_number: String
     },
 
-    products: [
-        {
-            _id: String,
-            name: String,
-            slug: String,
-            image:String,
-            orginal_price: Number,
-            sale_price: Number,
-            discount: Number,
-            quantity: Number,
-            attributes: Schema.Types.Mixed,
-            owner: {
-                type: Schema.Types.ObjectId,
-                ref: "User"
-            },
-
-            shop: {
-                type: Schema.Types.ObjectId,
-                ref: "Shop"
-            },
-
-            status: {
-                type: String,
-                enum: ["notSold", "soldOut", "returned"],
-                default: 'notSold'
-            }
-
-        }
-    ],
+    products: [productSchema],
 
     location: {
         latitude: String,
