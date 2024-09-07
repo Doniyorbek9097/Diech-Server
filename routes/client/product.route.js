@@ -10,7 +10,7 @@ const shopProductModel = require("../../models/shop.product.model");
 const { checkToken } = require("../../middlewares/authMiddleware")
 const { transformAttributes } = require('../../utils/transformAttributes')
 const { algolia } = require("../../config/algolia");
-const productsIndex = algolia.initIndex("ShopProducts");
+const productsIndex = algolia.initIndex("products");
 
 const mongoose = require("mongoose");
 

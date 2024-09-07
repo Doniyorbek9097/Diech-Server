@@ -4,9 +4,11 @@ const fs = require("fs");
 const { Base64ToFile } = require("../../utils/base64ToFile");
 const { baseDir } = require("../../config/uploadFolder");
 const productModel = require("../../models/product.model")
+const shopProductModel = require("../../models/shop.product.model")
 const { algolia } = require("../../config/algolia")
-const productsIndex = algolia.initIndex("products");
 const fileService = require("../../services/file.service")
+const productsIndex = algolia.initIndex("products");
+
 
 class Product {
 

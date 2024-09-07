@@ -13,12 +13,12 @@ require('./prototypes');
 require('./testbot');
 const { serverDB } = require('./config/db');
 
-// const io = new Server(server, {
-//   cors: {
-//     origin: "*",
-//     methods: "*"
-//   }
-// });
+const io = new Server(fastify.server, {
+  cors: {
+    origin: "*",
+    methods: "*"
+  }
+});
 
 fastify.register(fastifyCors, { 
   origin: '*', // Adjust as needed for your aplication
@@ -100,19 +100,21 @@ routesFolder.forEach(dir => {
 });
 
 // Socket.io bilan ishlash uplanis
-// io.on('connection', (socket) => {
-//   socket.on("add:category", (data) => {
-//     io.emit("add:category", data);
-//   });
+io.on('connection', (socket) => {
+  socket.on("add:category", (data) => {
+    console.log(data);
+    
+    io.emit("add:category", data);
+  });
 
-//   socket.on("delete:category", (data) => {
-//     io.emit("delete:category", data);
-//   });
+  socket.on("delete:category", (data) => {
+    io.emit("delete:category", data);
+  });
 
-//   socket.on('disconnect', () => {
-//     console.log('Foydalanuvchi ayirildi');
-//   });
-// });
+  socket.on('disconnect', () => {
+    console.log('Foydalanuvchi ayirildi');
+  });
+});
 
 // Serverni ishga tushirish
 const PORT = process.env.PORT || 5000;
