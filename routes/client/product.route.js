@@ -99,7 +99,6 @@ async function productRoutes(fastify, options) {
         .skip(page * limit)  // Sahifaga bog'liq mahsulotlarni olish uchun skip ishlatilmoqda
         .limit(limit)        // Limit paginatsiya uchun ishlatilmoqda
         .select("name slug description images original_price sale_price discount reviews viewsCount shop");
-      console.log(result);
       
       const data = {
         message: "success get products",

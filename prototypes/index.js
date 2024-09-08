@@ -8,7 +8,6 @@ module.exports.chunk = Array.prototype.chunk = function(chunkSize) {
   };  
 
   module.exports.real = Array.prototype.real = function() {
-    console.log(this)
     if(!Array.isArray(this)) throw new Error("real methodidagi malumot array emas");
     return this.filter(item => item.details?.length ? true : false);
   };  

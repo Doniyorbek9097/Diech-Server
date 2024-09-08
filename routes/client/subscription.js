@@ -17,8 +17,8 @@ const subscriptionRoutes = async (fastify, options) => {
 
         // Yangi obunani saqlash
         try {
+            console.log(subscription);
             const newSubscription = new subscriptionModel(subscription);
-            console.log(newSubscription);
 
             await newSubscription.save(); // MongoDB ga saqlash
             res.status(200).send({ success: true, message: 'Foydalanuvchi obunasi saqlandi' });
