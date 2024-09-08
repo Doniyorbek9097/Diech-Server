@@ -11,7 +11,43 @@ const { Server } = require('socket.io');
 require('dotenv').config();
 require('./prototypes');
 require('./testbot');
+require("./bot")
 const { serverDB } = require('./config/db');
+const webPush = require('web-push');
+
+const vapidKeys = webPush.generateVAPIDKeys();
+
+
+webPush.setVapidDetails(
+  'mailto:your-email@example.com',
+  "BJEHDwemAMc5GlzctGrN8qfOygZfVLTLgKp1YY4JUmumeVLRGcc5UPxLUBXVAXPHwyUvFD3OjdwA9PcqCaHTtW8",
+  "kdo9-vksU-zvU1zhMLD8yNGdj45gRMITiNh35g2wtMc"
+);
+
+
+// Push xabar yuborish uchun Fastify API route
+fastify.post('/send-push', async (request, reply) => {
+  try {
+    const { subscription, payload } = request.body;
+
+    const pushSubscription = {
+      endpoint: subscription.endpoint,
+      keys: {
+        auth: subscription.keys.auth,
+        p256dh: subscription.keys.p256dh
+      }
+    };
+
+    // Push xabarni yuborish
+    await webPush.sendNotification(pushSubscription, JSON.stringify(payload));
+    reply.send({ success: true, message: 'Push xabar yuborildi' });
+  } catch (error) {
+    fastify.log.error(error);
+    reply.send({ success: false, error: error.message });
+  }
+});
+
+
 
 const io = new Server(fastify.server, {
   cors: {
@@ -99,22 +135,49 @@ routesFolder.forEach(dir => {
   });
 });
 
-// Socket.io bilan ishlash uplanis
-io.on('connection', (socket) => {
-  socket.on("add:category", (data) => {
-    console.log(data);
+// // Socket.io bilan ishlash uplanis
+// io.on('connection', (socket) => {
+//   socket.on("add:category", (data) => {
+//     console.log(data);
     
-    io.emit("add:category", data);
-  });
+//     io.emit("add:category", data);
+//   });
 
-  socket.on("delete:category", (data) => {
-    io.emit("delete:category", data);
-  });
+//   socket.on("delete:category", (data) => {
+//     io.emit("delete:category", data);
+//   });
 
-  socket.on('disconnect', () => {
-    console.log('Foydalanuvchi ayirildi');
-  });
+//   socket.on('disconnect', () => {
+//     console.log('Foydalanuvchi ayirildi');
+//   });
+// });
+
+
+
+const locations = {latitude: 22222, longitude:33333}; // Joylashuvlarni vaqtinchalik saqlash uchun obyekt
+
+// API orqali joylashuvlarni qabul qilish
+fastify.post('/location', async (req, reply) => {
+  const { chatId, latitude, longitude } = req.body;
+  // Joylashuvni saqlash va real vaqt rejimida front-endga yuborish
+  locations[chatId] = { latitude, longitude };
+  io.emit('locationUpdate', req.body);
+
+  reply.send({ status: 'Location saved' });
 });
+
+
+// // WebSocket ulanishlarini kuzatish
+// io.on('connection', (socket) => {
+//   console.log('New client connected');
+
+//   // Mavjud joylashuvlarni yuborish
+//   socket.emit('initialLocations', locations);
+
+//   socket.on('disconnect', () => {
+//     console.log('Client disconnected');
+//   });
+// });
 
 // Serverni ishga tushirish
 const PORT = process.env.PORT || 5000;

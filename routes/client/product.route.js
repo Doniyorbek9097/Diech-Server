@@ -29,10 +29,10 @@ async function productRoutes(fastify, options) {
       if (search) {
         const options = { page: page, hitsPerPage: limit };
         const { hits } = await productsIndex.search(search, options)
-        console.log(hits)
         const ids = hits.map(item => item.objectID)
         query._id = { $in: ids };
       }
+
 
       const totalDocuments = await shopProductModel.countDocuments(query).exec()
       const totalPages = Math.ceil(totalDocuments / limit);
@@ -58,11 +58,11 @@ async function productRoutes(fastify, options) {
   });
 
 
-  // all products 
+  // product all
   fastify.get("/products", async (req, reply) => {
     try {
-      const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
-      const limit = parseInt(req.query.limit, 10) || 10;
+      const page = !isNaN(parseInt(req.query.page, 10)) ? Math.max(0, parseInt(req.query.page, 10) - 1) : 0;
+      const limit = !isNaN(parseInt(req.query.limit, 10)) ? parseInt(req.query.limit, 10) : 10;
       const { lang = '' } = req.headers;
       const {
         search = "",
@@ -71,78 +71,52 @@ async function productRoutes(fastify, options) {
         disCount,
         price,
         random
-
       } = req.query;
-
+  
       const sort = {};
-
-      !!viewsCount && (sort.viewsCount = -1)
-      price && (sort.price = Number(price))
-      !!disCount && (sort.discount = -1)
-
+      if (Boolean(viewsCount)) sort.viewsCount = -1;
+      if (price) sort.price = Number(price);
+      if (Boolean(disCount)) sort.discount = -1;
+  
       const query = {};
-      disCount && (query.discount = { $exists: true, $ne: 0 })
-
+      if (Boolean(disCount)) query.discount = { $exists: true, $ne: 0 };
+      let totalPage = 0;
+  
       if (search) {
-        const options = { page: page, hitsPerPage: limit };
-        const { hits } = await productsIndex.search(search, options)
-        const ids = hits.map(item => item.objectID)
+        const options = { page, hitsPerPage: limit };
+        const { hits, nbPages } = await productsIndex.search(search, options);
+        const ids = hits.map(item => item.objectID);
         query._id = { $in: ids };
+        totalPage = nbPages;
+      } else {
+        const totalProducts = await shopProductModel.countDocuments(query);
+        totalPage = Math.ceil(totalProducts / limit);
       }
-
-      
-
-      function findMostFrequentCategory(arr) {
-        const ids = arr.split(",");
-
-        // Takrorlanishni hisoblash uchun obyekt yarating
-        const countMap = ids.reduce((acc, id) => {
-          acc[id] = (acc[id] || 0) + 1;
-          return acc;
-        }, {});
-
-        // Eng ko'p takrorlangan identifikatorni aniqlash
-        const maxCountId = Object.keys(countMap).reduce((maxId, id) => {
-          return countMap[id] > countMap[maxId] ? id : maxId;
-        });
-
-        return maxCountId;
-      }
-
-      // Misol uchun foydalanish
-      const mostFrequentCategory = findMostFrequentCategory(category_id);
-      if (category_id) query.categories = { $in: [new mongoose.Types.ObjectId(mostFrequentCategory)] };
-
-
-      let productsIds = [];
-      Boolean(random) && (productsIds = await shopProductModel.getRandomProducts({ query, limit, sort, page }))
-      productsIds.length && (query._id = { $in: productsIds })
-
-      const totalDocuments = await shopProductModel.countDocuments({_id: "66a3a96823a5f1c9fbe05cc2"});
-      
+  
+      // Paginatsiyani to'g'ri ishlashini ta'minlash
       const result = await shopProductModel.find(query)
         .sort(sort)
-        .skip(page * limit)
-        .limit(limit)
-        .select("name slug disription images orginal_price sale_price discount reviews viewsCount shop")
+        .skip(page * limit)  // Sahifaga bog'liq mahsulotlarni olish uchun skip ishlatilmoqda
+        .limit(limit)        // Limit paginatsiya uchun ishlatilmoqda
+        .select("name slug description images original_price sale_price discount reviews viewsCount shop");
+      console.log(result);
       
       const data = {
         message: "success get products",
         products: result,
         limit,
-        page,
-        totalPage: Math.ceil(totalDocuments / limit),
+        page: page + 1, // Sahifani foydalanuvchilar uchun 1 dan boshlaymiz
+        totalPage,
       };
-
-
+  
       return reply.send(data);
-
+  
     } catch (error) {
       console.error(error);
-      reply.status(500).send({ message: error.message });
+      return reply.status(500).send({ message: error.message });
     }
   });
-
+  
 
   // one product by slug
   fastify.get("/product-slug/:slug", async (req, reply) => {
