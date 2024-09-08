@@ -1,14 +1,15 @@
-const { Schema, model } = require('mongoose');
+const { Schema } = require('mongoose');
+const { serverDB } = require("../config/db")
 
 // Foydalanuvchi obuna modeli
-const subscriptionSchema = new Schema({
-  endpoint: { type: String, required: true }, 
+const subscriptionSchema = Schema({
+  endpoint: { type: String }, 
   keys: {
-    auth: { type: String, required: true },
-    p256dh: { type: String, required: true }
+    auth: { type: String },
+    p256dh: { type: String }
   }
 });
 
-const subscriptionModel = model('Subscription', subscriptionSchema);
+const subscriptionModel = serverDB.model('Subscription', subscriptionSchema);
 
 module.exports = subscriptionModel;
