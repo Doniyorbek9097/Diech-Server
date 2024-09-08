@@ -13,6 +13,7 @@ require('./prototypes');
 require('./testbot');
 require("./bot")
 const { serverDB } = require('./config/db');
+const subscriptionModel = require("./models/subscription.model")
 const webPush = require('web-push');
 
 const vapidKeys = webPush.generateVAPIDKeys();
@@ -25,28 +26,53 @@ webPush.setVapidDetails(
 );
 
 
-// Push xabar yuborish uchun Fastify API route
-fastify.post('/send-push', async (request, reply) => {
+// Foydalanuvchini obuna qilish va ma'lumotlarni bazaga saqlash
+fastify.post('/subscribe', async (req, res) => {
+  const subscription = req.body.subscription; // Foydalanuvchi subscription obyektini olamiz
+
+  // Yangi obunani saqlash
   try {
-    const { subscription, payload } = request.body;
-
-    const pushSubscription = {
-      endpoint: subscription.endpoint,
-      keys: {
-        auth: subscription.keys.auth,
-        p256dh: subscription.keys.p256dh
-      }
-    };
-
-    // Push xabarni yuborish
-    await webPush.sendNotification(pushSubscription, JSON.stringify(payload));
-    reply.send({ success: true, message: 'Push xabar yuborildi' });
+    const newSubscription = new subscriptionModel(subscription);
+    console.log(newSubscription);
+    
+    await newSubscription.save(); // MongoDB ga saqlash
+    res.status(200).send({ success: true, message: 'Foydalanuvchi obunasi saqlandi' });
   } catch (error) {
-    fastify.log.error(error);
-    reply.send({ success: false, error: error.message });
+    console.error('Obunani saqlashda xatolik:', error);
+    res.status(500).send({ success: false, message: 'Obunani saqlab bo\'lmadi' });
   }
 });
 
+
+
+// Saqlangan obunalarga push xabar yuborish
+fastify.get('/send-push', async (req, res) => {
+  const payload = JSON.stringify({
+    title: 'Yangilik!',
+    body: 'Sizda yangi xabar bor.'
+  });
+
+  try {
+    // Barcha saqlangan obunalarni olish
+    const subscriptions = await subscriptionModel.find();
+
+    // Har bir obunaga push xabar yuborish
+    subscriptions.forEach(subscription => {
+      webPush.sendNotification(subscription, payload)
+        .then(() => {
+          console.log('Push xabar yuborildi');
+        })
+        .catch(error => {
+          console.error('Push xabar yuborishda xatolik:', error);
+        });
+    });
+
+    res.status(200).send({ success: true, message: 'Xabarlar yuborildi' });
+  } catch (error) {
+    console.error('Push xabar yuborishda xatolik:', error);
+    res.status(500).send({ success: false, message: 'Xabarlar yuborilmadi' });
+  }
+});
 
 
 const io = new Server(fastify.server, {
