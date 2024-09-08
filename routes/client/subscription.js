@@ -37,8 +37,8 @@ const subscriptionRoutes = async (fastify, options) => {
     // Saqlangan obunalarga push xabar yuborish
     fastify.get('/send-push', async (req, res) => {
         const payload = JSON.stringify({
-            title: 'Yangilik!',
-            body: 'Sizda yangi xabar bor.'
+            title: "Sizga Muhim yangilik",
+            body: "saytimizda 30% foizlik chegirmali mahsulotlar qo'yildi batafsil..."
         });
 
         try {
