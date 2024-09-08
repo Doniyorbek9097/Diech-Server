@@ -12,7 +12,7 @@ const subscriptionRoutes = async (fastify, options) => {
     // Foydalanuvchini obuna qilish va ma'lumotlarni bazaga saqlash
     fastify.post('/subscribe', async (req, res) => {
         const subscription = req.body.subscription; // Foydalanuvchi subscription obyektini olamiz
-
+        console.log(subscription)
         try {
             // Obuna mavjudligini tekshirish
             const existingSubscription = await subscriptionModel.findOne({ 'endpoint': subscription.endpoint });
