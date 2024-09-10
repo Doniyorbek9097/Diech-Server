@@ -25,7 +25,7 @@ async function productRoutes(fastify, options) {
       const limit = parseInt(req.query.limit, 10) || 5;
       const query = {};
       console.log(search);
-      
+
       if (search) {
         const options = { page: page, hitsPerPage: limit };
         const { hits } = await productsIndex.search(search, options)
@@ -40,7 +40,7 @@ async function productRoutes(fastify, options) {
       const products = await shopProductModel.find(query)
         .populate('categories', 'name slug')
         .select('name slug images keywords category')
-      
+
       const data = {
         message: "success get products",
         products,
@@ -72,16 +72,16 @@ async function productRoutes(fastify, options) {
         price,
         random
       } = req.query;
-  
+
       const sort = {};
       if (Boolean(viewsCount)) sort.viewsCount = -1;
       if (price) sort.price = Number(price);
       if (Boolean(disCount)) sort.discount = -1;
-  
+
       const query = {};
       if (Boolean(disCount)) query.discount = { $exists: true, $ne: 0 };
       let totalPage = 0;
-  
+
       if (search) {
         const options = { page, hitsPerPage: limit };
         const { hits, nbPages } = await productsIndex.search(search, options);
@@ -92,14 +92,14 @@ async function productRoutes(fastify, options) {
         const totalProducts = await shopProductModel.countDocuments(query);
         totalPage = Math.ceil(totalProducts / limit);
       }
-  
+
       // Paginatsiyani to'g'ri ishlashini ta'minlash
       const result = await shopProductModel.find(query)
         .sort(sort)
         .skip(page * limit)  // Sahifaga bog'liq mahsulotlarni olish uchun skip ishlatilmoqda
         .limit(limit)        // Limit paginatsiya uchun ishlatilmoqda
         .select("name slug description images original_price sale_price discount reviews viewsCount shop");
-      
+
       const data = {
         message: "success get products",
         products: result,
@@ -107,15 +107,15 @@ async function productRoutes(fastify, options) {
         page: page + 1, // Sahifani foydalanuvchilar uchun 1 dan boshlaymiz
         totalPage,
       };
-  
+
       return reply.send(data);
-  
+
     } catch (error) {
       console.error(error);
       return reply.status(500).send({ message: error.message });
     }
   });
-  
+
 
   // one product by slug
   fastify.get("/product-slug/:slug", async (req, reply) => {
@@ -142,7 +142,9 @@ async function productRoutes(fastify, options) {
           $addToSet: { views: user_id },
         },
         { new: true }
-      ).populate("categories", "name slug")
+      )
+        .populate("categories", "name slug")
+        .populate("shop")
         .populate({
           path: "variants",
           populate: { path: "variant" },
@@ -188,7 +190,7 @@ async function productRoutes(fastify, options) {
       console.log(error);
       return reply.status(500).send({ message: error.message });
     }
-});
+  });
 
 
   // addrewies 

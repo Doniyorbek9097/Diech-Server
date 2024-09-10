@@ -11,7 +11,7 @@ const { Server } = require('socket.io');
 require('dotenv').config();
 require('./prototypes');
 require('./testbot');
-require("./bot")
+// require("./bot")
 const { serverDB } = require('./config/db');
 
 
