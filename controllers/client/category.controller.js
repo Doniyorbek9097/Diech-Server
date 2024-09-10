@@ -64,7 +64,7 @@ class Category {
             const totalProducts = await shopProductModel.countDocuments(query)
         
             let productsIds = [];
-            (productsIds = await categoryModel.getRandomProducts({ query, limit, page, sort }))
+            productsIds = await categoryModel.getRandomProducts({ query, limit, page, sort })
             productsIds.length && (query._id = { $in: productsIds })
         
             const products = await shopProductModel.find(query)
