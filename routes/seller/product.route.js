@@ -57,6 +57,33 @@ async function productRoutes(fastify, options) {
         }
       });
 
+
+      fastify.get("/random", async (req, reply) => {
+        try {
+          // Mahsulotlarning faqat `_id` larini olish
+          const products = await shopProductModel.find().select("_id");
+      
+          // Bulk yangilash uchun operatsiyalar ro'yxatini tuzamiz
+          const bulkOps = products.map(product => ({
+            updateOne: {
+              filter: { _id: product._id }, // Qaysi mahsulotni yangilash
+              update: { $set: { position: Math.floor(Math.random() * 1000000) } } // Tasodifiy `position`
+            }
+          }));
+      
+          // Bulk yangilash
+          await shopProductModel.bulkWrite(bulkOps);
+      
+          console.log("Success");
+          reply.send({ success: true });
+      
+        } catch (error) {
+          console.error(error);
+          reply.code(500).send({ success: false, error: error.message });
+        }
+      });
+
+      
     // Get all products with pagination and search
     fastify.get("/product-all", async (req, reply) => {
         try {

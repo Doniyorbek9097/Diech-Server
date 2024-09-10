@@ -72,7 +72,7 @@ async function productRoutes(fastify, options) {
         price,
       } = req.query;
 
-      const sort = {};
+      const sort = {positon: 1};
       if (Boolean(viewsCount)) sort.viewsCount = -1;
       if (price) sort.price = Number(price);
       if (Boolean(disCount)) sort.discount = -1;
@@ -94,7 +94,7 @@ async function productRoutes(fastify, options) {
         query.categories = {$in:[foundCategoryId]};
       }
 
-      
+
       if (search) {
         const options = { page, hitsPerPage: limit };
         const { hits, nbPages } = await productsIndex.search(search, options);

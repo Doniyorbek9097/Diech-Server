@@ -58,7 +58,7 @@ class Category {
             // let products = await shopProductModel.find({categories:{$in: category._id}, orginal_price: { $gte: minPrice, $lte: maxPrice }}).populate("product")
 
             let query = { categories: { $in: [new mongoose.Types.ObjectId(category._id)] } };
-            let sort = {};
+            const sort = {position: 1};
 
 
             const totalProducts = await shopProductModel.countDocuments(query)
@@ -66,8 +66,9 @@ class Category {
             let productsIds = [];
             productsIds = await categoryModel.getRandomProducts({ query, limit, page, sort })
             productsIds.length && (query._id = { $in: productsIds })
-        
+
             const products = await shopProductModel.find(query)
+            .sort(sort)
             .skip(page * limit)
             .limit(limit)
         

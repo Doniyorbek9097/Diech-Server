@@ -11,12 +11,12 @@ const attributesSchema = Schema({
         type: String,
         intl: true,
         validate: {
-            validator: function(value) {
-              // Agar label object bo'lsa va {uz: "", ru: ""} ga teng bo'lsa, noto'g'ri qiymat qaytarish
-              return !(typeof value === 'object' && value.uz === "" && value.ru === "");
+            validator: function (value) {
+                // Agar label object bo'lsa va {uz: "", ru: ""} ga teng bo'lsa, noto'g'ri qiymat qaytarish
+                return !(typeof value === 'object' && value.uz === "" && value.ru === "");
             },
             message: props => `${props.value} label qabul qilinmaydi.`
-          }
+        }
     },
 
     type: {
@@ -27,20 +27,20 @@ const attributesSchema = Schema({
         type: String,
         intl: true,
         validate: {
-            validator: function(value) {
-              // Agar label object bo'lsa va {uz: "", ru: ""} ga teng bo'lsa, noto'g'ri qiymat qaytarish
-              return !(typeof value === 'object' && value.uz === "" && value.ru === "");
+            validator: function (value) {
+                // Agar label object bo'lsa va {uz: "", ru: ""} ga teng bo'lsa, noto'g'ri qiymat qaytarish
+                return !(typeof value === 'object' && value.uz === "" && value.ru === "");
             },
             message: props => `${props.value} label qabul qilinmaydi.`
-          }
+        }
     },
 
     values: [{
         type: Schema.Types.Mixed,
         intl: true,
         default: undefined
-      }]
-    
+    }]
+
 }, { toJSON: { virtuals: true } })
 
 const propertyOptionsSchema = Schema({
@@ -73,7 +73,7 @@ const keywordsSchema = Schema({
     ru: Array
 },
 
-{ toJSON: { virtuals: true } })
+    { toJSON: { virtuals: true } })
 
 
 const shopProductsSchema = Schema({
@@ -95,8 +95,8 @@ const shopProductsSchema = Schema({
     },
 
     owner: {
-        type:Schema.Types.ObjectId,
-        ref:"User",
+        type: Schema.Types.ObjectId,
+        ref: "User",
         required: true
     },
 
@@ -146,7 +146,7 @@ const shopProductsSchema = Schema({
 
     method_sale: {
         type: String,
-        enum:["piece", "weight"],
+        enum: ["piece", "weight"],
         default: "piece"
     },
 
@@ -207,6 +207,7 @@ const shopProductsSchema = Schema({
 
 
     attributes: [attributesSchema],
+    position: Number,
 
 },
 
@@ -225,7 +226,7 @@ const shopProductsSchema = Schema({
 
 
 // Statik metodni qo'shish
-shopProductsSchema.statics.getRandomProducts = async function({query = {}, limit = 10, page = 1, sort = {}}) {
+shopProductsSchema.statics.getRandomProducts = async function ({ query = {}, limit = 10, page = 1, sort = {} }) {
     const skip = page * limit; // Sahifani o'tkazib yuborish uchun hisoblash
 
     // Aggregation pipeline
@@ -253,17 +254,30 @@ shopProductsSchema.statics.getRandomProducts = async function({query = {}, limit
 
 
 
-const deleteShopVariants = async function(next) {
+const deleteShopVariants = async function (next) {
     try {
         const doc = await this.model.findOne(this.getFilter());
         if (doc) {
-            await shopProductVariantModel.deleteMany({shopDetail: doc._id});
+            await shopProductVariantModel.deleteMany({ shopDetail: doc._id });
         }
         next();
     } catch (err) {
         next(err);
     }
 };
+
+
+
+// `insertMany` chaqirilganda mahsulotlarga tasodifiy `position` qiymati beriladi
+shopProductsSchema.pre("insertMany", function (next, docs) {
+    docs.forEach((doc) => {
+        // Agar mahsulotda `position` maydoni bo'lmasa, tasodifiy raqam beriladi
+        if (!doc.position) {
+            doc.position = Math.floor(Math.random() * 1000);
+        }
+    });
+    next();
+});
 
 
 shopProductsSchema.pre('findOneAndDelete', deleteShopVariants);
