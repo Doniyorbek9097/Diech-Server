@@ -10,9 +10,11 @@ const shopProductModel = require("../../models/shop.product.model")
 const orderRoutes = async(fastify, options) => {
 try {
         // GET /order-all
-fastify.get('/order-all', { preHandler: checkToken }, async (req, reply) => {
+fastify.get('/order-all/:shop_id', { preHandler: checkToken }, async (req, reply) => {
     try {
-        const orders = await orderModel.find();
+        const { shop_id } = req.params;
+        const orders = await orderModel.find({ "products.shop": shop_id });
+    
         return reply.send({ message: 'success', data: orders });
 
     } catch (error) {

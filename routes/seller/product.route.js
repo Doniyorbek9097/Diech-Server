@@ -31,10 +31,9 @@ async function productRoutes(fastify, options) {
                 // Discountni hisoblash
                 item.discount = parseInt(((item.orginal_price - item.sale_price) / item.orginal_price) * 100);
                 if (isNaN(item.discount)) item.discount = 0;
-      
                 // Yangi _idni mahsulotga qo'shish
                 item._id = newId;
-      
+                
                 return {
                   ...productData,
                   ...item,

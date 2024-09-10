@@ -27,17 +27,25 @@ const productSchema = Schema({
         type: String,
         enum: ["notSold", "soldOut", "returned"],
         default: 'notSold'
-    }
+    },
+
+    order_status: {
+        type: String,
+        enum: ["new","progress", "prepared", "canceled"],
+        default: "new"
+    },
+
 
 },
 { toJSON: { virtuals: true } }
 )
 
+
+
 const orderSchema = new Schema({
     user: {
         type: Schema.Types.ObjectId,
         ref: "User",
-        required: true
     },
 
     address: {

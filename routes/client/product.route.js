@@ -24,7 +24,6 @@ async function productRoutes(fastify, options) {
       const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
       const limit = parseInt(req.query.limit, 10) || 5;
       const query = {};
-      console.log(search);
 
       if (search) {
         const options = { page: page, hitsPerPage: limit };
@@ -69,8 +68,8 @@ async function productRoutes(fastify, options) {
         category_id = "",
         viewsCount,
         disCount,
+        random,
         price,
-        random
       } = req.query;
 
       const sort = {};
@@ -82,6 +81,20 @@ async function productRoutes(fastify, options) {
       if (Boolean(disCount)) query.discount = { $exists: true, $ne: 0 };
       let totalPage = 0;
 
+      
+      
+      if(category_id) {
+        function findMostFrequent(arr) {
+          return arr.sort((a,b) =>
+            arr.filter(v => v === a).length - arr.filter(v => v === b).length
+          ).pop();
+        }
+
+        const foundCategoryId = findMostFrequent(category_id.split(","))
+        query.categories = {$in:[foundCategoryId]};
+      }
+
+      
       if (search) {
         const options = { page, hitsPerPage: limit };
         const { hits, nbPages } = await productsIndex.search(search, options);
@@ -94,11 +107,16 @@ async function productRoutes(fastify, options) {
       }
 
       // Paginatsiyani to'g'ri ishlashini ta'minlash
+      if(Boolean(random)) {
+        const ids = await shopProductModel.getRandomProducts({query, page, sort, limit});
+        query._id = {$in: ids}
+      }
+      
       const result = await shopProductModel.find(query)
         .sort(sort)
         .skip(page * limit)  // Sahifaga bog'liq mahsulotlarni olish uchun skip ishlatilmoqda
         .limit(limit)        // Limit paginatsiya uchun ishlatilmoqda
-        .select("name slug description images original_price sale_price discount reviews viewsCount shop");
+        .select("name slug description images orginal_price sale_price discount viewsCount reviews viewsCount shop");
 
       const data = {
         message: "success get products",
