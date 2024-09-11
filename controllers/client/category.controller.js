@@ -44,7 +44,7 @@ class Category {
                 .skip(page * limit)
                 .limit(limit)
 
-            const totalDocuments = categories.length;
+            const totalDocuments = await categoryModel.countDocuments({ showHomePage: true })
 
             const populatedCategories = await Promise.all(categories.map(async category => {
                 const populatedCategory = await categoryModel.populate(category, {
