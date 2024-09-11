@@ -40,15 +40,18 @@ class Category {
             const limit = parseInt(req.query.limit, 10) || 8;
 
             const categories = await categoryModel.find({ showHomePage: true })
-                .select("name slug icon image children") // Faqat kerakli maydonlarni olish
+                .select("name slug children") // Faqat kerakli maydonlarni olish
+                .skip(page * limit)
+                .limit(limit)
 
-            // Har bir category uchun shop_products ni populate qilish
+            const totalDocuments = categories.length;
+
             const populatedCategories = await Promise.all(categories.map(async category => {
                 const populatedCategory = await categoryModel.populate(category, {
                     path: "shop_products",
+                    select:["name","slug", "images","orginal_price", "sale_price","discount", "reviews", "viewsCount"],
                     options: {
                         sort: { position: 1 },
-                        skip: page,
                         limit: 10
                     }
                 });
@@ -56,9 +59,15 @@ class Category {
             }));
 
 
-            const data = { page: page + 1, limit, categories:populatedCategories };
+            const data = { 
+                totalPage: Math.ceil(totalProducts / limit),
+                page: page + 1, 
+                limit, 
+                categories:populatedCategories 
+            };
 
             return data;
+            
         } catch (err) {
             console.log(err);
             return reply.status(500).send({ message: "Server is not working" });
@@ -70,8 +79,6 @@ class Category {
             let { slug = "" } = req.params;
             let page = parseInt(req.query?.page) - 1 || 0;
             let limit = parseInt(req.query?.limit) || 10;
-            let { search = "" } = req.query;
-            const { lang = "" } = req.headers;
 
             let category = await categoryModel.findOne({ slug })
                 .populate("fields")
