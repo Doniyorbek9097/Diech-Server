@@ -40,6 +40,7 @@ class Category {
             const limit = parseInt(req.query.limit, 10) || 8;
 
             const categories = await categoryModel.find({ showHomePage: true })
+                .sort({updatedAt: 1})
                 .select("name slug children") // Faqat kerakli maydonlarni olish
                 .skip(page * limit)
                 .limit(limit)
