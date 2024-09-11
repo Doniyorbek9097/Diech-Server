@@ -32,6 +32,35 @@ class Category {
         }
     }
 
+
+    async withHome(req, reply) {
+        try {
+
+            const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
+            const limit = parseInt(req.query.limit, 10) || 8;
+            const search = req.query.search || "";
+            const { lang = "" } = req.headers;
+
+            const categories = await categoryModel.find({ showHomePage: true })
+            .populate({
+                path: "shop_products",
+                options: {
+                  sort: { position: -1 },   // Narx bo'yicha kamayish tartibida sortlash
+                  skip: page,               // 5 ta elementni tashlab o'tish
+                  limit: limit              // Faqat 10 ta elementni qaytarish
+                }
+              })
+                .select("name slug icon image children")
+
+            const data = { page: page + 1, limit, categories };
+
+            return data;
+        } catch (err) {
+            console.log(err);
+            return reply.status(500).send({ message: "Server is not working" });
+        }
+    }
+
     async oneBySlug(req, reply) {
         try {
             let { slug = "" } = req.params;

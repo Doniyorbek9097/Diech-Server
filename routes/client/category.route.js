@@ -6,6 +6,9 @@ const categoryRoutes = async(router, options) => {
 router.get("/categories", categoryController.all);
 // Get by slug name 
 router.get("/category-slug/:slug", categoryController.oneBySlug)
+// get home page 
+router.get("/categories-with-home", categoryController.withHome);
+
 
 }
 
