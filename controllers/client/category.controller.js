@@ -40,17 +40,23 @@ class Category {
             const limit = parseInt(req.query.limit, 10) || 8;
 
             const categories = await categoryModel.find({ showHomePage: true })
-            .populate({
-                path: "shop_products",
-                options: {
-                  sort: { position: 1 },   // Narx bo'yicha kamayish tartibida sortlash
-                  skip: page,               // 5 ta elementni tashlab o'tish
-                  limit: 10              // Faqat 10 ta elementni qaytarish
-                }
-              })
-                .select("name slug icon image children")
+                .select("name slug icon image children") // Faqat kerakli maydonlarni olish
 
-            const data = { page: page + 1, limit, categories };
+            // Har bir category uchun shop_products ni populate qilish
+            const populatedCategories = await Promise.all(categories.map(async category => {
+                const populatedCategory = await categoryModel.populate(category, {
+                    path: "shop_products",
+                    options: {
+                        sort: { position: 1 },
+                        skip: page,
+                        limit: 10
+                    }
+                });
+                return populatedCategory;
+            }));
+
+
+            const data = { page: page + 1, limit, categories:populatedCategories };
 
             return data;
         } catch (err) {
@@ -85,20 +91,20 @@ class Category {
             // let products = await shopProductModel.find({categories:{$in: category._id}, orginal_price: { $gte: minPrice, $lte: maxPrice }}).populate("product")
 
             let query = { categories: { $in: [new mongoose.Types.ObjectId(category._id)] } };
-            const sort = {position: 1};
+            const sort = { position: 1 };
 
 
             const totalProducts = await shopProductModel.countDocuments(query)
-        
+
             let productsIds = [];
             productsIds = await categoryModel.getRandomProducts({ query, limit, page, sort })
             productsIds.length && (query._id = { $in: productsIds })
 
             const products = await shopProductModel.find(query)
-            .sort(sort)
-            .skip(page * limit)
-            .limit(limit)
-        
+                .sort(sort)
+                .skip(page * limit)
+                .limit(limit)
+
             const data = {
                 message: "success",
                 totalPage: Math.ceil(totalProducts / limit),
