@@ -92,8 +92,7 @@ async function productRoutes(fastify, options) {
 
         const foundCategoryId = findMostFrequent(category_id.split(","))
         query.categories = {$in:[foundCategoryId]};
-      }
-
+      }      
 
       if (search) {
         const options = { page, hitsPerPage: limit };
@@ -109,7 +108,7 @@ async function productRoutes(fastify, options) {
       // Paginatsiyani to'g'ri ishlashini ta'minlash
       if(Boolean(random)) {
         const ids = await shopProductModel.getRandomProducts({query, page, sort, limit});
-        query._id = {$in: ids}
+        query._id = {$in:ids};
       }
       
       const result = await shopProductModel.find(query)

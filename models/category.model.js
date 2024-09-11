@@ -31,6 +31,11 @@ const categorySchema = new Schema({
         ref: "User"
     },
 
+    showHomePage: {
+        type: Boolean,
+        default: false
+    },
+
     type: {
         type:String,
         enum:["category"],

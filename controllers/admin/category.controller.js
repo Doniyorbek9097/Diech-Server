@@ -166,14 +166,11 @@ class Category {
     async updateById(req, reply) {
         const {body: category } = req;
         const { id, fileName } = req.params;
-
-        category.slug = slugify(`${req.body.name.ru.toLowerCase()}-${generateOTP(5)}`)
         category?.icon && (category.icon = await fileService.upload(req, category.icon))
         category?.image && (category.image = await fileService.upload(req, category.image))
 
         try {
-            const upadted = await categoryModel.findByIdAndUpdate(id, req.body);
-            
+            const upadted = await categoryModel.findByIdAndUpdate(id, category);
             category.deletedImages.length && category.deletedImages.forEach(async item => await fileService.remove(item));
             return reply.status(200).send(upadted);
 
