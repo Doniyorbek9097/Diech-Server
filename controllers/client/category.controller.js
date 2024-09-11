@@ -45,7 +45,7 @@ class Category {
             .populate({
                 path: "shop_products",
                 options: {
-                  sort: { position: -1 },   // Narx bo'yicha kamayish tartibida sortlash
+                  sort: { position: 1 },   // Narx bo'yicha kamayish tartibida sortlash
                 //   skip: page,               // 5 ta elementni tashlab o'tish
                   limit: 10              // Faqat 10 ta elementni qaytarish
                 }
