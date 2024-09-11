@@ -60,14 +60,14 @@ class Category {
 
 
             const data = { 
-                totalPage: Math.ceil(totalProducts / limit),
+                totalPage: Math.ceil(totalDocuments / limit),
                 page: page + 1, 
                 limit, 
                 categories:populatedCategories 
             };
 
             return data;
-            
+
         } catch (err) {
             console.log(err);
             return reply.status(500).send({ message: "Server is not working" });
