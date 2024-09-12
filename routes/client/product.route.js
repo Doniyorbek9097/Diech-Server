@@ -60,9 +60,9 @@ async function productRoutes(fastify, options) {
   // product all
   fastify.get("/products", async (req, reply) => {
     try {
-      const page = !isNaN(parseInt(req.query.page, 10)) ? Math.max(0, parseInt(req.query.page, 10) - 1) : 0;
-      const limit = !isNaN(parseInt(req.query.limit, 10)) ? parseInt(req.query.limit, 10) : 10;
-      const { lang = '' } = req.headers;
+      const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
+      const limit = parseInt(req.query.limit, 10) || 8;
+
       const {
         search = "",
         category_id = "",
@@ -71,6 +71,7 @@ async function productRoutes(fastify, options) {
         random,
         price,
       } = req.query;
+
 
       const sort = {positon: 1};
       if (Boolean(viewsCount)) sort.viewsCount = -1;
@@ -198,8 +199,14 @@ async function productRoutes(fastify, options) {
 
       const data = {
         product,
-        firstCategoryProducts,
-        lastCategoryProducts,
+        firstCategory: {
+          category: firstCategory,
+          products: firstCategoryProducts
+        },
+        lastCategory: {
+          category: lastCategory,
+          products: lastCategoryProducts
+        },
       };
 
       return reply.send({ data, message: "success" });
