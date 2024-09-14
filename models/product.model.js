@@ -4,7 +4,6 @@ const { serverDB } = require("../config/db")
 
 const shopProductModel = require("./shop.product.model")
 const productVariantModel = require("./product.varinat.model")
-const reviewSchema = require("./review.model")
 
 
 
@@ -110,10 +109,6 @@ const productSchema = Schema({
         type: String,
         enum:["piece", "weight"],
         default: "piece"
-    },
-
-    reviews: {
-        type: [reviewSchema]
     },
 
     views: {

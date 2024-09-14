@@ -55,7 +55,7 @@ async function userRoutes(fastify, options) {
             const lastOtpFind = otpHoder[otpHoder.length - 1];
 
             const validUser = await bcrypt.compare(otp, lastOtpFind.otp);
-
+            
             if (lastOtpFind.phone_number === phone_number && validUser) {
                 let user = await userModel.findOne({ phone_number: phone_number });
 
@@ -80,13 +80,13 @@ async function userRoutes(fastify, options) {
                 //         secure: true,
                 //         maxAge: 3600000
                 //     });
-                
-                return reply.send({ message: "Success", data: result });
-            }
 
-            return reply.status(400).send({
-                message: "Kod Xato"
-            });
+                return reply.send({ message: "Success", data: result, token });
+            } else {
+                return reply.status(400).send({
+                    message: "Kod Xato"
+                });
+            }
 
         } catch (error) {
             console.log(error);

@@ -21,10 +21,10 @@ class Category {
         } catch (error) {
             console.log(error)
             return reply.status(500).send(error.message)
-        
-    }
 
-}
+        }
+
+    }
 
 
     async getAll(req, reply) {
@@ -32,17 +32,17 @@ class Category {
             const search = req.query.search || "";
             const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
             const limit = parseInt(req.query.limit, 10) || 100;
-            
-            let query = {parent: undefined};
+
+            let query = { parent: undefined };
 
             if (search) {
                 const regex = new RegExp(search, 'i');
-                query.$or =  [
+                query.$or = [
                     { 'name.uz': regex },
                     { 'name.ru': regex }
                 ]
             }
-    
+
             const totalDocuments = await categoryModel.countDocuments(query).exec()
             const totalPages = Math.ceil(totalDocuments / limit);
 
@@ -55,13 +55,13 @@ class Category {
                 .limit(limit)
                 .sort({ _id: -1 })
 
-                return reply.send({
-                    message: "success get products",
-                    data: categories,
-                    limit,
-                    page,
-                    totalPages
-                });
+            return reply.send({
+                message: "success get products",
+                data: categories,
+                limit,
+                page,
+                totalPages
+            });
 
         } catch (error) {
             console.log(error)
@@ -75,49 +75,48 @@ class Category {
             const search = req.query.search || "";
             const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
             const limit = parseInt(req.query.limit, 10) || 2;
-            
-            let query = {parent: id};
+
+            let query = { parent: id };
 
             if (search) {
                 const regex = new RegExp(search, 'i');
-                query.$or =  [
+                query.$or = [
                     { 'name.uz': regex },
                     { 'name.ru': regex }
                 ]
             }
-    
+
             const totalDocuments = await categoryModel.countDocuments(query).exec()
             const totalPages = Math.ceil(totalDocuments / limit);
 
             let categories = await categoryModel.find(query)
-            .populate('banners')
-            .populate('image')
-            .populate({
-                path: "children",
-                populate: [
-                    {
-                        path:"image"
-                    },
-                    {
-                        path:"banners"
-                    },
-                ]
-            })
+                .populate('banners')
+                .populate('image')
+                .populate({
+                    path: "children",
+                    populate: [
+                        {
+                            path: "image"
+                        },
+                        {
+                            path: "banners"
+                        },
+                    ]
+                })
                 .populate({
                     path: "fields",
                 })
                 .skip(page * limit)
                 .limit(limit)
                 .sort({ _id: -1 })
-                
-            console.log(categories)
+
             return reply.send({
-                    message: "success get products",
-                    data: categories,
-                    limit,
-                    page,
-                    totalPages
-                });
+                message: "success get products",
+                data: categories,
+                limit,
+                page,
+                totalPages
+            });
 
         } catch (error) {
             console.log(error)
@@ -131,13 +130,13 @@ class Category {
                 return reply.status(404).send("Category Id haqiqiy emas");
             }
 
-            let category = await categoryModel.findById(req.params.id)
+            let category = await categoryModel.findById(req.params.id).lean()
                 .populate({
                     path: "children",
                 })
-            
+
             if (!category) return reply.status(404).send("Category topilmadi");
-            return reply.status(200).send(category.toObject());
+            return reply.status(200).send(category);
 
         } catch (error) {
             console.log(error)
@@ -164,7 +163,7 @@ class Category {
 
 
     async updateById(req, reply) {
-        const {body: category } = req;
+        const { body: category } = req;
         const { id, fileName } = req.params;
         category?.icon && (category.icon = await fileService.upload(req, category.icon))
         category?.image && (category.image = await fileService.upload(req, category.image))
@@ -178,6 +177,19 @@ class Category {
             category?.icon && await fileService.remove(category.icon)
             category?.image && await fileService.remove(category.image)
             return reply.status(500).send(error.message)
+        }
+    }
+
+
+    async updateField(req, reply) {
+        try {
+            const { body: category } = req;
+            await categoryModel.updateOne({ _id: category._id }, { $set: { showHomePage: category.showHomePage } })
+            return reply.send("Success updated")
+
+        } catch (error) {
+            console.log(error);
+            return reply.send(error.message)
         }
     }
 

@@ -164,6 +164,13 @@ async function productRoutes(fastify, options) {
         .populate("categories", "name slug")
         .populate("shop")
         .populate({
+          path: "reviews",
+          options: {
+            sort: { rating: -1 }, // Sharhlarni saralash
+            limit: 8             // Limitni qo'llash
+          }
+        })
+        .populate({
           path: "variants",
           populate: { path: "variant" },
         });
@@ -243,8 +250,6 @@ async function productRoutes(fastify, options) {
 
         const totalRating = product.reviews.reduce((acc, item) => item.rating + acc, 0);
         product.rating = (totalRating / product.reviews.length).toFixed(1);
-
-        // Ensure the rating is within the 0-5 range
         product.rating = Math.min(Math.max(product.rating, 0), 5);
 
         const newProduct = await product.save();

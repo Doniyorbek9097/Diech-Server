@@ -1,7 +1,6 @@
 const { Schema } = require("mongoose")
 const { serverDB } = require("../config/db")
 
-const reviewSchema = require("./review.model")
 
 const capitalize = (value) => {
     if (typeof value !== 'string') return value;
@@ -40,10 +39,7 @@ const variantsSchema = Schema({
     sale_price: Number,
     discount: Number,
     attributes: [attributesSchema],
-    reviews: {
-        type: [reviewSchema]
-    },
-
+    
     views: {
         type: [Schema.Types.ObjectId],
         ref: "User"

@@ -2,9 +2,6 @@ const { Schema } = require("mongoose")
 const { serverDB } = require("../config/db")
 
 const shopProductVariantModel = require("./shop.product.variant.model")
-const reviewSchema = require("./review.model")
-const { count } = require("console")
-
 
 const attributesSchema = Schema({
     label: {
@@ -150,10 +147,6 @@ const shopProductsSchema = Schema({
         default: "piece"
     },
 
-    reviews: {
-        type: [reviewSchema],
-    },
-
     views: {
         type: [Schema.Types.ObjectId],
         ref: "User"
@@ -188,6 +181,11 @@ const shopProductsSchema = Schema({
         type: Number,
         required: true,
         default: 0,
+    },
+
+    reviewsCount: {
+        type: Number,
+        required: true,
     },
 
     discount: {
@@ -287,8 +285,11 @@ shopProductsSchema.pre('deleteOne', deleteShopVariants);
 shopProductsSchema.pre('remove', deleteShopVariants);
 
 
-
-
+shopProductsSchema.virtual("reviews", {
+    ref: "Reviews",
+    localField: "_id",
+    foreignField: "product_id"
+})
 
 
 const shopProductModel = serverDB.model("ShopProducts", shopProductsSchema);
