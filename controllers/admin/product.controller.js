@@ -13,15 +13,11 @@ const productsIndex = algolia.initIndex("products");
 class Product {
 
     async add(req, reply) {
+        let { body: products } = req;
+
         try {
-            const { body: products } = req;
 
-            const processedProducts = await Promise.all(products.map(async (product) => {
-
-                if (product?.images?.length) {
-                    product.images = await fileService.upload(req, product?.images)
-                }
-
+            products = await Promise.all(products.map(async (product) => {
                 product.slug = slugify(`${product.name.ru.toLowerCase()}`);
 
                 if (product.barcode) {
@@ -34,8 +30,14 @@ class Product {
                 return product;
             }));
 
+            for (const product of products) {
+                if (product?.images?.length) {
+                    product.images = await fileService.upload(req, product?.images)
+                }
+            }
+
             // Mahsulotlarni saqlash
-            const newProducts = await productModel.insertMany(processedProducts);
+            const newProducts = await productModel.insertMany(products);
 
             return reply.send({ data: newProducts, message: "success added" });
 
@@ -43,7 +45,7 @@ class Product {
             console.error(error);
 
             // Mahsulotlar o'chirilishi
-            for (const product of req.body) {
+            for (const product of products) {
                 if (product?.images?.length) {
                     await fileService.remove(product?.images)
                 }
