@@ -48,9 +48,7 @@ async function userRoutes(fastify, options) {
 
             const otpHoder = await otpModel.find({ phone_number: phone_number });
 
-            if (otpHoder.length === 0) return reply.status(400).send({
-                message: "You use an Expired OTP!"
-            });
+            if (otpHoder.length === 0) return reply.status(400).send("You use an Expired OTP!");
 
             const lastOtpFind = otpHoder[otpHoder.length - 1];
 
@@ -83,9 +81,7 @@ async function userRoutes(fastify, options) {
 
                 return reply.send({ message: "Success", data: result, token });
             } else {
-                return reply.status(400).send({
-                    message: "Kod Xato"
-                });
+                return reply.status(404).send("Tasdiqlash Kod noto'g'ri");
             }
 
         } catch (error) {
@@ -108,9 +104,7 @@ async function userRoutes(fastify, options) {
                 });
             }
 
-            return reply.status(404).send({
-                message: "User not found"
-            });
+            return reply.status(404).send("User not found");
 
         } catch (error) {
             console.log(error);
@@ -121,9 +115,7 @@ async function userRoutes(fastify, options) {
     fastify.put("/user-update/:id", { preHandler: checkToken }, async (req, reply) => {
         try {
             const existingUser = await userModel.findOne({ username: req.body.username });
-            if (existingUser) return reply.status(400).send({
-                message: "Bunday username foydalanuvchisi mavjud iltimos boshqa username kiriting"
-            });
+            if (existingUser) return reply.status(400).send("Bunday username foydalanuvchisi mavjud iltimos boshqa username kiriting");
 
             const updated = await userModel.findByIdAndUpdate(req.params.id, req.body, { new: true });
 
