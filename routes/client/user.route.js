@@ -94,7 +94,10 @@ async function userRoutes(fastify, options) {
         try {
             const user = await userModel.findById(req.params.id)
                 .populate({
-                    path: "orders"
+                    path: "orders",
+                    options: {
+                        sort:{updatedAt: -1}
+                    }
                 });
 
             if (user) {
