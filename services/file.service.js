@@ -30,7 +30,7 @@ async upload(req, files) {
                     return reject(new Error('Invalid base64 string'));
                 }
 
-                const baseFilename = `diech-market-mahsuloti-${generateOTP(20)}-${index}.avif`;
+                const baseFilename = `diech-market-${generateOTP(20)}-${index}.avif`;
                 const filePath = path.join(baseDir, baseFilename);
                 const matches = file.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
 

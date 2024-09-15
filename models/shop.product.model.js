@@ -179,24 +179,17 @@ const shopProductsSchema = Schema({
 
     rating: {
         type: Number,
-        required: true,
         default: 0,
     },
 
     reviewsCount: {
         type: Number,
-        required: true,
     },
 
     discount: {
         type: Number
     },
 
-
-    returnedCount: {
-        type: Number,
-        default: 0
-    },
 
     brend: {
         type: Schema.Types.ObjectId,
