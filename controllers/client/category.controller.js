@@ -53,7 +53,7 @@ class Category {
                     select:["name","slug", "images","orginal_price", "sale_price","discount", "reviews", "viewsCount"],
                     options: {
                         sort:{updatedAt: -1},
-                        limit: 10
+                        limit: 20
                     }
                 });
                 return populatedCategory;
