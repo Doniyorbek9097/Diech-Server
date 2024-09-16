@@ -35,7 +35,6 @@ class Category {
 
     async withHome(req, reply) {
         try {
-            const lang = req.headers['lang'] || 'uz';
             const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
             const limit = parseInt(req.query.limit, 10) || 8;
             const query = { showHomePage: true };

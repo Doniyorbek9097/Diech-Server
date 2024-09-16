@@ -92,7 +92,7 @@ async function productRoutes(fastify, options) {
         }
 
         const foundCategoryId = findMostFrequent(category_id.split(","))
-        query.categories = {$in:[foundCategoryId]};
+        query.categories = {$in:[category_id.split(",")]};
       }      
 
       if (search) {
