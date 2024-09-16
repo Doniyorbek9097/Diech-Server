@@ -107,7 +107,7 @@ categorySchema.statics.getRandomProducts = async function({query = {}, limit = 1
 
 
 // Statik metodni qo'shish
-categorySchema.statics.getRandomCategories = async function({query = {}, limit = 10, page = 1, sort = {}}) {
+categorySchema.statics.getRandomCategories = async function({query = {}, limit = 10, page = 1, sort = {}, fields = {}}) {
     const skip = page * limit; // Sahifani o'tkazib yuborish uchun hisoblash
 
     // Aggregation pipeline
@@ -116,7 +116,7 @@ categorySchema.statics.getRandomCategories = async function({query = {}, limit =
         { $sample: { size: limit } }, // Tasodifiy tartibda hujjatlarni olish
         { $skip: skip }, // Pagination uchun mahsulotlarni o'tkazib yuborish
         { $limit: limit }, // Sahifadagi mahsulotlar soni
-        { $project: { _id: 1 } } // Faqat _id maydonini qaytarish
+        { $project: { _id: 1, ...fields } } // Faqat _id maydonini qaytarish
     ];
 
     // Agar sort parametri mavjud bo'lsa, pipeline ga qo'shamiz

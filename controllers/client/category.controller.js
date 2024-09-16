@@ -39,16 +39,17 @@ class Category {
             const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
             const limit = parseInt(req.query.limit, 10) || 8;
             const query = { showHomePage: true };
+            const fields = { slug: 1, name: 1 }
 
-            const categories = await categoryModel.getRandomCategories({query, page, limit})
+            const categories = await categoryModel.getRandomCategories({ query, page, limit, fields })
             const totalDocuments = await categoryModel.countDocuments(query)
 
             const populatedCategories = await Promise.all(categories.map(async category => {
                 const populatedCategory = await categoryModel.populate(category, {
                     path: "shop_products",
-                    select:["name","slug", "images","orginal_price", "sale_price","discount", "reviews", "viewsCount"],
+                    select: ["name", "slug", "images", "orginal_price", "sale_price", "discount", "reviews", "viewsCount"],
                     options: {
-                        sort:{updatedAt: -1},
+                        sort: { updatedAt: -1 },
                         limit: 20
                     }
                 });
@@ -56,11 +57,11 @@ class Category {
             }));
 
 
-            const data = { 
+            const data = {
                 totalPage: Math.ceil(totalDocuments / limit),
-                page: page + 1, 
-                limit, 
-                categories:populatedCategories 
+                page: page + 1,
+                limit,
+                categories: populatedCategories
             };
 
             return data;
