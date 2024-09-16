@@ -35,11 +35,11 @@ class Category {
 
     async withHome(req, reply) {
         try {
-
+            const lang = req.headers['lang'];
             const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
             const limit = parseInt(req.query.limit, 10) || 8;
             const query = { showHomePage: true };
-            const fields = { slug: 1, name: 1 }
+            const fields = { slug: 1, name: lang || 1 }
 
             const categories = await categoryModel.getRandomCategories({ query, page, limit, fields })
             const totalDocuments = await categoryModel.countDocuments(query)
@@ -56,7 +56,7 @@ class Category {
                   {
                     path: "banners", // Bu yerda bannersni populate qilish
                   }
-                ]);
+                ]) 
 
                 return populatedCategory;
               
