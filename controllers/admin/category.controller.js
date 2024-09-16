@@ -183,7 +183,7 @@ class Category {
 
     async updateField(req, reply) {
         try {
-            const { body: category } = req;
+            const { body: category } = req;        
             await categoryModel.updateOne({ _id: category._id }, { $set: { showHomePage: category.showHomePage } })
             return reply.send("Success updated")
 

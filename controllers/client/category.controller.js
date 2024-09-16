@@ -43,19 +43,25 @@ class Category {
 
             const categories = await categoryModel.getRandomCategories({ query, page, limit, fields })
             const totalDocuments = await categoryModel.countDocuments(query)
-
             const populatedCategories = await Promise.all(categories.map(async category => {
-                const populatedCategory = await categoryModel.populate(category, {
+                const populatedCategory = await categoryModel.populate(category, [
+                  {
                     path: "shop_products",
                     select: ["name", "slug", "images", "orginal_price", "sale_price", "discount", "reviews", "viewsCount"],
                     options: {
-                        sort: { updatedAt: -1 },
-                        limit: 20
+                      sort: { updatedAt: -1 },
+                      limit: 20
                     }
-                });
-                return populatedCategory;
-            }));
+                  },
+                  {
+                    path: "banners", // Bu yerda bannersni populate qilish
+                  }
+                ]);
 
+                return populatedCategory;
+              
+            }));
+              
 
             const data = {
                 totalPage: Math.ceil(totalDocuments / limit),
