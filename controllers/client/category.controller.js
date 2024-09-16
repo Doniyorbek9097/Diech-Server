@@ -52,7 +52,7 @@ class Category {
                     path: "shop_products",
                     select:["name","slug", "images","orginal_price", "sale_price","discount", "reviews", "viewsCount"],
                     options: {
-                        sort: { position: 1 },
+                        sort:{updatedAt: -1},
                         limit: 10
                     }
                 });
