@@ -107,13 +107,13 @@ categorySchema.statics.getRandomProducts = async function({query = {}, limit = 1
 
 
 // Statik metodni qo'shish
-categorySchema.statics.getRandomCategories = async function({query = {}, limit = 10, page = 1, sort = {}, fields = {}}) {
-    const skip = page * limit; // Sahifani o'tkazib yuborish uchun hisoblash
-
+categorySchema.statics.getRandomCategories = async function({ query = {}, limit = 10, page = 1, sort = {}, fields = {} }) {
+    const skip = page * limit; // Sahifani o'tkazib yuborish uchun to'g'ri hisoblash
+    
     // Aggregation pipeline
     const pipeline = [
         { $match: query }, // Qo'shimcha filtrlarni qo'llash
-        { $sample: { size: limit } }, // Tasodifiy tartibda hujjatlarni olish
+        // { $sample: { size: limit } }, // Tasodifiy tartibda hujjatlarni olish
         { $skip: skip }, // Pagination uchun mahsulotlarni o'tkazib yuborish
         { $limit: limit }, // Sahifadagi mahsulotlar soni
         { $project: { _id: 1, ...fields } } // Faqat _id maydonini qaytarish
@@ -127,11 +127,12 @@ categorySchema.statics.getRandomCategories = async function({query = {}, limit =
     const categories = await this.aggregate(pipeline);
 
     if (categories.length) {
-        return categories // Natijadagi hujjatlar _idlarini ajratib olish
+        return categories; // Natijadagi hujjatlar _idlarini ajratib olish
     } else {
         return [];
     }
 };
+
 
 
 // categorySchema.pre(['find'], function(next) {

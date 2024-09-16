@@ -39,9 +39,13 @@ class Category {
             const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
             const limit = parseInt(req.query.limit, 10) || 8;
             const query = { showHomePage: true };
-            const fields = { slug: 1, name:`$name.${lang}` };
-
-            const categories = await categoryModel.getRandomCategories({ query, page, limit, fields })
+            
+            const categories = await categoryModel.find(query)
+            .skip(page * limit)
+            .limit(limit)
+            .sort({updatedAt: -1})
+            .select('slug name')
+            
             const totalDocuments = await categoryModel.countDocuments(query)
             const populatedCategories = await Promise.all(categories.map(async category => {
                 const populatedCategory = await categoryModel.populate(category, [
