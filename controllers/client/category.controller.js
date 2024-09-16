@@ -39,7 +39,7 @@ class Category {
             const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
             const limit = parseInt(req.query.limit, 10) || 8;
             const query = { showHomePage: true };
-            const fields = { slug: 1, name:`$name.${lang}` }
+            const fields = { slug: 1, name:`$name.${lang}` };
 
             const categories = await categoryModel.getRandomCategories({ query, page, limit, fields })
             const totalDocuments = await categoryModel.countDocuments(query)
