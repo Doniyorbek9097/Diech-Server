@@ -33,7 +33,7 @@ const filesScene = new WizardScene("filesScene",
         const { photo } = ctx.wizard.state;
         const newTest = await new testModel({
             photo,
-            keyword: ctx?.message.text,
+            keyword: ctx?.message.text.clearNumber(),
             author: user._id,
             code: testLength + 1 || 1,
             date: format(new Date(), 'dd.MM.yyyy HH:mm:ss')

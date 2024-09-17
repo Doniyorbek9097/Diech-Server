@@ -20,7 +20,7 @@ const createTestSimple = new WizardScene("createTestSimple",
         if (!user) return ctx.scene.enter("register");
         const testLength = await testModel.countDocuments()
         const newTest = await new testModel({
-            keyword: ctx?.message.text,
+            keyword: ctx?.message.text.clearNumber(),
             author: user._id,
             code: testLength + 1 || 1,
             date: format(new Date(), 'dd.MM.yyyy HH:mm:ss')

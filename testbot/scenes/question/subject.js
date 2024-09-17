@@ -34,7 +34,7 @@ const subjectScene = new WizardScene("subjectScene",
 
         const newTest = await new testModel({
             title,
-            keyword: ctx?.message.text,
+            keyword: ctx?.message.text.clearNumber(),
             author: user._id,
             code: testLength + 1 || 1,
             date: format(new Date(), 'dd.MM.yyyy HH:mm:ss')

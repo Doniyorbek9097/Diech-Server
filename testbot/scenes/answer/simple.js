@@ -18,8 +18,8 @@ const answerSimpleScene = new WizardScene("answerSimpleScene",
     async (ctx) => {
         try {
             const { test } = ctx.wizard.state;
-            const answer = ctx.message.text.toLowerCase();
-
+            const answer= ctx.message.text.toLowerCase().clearNumber()
+            
             // Javoblar va test nomi harflarini boshidan tekshirish
             let correctCount = 0;
             const result = test.keyword.toLowerCase().split('').map((ch, i) => {

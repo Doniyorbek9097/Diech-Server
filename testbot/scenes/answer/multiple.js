@@ -24,8 +24,9 @@ const answerMultipleScene = new WizardScene("answerMultipleScene",
             const { test } = ctx.wizard.state;
             const user = await userModel.findOne({ userid: ctx.chat.id });
             const date = format(new Date(), 'dd.MM.yyyy HH:mm:ss');
-            const answer = ctx.message.text.toLowerCase().split('\n');
-
+            const answer = ctx.message.text.clearNumber().toLowerCase().split('\n');
+            console.log(answer);
+            
             if(answer.length !== test.keywords.length) {
                 return ctx.replyWithHTML(`${test.code}-testimizda <b>${test.keywords.length}</b> ta savol bor hammasiga javob bering\nMasalan:\nabs3asa\ncaea3a\nawer3af\n shu ketma ketlikda`)
             }

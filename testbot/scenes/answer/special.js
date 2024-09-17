@@ -46,7 +46,7 @@ const answerSpecialScene = new WizardScene("answerSpecialScene",
     async (ctx) => {
         try {
             const { test } = ctx.wizard.state;
-            const answer = ctx.message.text.toLowerCase();
+            const answer = ctx.message.text.clearNumber().toLowerCase();
 
             // Javoblar va test nomi harflarini boshidan tekshirish
             let correctCount = 0;

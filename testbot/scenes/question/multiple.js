@@ -37,7 +37,7 @@ Ona tili/abcdbadbadbc/1.1
 
             let keywords = tests.map(test => {
                 const [title, keyword, ball] = test.split('/');
-                return {title, keyword, ball};
+                return {title, keyword:keyword.clearNumber(), ball};
             })
     
             const testLength = await testModel.countDocuments()
