@@ -38,33 +38,33 @@ class Category {
             const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
             const limit = parseInt(req.query.limit, 10) || 8;
             const query = { showHomePage: true };
-            
+
             const categories = await categoryModel.find(query)
-            .skip(page * limit)
-            .limit(limit)
-            .sort({updatedAt: -1})
-            .select('slug name')
-            
+                .skip(page * limit)
+                .limit(limit)
+                .sort({ updatedAt: -1 })
+                .select('slug name')
+
             const totalDocuments = await categoryModel.countDocuments(query)
             const populatedCategories = await Promise.all(categories.map(async category => {
                 const populatedCategory = await categoryModel.populate(category, [
-                  {
-                    path: "shop_products",
-                    select: ["name", "slug", "images", "orginal_price", "sale_price", "discount", "reviews", "viewsCount"],
-                    options: {
-                      sort: { updatedAt: -1 },
-                      limit: 10
+                    {
+                        path: "shop_products",
+                        select: ["name", "slug", "images", "orginal_price", "sale_price", "discount", "reviews", "viewsCount"],
+                        options: {
+                            sort: { updatedAt: -1 },
+                            limit: 10
+                        }
+                    },
+                    {
+                        path: "banners", // Bu yerda bannersni populate qilish
                     }
-                  },
-                  {
-                    path: "banners", // Bu yerda bannersni populate qilish
-                  }
-                ]) 
+                ])
 
                 return populatedCategory;
-              
+
             }));
-              
+
 
             const data = {
                 totalPage: Math.ceil(totalDocuments / limit),
@@ -83,6 +83,7 @@ class Category {
 
     async oneBySlug(req, reply) {
         try {
+            let lang = req.headers["lang"]
             let { slug = "" } = req.params;
             let page = parseInt(req.query?.page) - 1 || 0;
             let limit = parseInt(req.query?.limit) || 10;
@@ -99,6 +100,26 @@ class Category {
                 return reply.send({ error: 'Category not found' });
             }
 
+
+            const fields = category?.fields || [];
+
+            const filters = [
+                {
+                    label: "categories",
+                    items: category?.children || [],
+                    limit: 5,
+                },
+                {
+                    label: "fields",
+                    items: fields.map(field => ({
+                        label: field.label[lang],
+                        items: field.values.map(val => val[lang]),
+                        limit: 5,
+                    })),
+                    limit: 5,
+                },
+            ]
+
             // const categories = _.uniqWith(_.flatMap(category.products, 'categories'),_.isEqual);
             // const { price = '' } = req.query;
             // const [minPrice = 0, maxPrice = Number.MAX_VALUE] = price ? price.split(',').map(Number) : [];
@@ -107,11 +128,11 @@ class Category {
             let query = { categories: { $in: [new mongoose.Types.ObjectId(category._id)] } };
             const sort = { position: 1 };
 
-
+            
             const totalProducts = await shopProductModel.countDocuments(query)
 
             let productsIds = [];
-            productsIds = await categoryModel.getRandomProducts({ query, limit, page, sort })
+            productsIds = await shopProductModel.getRandomProducts({ query, limit, page, sort })
             productsIds.length && (query._id = { $in: productsIds })
 
             const products = await shopProductModel.find(query)
@@ -119,16 +140,19 @@ class Category {
                 .skip(page * limit)
                 .limit(limit)
 
-            const data = {
+            const result = {
                 message: "success",
-                totalPage: Math.ceil(totalProducts / limit),
-                page: page,
-                limit,
-                category,
-                products
+                data: {
+                    totalPage: Math.ceil(totalProducts / limit),
+                    page: page,
+                    limit,
+                    category,
+                    products,
+                    filters
+                }
             }
 
-            return data;
+            return reply.send(result);
 
         } catch (error) {
             if (error) {
