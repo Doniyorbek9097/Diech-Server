@@ -48,6 +48,33 @@ async function productRoutes(fastify, options) {
           }
       
           // Mahsulotlarni saqlash
+
+          
+          const body = products.flatMap((item) => {
+            const variant_uz = item?.variants?.flatMap(variant => variant?.attributes?.flatMap(attr => attr.value?.uz || [])) || [];
+            const variant_ru = item?.variants?.flatMap(variant => variant?.attributes?.flatMap(attr => attr.value?.ru || [])) || [];
+            const attribute_uz = item?.attributes?.flatMap(attr => attr.value?.uz)
+            const attribute_ru = item?.attributes?.flatMap(attr => attr.value?.ru)
+            const attributes_uz = item?.attributes?.flatMap(attr => attr?.values.flatMap(item => item.uz))
+            const attributes_ru = item?.attributes?.flatMap(attr => attr?.values.flatMap(item => item.ru))
+
+            return {
+                objectID: item._id.toString(),  // objectID ni _id dan olish
+                name_uz: item?.name?.uz,
+                name_ru: item?.name?.ru,
+                keywords_uz: item?.keywords?.uz,
+                keywords_ru: item?.keywords?.ru,
+                variant_uz: variant_uz,
+                variant_ru: variant_ru,
+                attribute_uz: attribute_uz,
+                attribute_ru: attribute_ru,
+                attributes_uz,
+                attributes_ru,
+                barcode: item?.barcode
+            }
+        });
+
+        await productsIndex.saveObjects(body);
           const newProduct = await shopProductModel.insertMany(products);
           return reply.status(200).send({ data: newProduct, message: "success added" });
       
@@ -242,19 +269,33 @@ async function productRoutes(fastify, options) {
     // Index products to Algolia
     fastify.get('/indexed', async (req, reply) => {
         try {
-            const products = await shopProductModel.find().populate('product').lean();
+            const products = await shopProductModel.find().populate('variant').lean();
 
-            const body = products.map((item) => ({
-                objectID: item._id.toString(),
-                name_uz: item?.product?.name?.uz,
-                name_ru: item?.product?.name?.ru,
-                keywords_uz: item?.product?.keywords?.uz,
-                keywords_ru: item?.product?.keywords?.ru,
-                barcode: item?.product?.barcode,
-                shop_id: item.shop.toString()
-            }));
+            const body = products.flatMap((item) => {
+            const variant_uz = item?.variants?.flatMap(variant => variant?.attributes?.flatMap(attr => attr.value?.uz || [])) || [];
+            const variant_ru = item?.variants?.flatMap(variant => variant?.attributes?.flatMap(attr => attr.value?.ru || [])) || [];
+            const attribute_uz = item?.attributes?.flatMap(attr => attr.value?.uz)
+            const attribute_ru = item?.attributes?.flatMap(attr => attr.value?.ru)
+            const attributes_uz = item?.attributes?.flatMap(attr => attr?.values.flatMap(item => item.uz))
+            const attributes_ru = item?.attributes?.flatMap(attr => attr?.values.flatMap(item => item.ru))
 
-            await productsIndex.saveObjects(body);
+            return {
+                objectID: item._id.toString(),  // objectID ni _id dan olish
+                name_uz: item?.name?.uz,
+                name_ru: item?.name?.ru,
+                keywords_uz: item?.keywords?.uz,
+                keywords_ru: item?.keywords?.ru,
+                variant_uz: variant_uz,
+                variant_ru: variant_ru,
+                attribute_uz: attribute_uz,
+                attribute_ru: attribute_ru,
+                attributes_uz,
+                attributes_ru,
+                barcode: item?.barcode
+            }
+        });
+        
+        await productsIndex.saveObjects(body);
             return reply.send("Indeksatsiya qilindi");
         } catch (error) {
             console.error('Indeksatsiya xatosi:', error);
