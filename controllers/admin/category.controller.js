@@ -75,7 +75,8 @@ class Category {
             const search = req.query.search || "";
             const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
             const limit = parseInt(req.query.limit, 10) || 2;
-
+            console.log(id);
+            
             let query = { parent: id };
 
             if (search) {
@@ -109,7 +110,7 @@ class Category {
                 .skip(page * limit)
                 .limit(limit)
                 .sort({ _id: -1 })
-
+            
             return reply.send({
                 message: "success get products",
                 data: categories,
@@ -134,7 +135,7 @@ class Category {
                 .populate({
                     path: "children",
                 })
-
+        
             if (!category) return reply.status(404).send("Category topilmadi");
             return reply.status(200).send(category);
 
@@ -151,7 +152,7 @@ class Category {
             let category = await categoryModel.findOne({ slug })
                 .populate("children")
                 .populate('fields')
-
+            
             if (!category) return reply.status(404).send("Category topilmadi");
             return reply.status(200).send(category);
 
