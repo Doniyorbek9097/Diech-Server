@@ -1,18 +1,7 @@
-// const fastify = require("expreplys").fastify();
 const productModel = require("../../models/product.model");
-const categoryModel = require("../../models/category.model");
-const slugify = require("slugify");
-const langReplace = require("../../utils/langReplace");
-const path = require("path")
-const fs = require("fs");
-const { Base64ToFile } = require("../../utils/base64ToFile");
 const shopProductModel = require("../../models/shop.product.model");
-const { checkToken } = require("../../middlewares/authMiddleware")
-const { transformAttributes } = require('../../utils/transformAttributes')
 const { algolia } = require("../../config/algolia");
-const productsIndex = algolia.initIndex("products");
-
-const mongoose = require("mongoose");
+const productsIndex = algolia.initIndex("ShopProducts");
 
 
 async function productRoutes(fastify, options) {

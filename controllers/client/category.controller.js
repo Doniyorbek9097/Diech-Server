@@ -3,8 +3,7 @@ const categoryModel = require("../../models/category.model");
 const _ = require('lodash');
 const shopProductModel = require("../../models/shop.product.model");
 const { algolia } = require("../../config/algolia");
-const productsIndex = algolia.initIndex("products");
-
+const productsIndex = algolia.initIndex("ShopProducts");
 
 class Category {
     async all(req, reply) {
@@ -104,31 +103,51 @@ class Category {
                 })
 
             if (!category) return reply.send({ error: 'Category not found' });
-            
+
 
             let query = {};
-            let sort = { position: 1 };
-            
+            let sort = {};
+            switch (sortQuery) {
+                case "cheap":
+                    sort = { sale_price: 1 }; // Narxi arzon
+                    break;
+                case "expensive":
+                    sort = { sale_price: -1 }; // Narxi qimmat
+                    break;
+                case "seen":
+                    sort = { viewCount: -1 }; // Ko‘rish soni ko‘tarilgan tartib
+                    break;
+                case "rating":
+                    sort = { rating: -1 }; // Reyting bo‘yicha yuqoridan pastga
+                    break;
+                default:
+                    sort = { position: 1 }; // Default tartib
+                    break;
+            }
+
+
             query.categories = { $in: [new mongoose.Types.ObjectId(category._id)] };
 
             const [minPrice = 0, maxPrice = Number.MAX_VALUE] = prices.map(Number);
-            
+
             query.sale_price = { $gte: minPrice, $lte: maxPrice }
-            
+
             let totalProducts;
-            
-            if (search) {            
+
+            if (search || attrs.length) {
+                let searchQuery = `${attrs.join(',')}`;
+                search && (searchQuery = + `${search}`)
                 const options = { page, hitsPerPage: limit };
-                const { hits, nbPages } = await productsIndex.search(search, options);
+                const { hits, nbPages } = await productsIndex.search(searchQuery, options);
                 const ids = hits.map(item => item.objectID);
                 query._id = { $in: ids };
                 totalProducts = nbPages;
-              } else {
+            } else {
                 const countProducts = await shopProductModel.countDocuments(query);
                 totalProducts = Math.ceil(countProducts / limit);
-              }
-            
-              
+            }
+
+
             const fields = category?.fields || [];
             const filters = [
                 {
@@ -155,8 +174,8 @@ class Category {
                 .sort(sort)
                 .skip(page * limit)
                 .limit(limit)
-        
-            
+
+
             const result = {
                 message: "success",
                 data: {
@@ -168,7 +187,7 @@ class Category {
                     filters
                 }
             }
-            
+
             return reply.send(result);
 
         } catch (error) {
