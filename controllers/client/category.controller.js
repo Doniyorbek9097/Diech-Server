@@ -96,13 +96,7 @@ class Category {
 
             let category = await categoryModel.findOne({ slug })
                 .populate("fields")
-                .populate({
-                    path:"banners",
-                    populate: {
-                        path:"category",
-                        select:['slug','name']
-                    }
-                })
+                .populate("banners")
                 .populate({
                     path: "children",
                     select: ['image', 'slug', 'name', 'icon'],
