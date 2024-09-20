@@ -269,11 +269,11 @@ async function productRoutes(fastify, options) {
     // Index products to Algolia
     fastify.get('/indexed', async (req, reply) => {
         try {
-            const products = await shopProductModel.find().populate('variant').lean();
+            const products = await shopProductModel.find().lean();
 
             const body = products.flatMap((item) => {
-            const variant_uz = item?.variants?.flatMap(variant => variant?.attributes?.flatMap(attr => attr.value?.uz || [])) || [];
-            const variant_ru = item?.variants?.flatMap(variant => variant?.attributes?.flatMap(attr => attr.value?.ru || [])) || [];
+            // const variant_uz = item?.variants?.flatMap(variant => variant?.attributes?.flatMap(attr => attr.value?.uz || [])) || [];
+            // const variant_ru = item?.variants?.flatMap(variant => variant?.attributes?.flatMap(attr => attr.value?.ru || [])) || [];
             const attribute_uz = item?.attributes?.flatMap(attr => attr.value?.uz)
             const attribute_ru = item?.attributes?.flatMap(attr => attr.value?.ru)
             const attributes_uz = item?.attributes?.flatMap(attr => attr?.values.flatMap(item => item.uz))
@@ -285,8 +285,8 @@ async function productRoutes(fastify, options) {
                 name_ru: item?.name?.ru,
                 keywords_uz: item?.keywords?.uz,
                 keywords_ru: item?.keywords?.ru,
-                variant_uz: variant_uz,
-                variant_ru: variant_ru,
+                // variant_uz: variant_uz,
+                // variant_ru: variant_ru,
                 attribute_uz: attribute_uz,
                 attribute_ru: attribute_ru,
                 attributes_uz,
