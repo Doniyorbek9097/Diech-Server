@@ -4,11 +4,7 @@ const bannerModel = require("../../models/banner.model");
 const bannerRoutes = async(router, options) => {
     router.get("/banner-all", async(req,res) => {
         try {
-            const { category_id } = req.query;
-            const query = {};
-            if(category_id) query.category_id = category_id;
-            else query.category_id = undefined;
-    
+            const query = { category: { $exists: false } };
             let banners = await bannerModel.find(query);
     
             const data = {
