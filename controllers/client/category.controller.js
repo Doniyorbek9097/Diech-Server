@@ -96,7 +96,13 @@ class Category {
 
             let category = await categoryModel.findOne({ slug })
                 .populate("fields")
-                .populate("banners")
+                .populate({
+                    path:"banners",
+                    populate: {
+                        path:"category",
+                        select:['slug','name']
+                    }
+                })
                 .populate({
                     path: "children",
                     select: ['image', 'slug', 'name', 'icon'],
@@ -135,18 +141,34 @@ class Category {
             let totalProducts;
 
             if (search || attrs.length) {
-                let searchQuery = `${attrs.join(',')}`;
-                search && (searchQuery = + `${search}`)
-                const options = { page, hitsPerPage: limit };
-                const { hits, nbPages } = await productsIndex.search(searchQuery, options);
+                // Atributlarni qidiruv qatoriga qo'shamiz
+                let searchQuery = search || '';
+                
+                // Atributlarni qidiruv so'ziga qo'shamiz
+                if (attrs.length) {
+                    searchQuery += ' ' + attrs.join(' '); // Atributlarni bo'sh joy bilan qo'shish
+                }
+            
+                const options = {
+                    page,
+                    hitsPerPage: limit
+                };
+            
+                // Algolia qidiruvini bajaramiz
+                const { hits, nbPages, nbHits } = await productsIndex.search(searchQuery, options);
+                
+                // Mahsulotlar IDlarini yig'ib olish
                 const ids = hits.map(item => item.objectID);
                 query._id = { $in: ids };
-                totalProducts = nbPages;
+            
+                // Mahsulotlar sonini nbHits orqali olish
+                totalProducts = Math.ceil(nbHits / limit);
             } else {
+                // Agar search yoki attrs bo'lmasa, MongoDB orqali qidirish
                 const countProducts = await shopProductModel.countDocuments(query);
-                totalProducts = Math.ceil(countProducts / limit);
+                totalProducts = Math.ceil(countProducts / limit); // Sahifalar sonini hisoblash
             }
-
+            
 
             const fields = category?.fields || [];
             const filters = [
@@ -179,7 +201,7 @@ class Category {
             const result = {
                 message: "success",
                 data: {
-                    totalPage: Math.ceil(totalProducts / limit),
+                    totalPage: totalProducts,
                     page: page,
                     limit,
                     category,

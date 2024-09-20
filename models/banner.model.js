@@ -15,7 +15,7 @@ const bannerSchema = new Schema({
         type:String,
     },
 
-    category_banner: {
+    category: {
         type: Schema.Types.ObjectId,
         ref:"Category"
     },
