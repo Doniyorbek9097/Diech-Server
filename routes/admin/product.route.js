@@ -19,6 +19,7 @@ const productRoutes = async (fastify, options) => {
         fastify.delete("/product-delete/:id", { preHandler: checkToken }, productController.deleteById);
 
         fastify.get("/product-all-indexed", productController.indexed)
+        fastify.get("/convert-images-to-avif", productController.convertImagesToAvif)
 
     } catch (error) {
         console.log(error);

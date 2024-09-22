@@ -8,7 +8,8 @@ const shopProductModel = require("../../models/shop.product.model")
 const { algolia } = require("../../config/algolia")
 const fileService = require("../../services/file.service")
 const productsIndex = algolia.initIndex("products");
-
+const sharp = require("sharp")
+const { format } = require("date-fns")
 
 class Product {
 
@@ -199,9 +200,47 @@ class Product {
         } catch (error) {
             console.error('Indeksatsiya xatosi:', error);
         }
-
     }
 
+    async convertImagesToAvif(req, reply) {
+        const products = await productModel.find({});
+        // Har bir mahsulot uchun
+        for (const product of products) {
+            // Har bir rasm uchun
+            for (const imageUrl of product.images) {
+                const inputFilePath = path.basename(imageUrl);
+                const baseDir = process.env.NODE_ENV === 'production' ? "../../../../mnt/data/uploads" : "./uploads";
+                const filePath = path.join(baseDir, inputFilePath);
+
+                const timestamp = format(new Date(), 'dd.MM.yyyy HH-mm-ss.SSS');
+                const filename = slugify(`${timestamp}.webp`);
+                const outputFilePath = path.join(baseDir, filename);            
+                
+                try {
+                    await sharp(filePath)
+                        .resize({ width: 800 })
+                        .toFormat('webp')
+                        .toFile(outputFilePath);
+
+                    console.log(`Image converted to AVIF: ${outputFilePath}`);
+                    fs.unlink(filePath, (err) => console.log(err))
+                    
+                    product.images = product.images.map(image => {
+                        
+                        return image === imageUrl ? `${req.protocol}://${req.headers.host}/uploads/${filename}` : image; // Yangilanayotgan rasm yo'lini almashtirish
+                    });
+                } catch (err) {
+                    console.error(`Error processing file: ${inputFilePath}`, err);
+                }
+            }
+
+            // MongoDB'da yangilangan rasm yo'llarini saqlash
+            await product.save();
+            // console.log(`MongoDB updated for product: ${product._id}`);
+        }
+
+        // console.log('All images converted and MongoDB updated.');
+    }
 
 }
 

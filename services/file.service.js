@@ -30,7 +30,7 @@ class File {
                         }
 
                         const timestamp = format(new Date(), 'dd.MM.yyyy HH-mm-ss.SSS');
-                        const baseFilename = slugify(`${filePathName}-${timestamp}-${generateOTP(5)}.avif`);
+                        const baseFilename = slugify(`${filePathName}-${timestamp}-${generateOTP(5)}.webp`);
                         const filePath = path.join(baseDir, baseFilename);
                         const base64Image = file.substring(base64Index);
                         const imageBuffer = Buffer.from(base64Image, 'base64');
@@ -38,7 +38,7 @@ class File {
                         try {
                             await sharp(imageBuffer)
                                 .resize({ width: 800 })
-                                .toFormat('avif')
+                                .toFormat('webp')
                                 .toFile(filePath);
                             resolve(`${req.protocol}://${req.headers.host}/uploads/${baseFilename}`);
                         } catch (err) {
@@ -69,7 +69,7 @@ class File {
             }
             
             const timestamp = format(new Date(), 'dd.MM.yyyy HH-mm-ss.SSS');
-            const baseFilename = slugify(`${filePathName}-${timestamp}-${generateOTP(5)}.avif`);
+            const baseFilename = slugify(`${filePathName}-${timestamp}-${generateOTP(5)}.webp`);
             const filePath = path.join(baseDir, baseFilename);
             const base64Image = files.substring(base64Index);
             const imageBuffer = Buffer.from(base64Image, 'base64');
@@ -77,7 +77,7 @@ class File {
             try {
                 await sharp(imageBuffer)
                     .resize({ width: 800 })
-                    .toFormat('avif')
+                    .toFormat('webp')
                     .toFile(filePath);
                 return `${req.protocol}://${req.headers.host}/uploads/${baseFilename}`;
             } catch (err) {
