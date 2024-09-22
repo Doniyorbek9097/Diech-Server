@@ -1,6 +1,5 @@
 const { checkToken } = require("../../middlewares/authMiddleware");
 const productController = require("../../controllers/admin/product.controller")
-const productModel = require("../../models/product.model")
 
 const productRoutes = async (fastify, options) => {
     try {
