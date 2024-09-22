@@ -7,14 +7,14 @@ const { generateOTP } = require("../utils/otpGenrater");
 const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
 const ffmpeg = require('fluent-ffmpeg');
 ffmpeg.setFfmpegPath(ffmpegPath);
-
+const slugify = require("slugify")
 const { format } = require("date-fns")
 
 const writeFileAsync = promisify(fs.writeFile);
 const unlinkAsync = promisify(fs.unlink);
 
 class File {
-    async upload(req, files, filePathName="diech") {
+    async upload(req, files, filePathName = "diech") {
         const baseDir = process.env.NODE_ENV === 'production' ? "../../../../mnt/data/uploads" : "./uploads";
 
         if (!fs.existsSync(baseDir)) mkdirp.sync(baseDir);
@@ -29,7 +29,8 @@ class File {
                             reject('Invalid base64 string');
                         }
 
-                        const baseFilename = `${filePathName}-${format(new Date(), 'dd.MM.yyyy HH:mm:ss.SSS')}-${generateOTP(5)}.avif`;
+                        const timestamp = format(new Date(), 'dd.MM.yyyy HH-mm-ss.SSS');
+                        const baseFilename = slugify(`${filePathName}-${timestamp}-${generateOTP(5)}.avif`);
                         const filePath = path.join(baseDir, baseFilename);
                         const base64Image = file.substring(base64Index);
                         const imageBuffer = Buffer.from(base64Image, 'base64');
@@ -39,7 +40,7 @@ class File {
                                 .resize({ width: 800 })
                                 .toFormat('avif')
                                 .toFile(filePath);
-                                resolve(`${req.protocol}://${req.headers.host}/uploads/${baseFilename}`);
+                            resolve(`${req.protocol}://${req.headers.host}/uploads/${baseFilename}`);
                         } catch (err) {
                             console.log(err?.message);
                             throw err;
@@ -66,8 +67,9 @@ class File {
             if (base64Index === 7) {
                 throw new Error('Invalid base64 string');
             }
-
-            const baseFilename = `${filePathName}-${format(new Date(), 'dd.MM.yyyy HH:mm:ss.SSS')}-${generateOTP(5)}.avif`;
+            
+            const timestamp = format(new Date(), 'dd.MM.yyyy HH-mm-ss.SSS');
+            const baseFilename = slugify(`${filePathName}-${timestamp}-${generateOTP(5)}.avif`);
             const filePath = path.join(baseDir, baseFilename);
             const base64Image = files.substring(base64Index);
             const imageBuffer = Buffer.from(base64Image, 'base64');
