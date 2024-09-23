@@ -207,7 +207,7 @@ class Product {
     }
 
     async convertImagesToWebp(req, reply) {
-        const products = await productModel.find({});
+        const products = await productModel.find({mixed: false});
         for (const product of products) {
             await ProductImagesModel.updateOne({ product_id: product._id }, { $set: { images: product.images } }, { upsert: true });
 
