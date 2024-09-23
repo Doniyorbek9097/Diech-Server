@@ -15,7 +15,7 @@ const unlinkAsync = promisify(fs.unlink);
 
 class File {
     async upload(req, files, filePathName = "diech") {
-        const baseDir = process.env.NODE_ENV === 'production' ? "../../../../mnt/data/uploads" : "./uploads";
+        const baseDir = process.env.NODE_ENV === 'production' ? `../../../../mnt/data/uploads/images` : `./uploads`;
 
         if (!fs.existsSync(baseDir)) mkdirp.sync(baseDir);
 
@@ -30,7 +30,7 @@ class File {
                         }
 
                         const timestamp = format(new Date(), 'dd.MM.yyyy HH-mm-ss.SSS');
-                        const baseFilename = slugify(`${filePathName}-${timestamp}-${generateOTP(5)}.webp`);
+                        const baseFilename = slugify(`diech-${timestamp}-${generateOTP(5)}.webp`);
                         const filePath = path.join(baseDir, baseFilename);
                         const base64Image = file.substring(base64Index);
                         const imageBuffer = Buffer.from(base64Image, 'base64');
@@ -69,7 +69,7 @@ class File {
             }
             
             const timestamp = format(new Date(), 'dd.MM.yyyy HH-mm-ss.SSS');
-            const baseFilename = slugify(`${filePathName}-${timestamp}-${generateOTP(5)}.webp`);
+            const baseFilename = slugify(`diech-${timestamp}-${generateOTP(5)}.webp`);
             const filePath = path.join(baseDir, baseFilename);
             const base64Image = files.substring(base64Index);
             const imageBuffer = Buffer.from(base64Image, 'base64');
@@ -101,6 +101,7 @@ class File {
                     await unlinkAsync(filePath);
                 } catch (err) {
                     console.error(err);
+                    return err;
                 }
             }));
 
@@ -111,6 +112,7 @@ class File {
                 await unlinkAsync(filePath);
             } catch (err) {
                 console.error(err);
+                return err;
             }
         }
     }

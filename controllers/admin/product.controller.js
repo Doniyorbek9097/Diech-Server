@@ -10,6 +10,10 @@ const fileService = require("../../services/file.service")
 const productsIndex = algolia.initIndex("products");
 const sharp = require("sharp")
 const { format } = require("date-fns")
+const mkdirp = require("mkdirp");
+
+const ProductImagesModel = require("../../models/product-images");
+const { generateOTP } = require("../../utils/otpGenrater");
 
 class Product {
 
@@ -202,46 +206,138 @@ class Product {
         }
     }
 
-    async convertImagesToAvif(req, reply) {
+    async convertImagesToWebp(req, reply) {
         const products = await productModel.find({});
-        // Har bir mahsulot uchun
         for (const product of products) {
-            // Har bir rasm uchun
-            for (const imageUrl of product.images) {
+            await ProductImagesModel.updateOne({ product_id: product._id }, { $set: { images: product.images } }, { upsert: true });
+
+            const imageUpdatePromises = product.images.map(async (imageUrl) => {
                 const inputFilePath = path.basename(imageUrl);
                 const baseDir = process.env.NODE_ENV === 'production' ? "../../../../mnt/data/uploads" : "./uploads";
+                const outputDir = process.env.NODE_ENV === 'production' ? "../../../../mnt/data/uploads/images" : "./uploads/images";
+
+                if (!fs.existsSync(outputDir)) mkdirp.sync(outputDir);
+
                 const filePath = path.join(baseDir, inputFilePath);
 
                 const timestamp = format(new Date(), 'dd.MM.yyyy HH-mm-ss.SSS');
-                const filename = slugify(`${timestamp}.webp`);
-                const outputFilePath = path.join(baseDir, filename);            
-                
+                const filename = slugify(`diech_update-${timestamp}-${generateOTP(5)}.webp`);
+                const outputFilePath = path.join(outputDir, filename);
+
                 try {
                     await sharp(filePath)
                         .resize({ width: 800 })
                         .toFormat('webp')
                         .toFile(outputFilePath);
 
-                    console.log(`Image converted to AVIF: ${outputFilePath}`);
-                    fs.unlink(filePath, (err) => console.log(err))
-                    
-                    product.images = product.images.map(image => {
-                        
-                        return image === imageUrl ? `${req.protocol}://${req.headers.host}/uploads/${filename}` : image; // Yangilanayotgan rasm yo'lini almashtirish
-                    });
+                    product.images = product.images.map(image =>
+                        image === imageUrl ? `${req.protocol}://${req.headers.host}/uploads/images/${filename}` : image
+                    );
                 } catch (err) {
                     console.error(`Error processing file: ${inputFilePath}`, err);
                 }
-            }
+            });
+
+            // Promise.all bilan barcha rasmlarni asenkron tarzda yangilash
+            await Promise.all(imageUpdatePromises);
 
             // MongoDB'da yangilangan rasm yo'llarini saqlash
             await product.save();
-            // console.log(`MongoDB updated for product: ${product._id}`);
         }
 
-        // console.log('All images converted and MongoDB updated.');
+        console.log('All images converted and MongoDB updated.');
+        return reply.send('All images converted and MongoDB updated.')
     }
 
+
+async deletedImagesLink(req, reply) {
+const util = require('util');
+const unlinkAsync = util.promisify(fs.unlink); // fs.unlink'ni promisify qilish
+
+    try {
+        const products = await ProductImagesModel.find({}); // Asenkron kutish
+        const baseDir = process.env.NODE_ENV === 'production' ? "../../../../mnt/data/uploads" : "./uploads";
+
+        // Har bir mahsulotni parallel ravishda o'chirish uchun promislarni yaratish
+        const deletePromises = products.map(async (product) => {
+            const imageDeletePromises = product.images.map(async (image) => {
+                const filePath = path.join(baseDir, path.basename(image));
+                
+                try {
+                    await unlinkAsync(filePath); // Asenkron faylni o'chirish
+                  const result =  await ProductImagesModel.findOneAndDelete({ product_id: product.product_id }); // product_id bo'yicha o'chirish
+                    console.log(`${image} deleted`);
+                } catch (error) {
+                    console.error(`Error deleting image ${image}:`, error);
+                }
+            });
+
+            // Har bir mahsulotning barcha rasmlari uchun promislarni parallel ravishda bajarish
+            return Promise.all(imageDeletePromises);
+        });
+
+        // Barcha mahsulotlar uchun o'chirish operatsiyalarini parallel ravishda bajarish
+        await Promise.all(deletePromises);
+        return reply.send('All products and their images deleted successfully.');
+    } catch (error) {
+        console.error('Error deleting images:', error);
+        return reply.status(500).send('Error deleting images');
+    }
+}
+
+
+    // Fayllarni o'chirish funksiyasini chaqirish
+
+    async deletedImages(req, reply) {
+        try {
+            const baseDir = process.env.NODE_ENV === 'production' ? "../../../../mnt/data/uploads" : "./uploads";
+            deleteFilesExceptDirectories(baseDir)
+            console.log('All products and their images deleted successfully.');
+            return reply.send('All products and their images deleted successfully.')
+
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+
+
+}
+
+
+
+
+// Fayllarni o'chirish funksiyasi
+async function deleteFilesExceptDirectories(directory) {
+    // uploads papkasidagi barcha fayl va papkalarni o'qish
+    fs.readdir(directory, (err, files) => {
+        if (err) {
+            return console.error('Unable to scan directory:', err);
+        }
+
+        // Har bir fayl va papkani tekshirish
+        files.forEach(file => {
+            const fullPath = path.join(directory, file);
+
+            // Fayl yoki papka ekanligini tekshirish
+            fs.stat(fullPath, (err, stats) => {
+                if (err) {
+                    return console.error('Unable to get stats of file:', err);
+                }
+
+                if (stats.isFile()) {
+                    // Agar bu fayl bo'lsa, uni o'chirish
+                    fs.unlink(fullPath, (err) => {
+                        if (err) {
+                            console.error(`Error deleting file ${fullPath}:`, err);
+                        } else {
+                            console.log(`File deleted: ${fullPath}`);
+                        }
+                    });
+                }
+            });
+        });
+    });
 }
 
 
