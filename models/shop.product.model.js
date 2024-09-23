@@ -121,6 +121,7 @@ const shopProductsSchema = Schema({
 
     slug: {
         type: String,
+        index: true,
         required: true
     },
     description: {
@@ -130,11 +131,15 @@ const shopProductsSchema = Schema({
     },
 
     images: [],
-    properteis: [propertiesSchema],
+    properteis: {
+        type:[propertiesSchema],
+        index: true,
+    },
 
     categories: [{
         type: Schema.Types.ObjectId,
         ref: "Category",
+        index: true,
         required: true
     }],
 
