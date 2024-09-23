@@ -15,7 +15,7 @@ const unlinkAsync = promisify(fs.unlink);
 
 class File {
     async upload(req, files, filePathName = "diech") {
-        const baseDir = process.env.NODE_ENV === 'production' ? `../../../../mnt/data/uploads/images` : `./uploads`;
+        const baseDir = process.env.NODE_ENV === 'production' ? `../../../../mnt/data/uploads/images` : `./uploads/images`;
 
         if (!fs.existsSync(baseDir)) mkdirp.sync(baseDir);
 
@@ -40,7 +40,7 @@ class File {
                                 .resize({ width: 800 })
                                 .toFormat('webp')
                                 .toFile(filePath);
-                            resolve(`${req.protocol}://${req.headers.host}/uploads/${baseFilename}`);
+                            resolve(`${req.protocol}://${req.headers.host}/uploads/images/${baseFilename}`);
                         } catch (err) {
                             console.log(err?.message);
                             throw err;
@@ -79,7 +79,7 @@ class File {
                     .resize({ width: 800 })
                     .toFormat('webp')
                     .toFile(filePath);
-                return `${req.protocol}://${req.headers.host}/uploads/${baseFilename}`;
+                return `${req.protocol}://${req.headers.host}/uploads/images/${baseFilename}`;
             } catch (err) {
                 console.log(err?.message);
                 throw err;
@@ -92,7 +92,7 @@ class File {
     }
 
     async remove(files) {
-        const baseDir = process.env.NODE_ENV === 'production' ? "../../../../mnt/data/uploads" : "./uploads";
+        const baseDir = process.env.NODE_ENV === 'production' ? "../../../../mnt/data/uploads/images" : "./uploads/images";
 
         if (Array.isArray(files) && files !== null && files !== undefined) {
             await Promise.all(files.map(async (fileName) => {
