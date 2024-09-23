@@ -301,7 +301,25 @@ const unlinkAsync = util.promisify(fs.unlink); // fs.unlink'ni promisify qilish
     }
 
 
-
+   async mixed(req, reply) {
+        try {
+            const products = await ProductImagesModel.find();
+    
+            // Barcha yangilash operatsiyalarini parallel ravishda bajarish
+            const updatePromises = products.map(async product =>
+                await productModel.updateOne({ _id: product.product_id }, { $set: { mixed: true } })
+            );
+    
+            // Barcha so'rovlarni parallel ravishda bajarish
+            await Promise.all(updatePromises);
+    
+            return reply.send("success mixed true");
+        } catch (error) {
+            console.error(error);
+            return reply.status(500).send("Error updating mixed field");
+        }
+    }
+    
 }
 
 
@@ -339,6 +357,10 @@ async function deleteFilesExceptDirectories(directory) {
         });
     });
 }
+
+
+
+
 
 
 
