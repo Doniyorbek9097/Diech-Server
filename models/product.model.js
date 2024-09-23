@@ -189,6 +189,9 @@ const productSchema = Schema({
 );
 
 
+productSchema.index({ slug: 1, categories: 1 });
+
+
 
 productSchema.virtual("variants", {
     ref: "Variant",

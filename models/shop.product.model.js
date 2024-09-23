@@ -209,6 +209,9 @@ const shopProductsSchema = Schema({
 )
 
 
+shopProductsSchema.index({ slug: 1, categories: 1, properteis: 1 });
+
+
 // shopProductsSchema.virtual("variants", {
 //     ref: "ShopVariant",
 //     localField: "_id",

@@ -11,8 +11,6 @@ const productsIndex = algolia.initIndex("products");
 const sharp = require("sharp")
 const { format } = require("date-fns")
 const mkdirp = require("mkdirp");
-
-const ProductImagesModel = require("../../models/product-images");
 const { generateOTP } = require("../../utils/otpGenrater");
 
 class Product {
