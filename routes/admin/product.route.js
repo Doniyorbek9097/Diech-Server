@@ -22,7 +22,6 @@ const productRoutes = async (fastify, options) => {
         fastify.get("/convert-images", productController.convertImagesToWebp)
 
         fastify.get("/convert-images-delete", productController.deletedImages)
-        fastify.get("/convert-images-mixed", productController.mixed)
 
     } catch (error) {
         console.log(error);
