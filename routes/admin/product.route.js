@@ -21,7 +21,7 @@ const productRoutes = async (fastify, options) => {
         fastify.get("/product-all-indexed", productController.indexed)
         fastify.get("/convert-images", productController.convertImagesToWebp)
 
-        fastify.get("/convert-images-delete", productController.deletedImagesLink)
+        fastify.get("/convert-images-delete", productController.deletedImages)
         fastify.get("/convert-images-mixed", productController.mixed)
 
     } catch (error) {
