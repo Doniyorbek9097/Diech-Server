@@ -129,7 +129,7 @@ async function productRoutes(fastify, options) {
     let variantQuery = [];
     req.query?.variant && (variantQuery = req.query?.variant?.split('-') || []);
     const { slug = '' } = req.params;
-    const limit = parseInt(req.query.limit, 10) || 10;
+    const limit = parseInt(req.query.limit, 8) || 8;
 
     try {
       let user_id = req.headers['user'];
@@ -163,7 +163,7 @@ async function productRoutes(fastify, options) {
       const getCategoryProducts = async (category) => {
         const [result] = await shopProductModel.aggregate([
           { $match: { categories: { $in: [category._id] } } },
-          { $sample: { size: limit } },
+          { $sample: { size: 8 } },
           { $project: { _id: 1 } },
           { $group: { _id: null, ids: { $push: '$_id' } } },
           { $project: { _id: 0, ids: 1 } }
@@ -171,16 +171,9 @@ async function productRoutes(fastify, options) {
 
         const randomProductIds = result ? result.ids : [];
         return await shopProductModel.find({ _id: { $in: randomProductIds } })
-          .populate("categories", "name slug")
-          .populate("shop", "slug")
-          .populate({
-            path: "reviews",
-            options: {
-              sort: { rating: -1 }, // Sharhlarni saralash
-              limit: 8             // Limitni qo'llash
-            }
-          })
-          .limit(limit);
+          .populate("categories", "slug")
+          .select("categories name slug images orginal_price sale_price discount reviews viewsCount")
+          .limit(8);
       };
 
       const firstCategoryProducts = await getCategoryProducts(firstCategory);
