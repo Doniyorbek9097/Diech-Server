@@ -368,14 +368,14 @@ async function productRoutes(fastify, options) {
             const batchSize = 100;
             let skip = 0;
             while (true) {
-                const products = await shopProductModel.find({}).skip(skip).limit(batchSize).lean();
+                const products = await productModel.find({}).skip(skip).limit(batchSize).lean();
                 if (products.length === 0) {
                     break;
                 }
                 for (const product of products) {
                     await shopProductModel.updateOne(
-                        { _id: product._id },
-                        { $set: { slug: slugify(`${product.name.uz.slice(0,10)}-${product._id}`) } },
+                        { parent: product._id },
+                        { $set: { images: product.images } },
                     );
                 }
                 skip += batchSize;
