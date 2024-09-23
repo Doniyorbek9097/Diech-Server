@@ -48,7 +48,7 @@ class Banner {
             image.uz && await fileService.remove(image.uz)
             image.ru && await fileService.remove(image.ru)    
     
-            return reply.send({ data: replyult, message:"Success"});
+            return reply.send({ data: result, message:"Success"});
     
         } catch (error) {
             console.log(error)
