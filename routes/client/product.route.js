@@ -270,6 +270,15 @@ async function productRoutes(fastify, options) {
   })
 
 
+  fastify.get("/product-image-cache", async(req, reply) => {
+     try {
+        const products = await shopProductModel.find({}).select("images");
+        const images = products.map(item => item.images[0]);
+        return reply.send(images)
+     } catch (error) {
+        console.log(error)
+     }
+  })
 
 }
 
