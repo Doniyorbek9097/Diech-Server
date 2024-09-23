@@ -62,7 +62,7 @@ async function productRoutes(fastify, options) {
       } = req.query;
 
 
-      const sort = {positon: 1};
+      const sort = { positon: 1 };
       if (Boolean(viewsCount)) sort.viewsCount = -1;
       if (price) sort.price = Number(price);
       if (Boolean(disCount)) sort.discount = -1;
@@ -71,18 +71,18 @@ async function productRoutes(fastify, options) {
       if (Boolean(disCount)) query.discount = { $exists: true, $ne: 0 };
       let totalPage = 0;
 
-      
-      
-      if(category_id) {
+
+
+      if (category_id) {
         function findMostFrequent(arr) {
-          return arr.sort((a,b) =>
+          return arr.sort((a, b) =>
             arr.filter(v => v === a).length - arr.filter(v => v === b).length
           ).pop();
         }
 
         const foundCategoryId = findMostFrequent(category_id.split(","))
-        query.categories = {$in:[category_id.split(",")]};
-      }      
+        query.categories = { $in: [category_id.split(",")] };
+      }
 
       if (search) {
         const options = { page, hitsPerPage: limit };
@@ -96,11 +96,11 @@ async function productRoutes(fastify, options) {
       }
 
       // Paginatsiyani to'g'ri ishlashini ta'minlash
-      if(Boolean(random)) {
-        const ids = await shopProductModel.getRandomProducts({query, page, sort, limit});
-        query._id = {$in:ids};
+      if (Boolean(random)) {
+        const ids = await shopProductModel.getRandomProducts({ query, page, sort, limit });
+        query._id = { $in: ids };
       }
-      
+
       const result = await shopProductModel.find(query)
         .sort(sort)
         .skip(page * limit)  // Sahifaga bog'liq mahsulotlarni olish uchun skip ishlatilmoqda
@@ -128,15 +128,8 @@ async function productRoutes(fastify, options) {
   fastify.get("/product-slug/:slug", async (req, reply) => {
     let variantQuery = [];
     req.query?.variant && (variantQuery = req.query?.variant?.split('-') || []);
-    const { sku = '' } = req.query;
     const { slug = '' } = req.params;
-    const { lang = '' } = req.headers;
-    const search = req.query.search || "";
-    const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
     const limit = parseInt(req.query.limit, 10) || 10;
-
-    const searchTerms = req.query.search?.split(",") || [];
-    const regexTerms = searchTerms.map(term => new RegExp(term, 'i'));
 
     try {
       let user_id = req.headers['user'];
@@ -151,7 +144,7 @@ async function productRoutes(fastify, options) {
         { new: true }
       )
         .populate("categories", "name slug")
-        .populate("shop")
+        .populate("shop", "slug")
         .populate({
           path: "reviews",
           options: {
@@ -159,10 +152,6 @@ async function productRoutes(fastify, options) {
             limit: 8             // Limitni qo'llash
           }
         })
-        .populate({
-          path: "variants",
-          populate: { path: "variant" },
-        });
 
       if (!product) {
         return reply.status(404).send({ message: "Product not found" });
@@ -183,9 +172,13 @@ async function productRoutes(fastify, options) {
         const randomProductIds = result ? result.ids : [];
         return await shopProductModel.find({ _id: { $in: randomProductIds } })
           .populate("categories", "name slug")
+          .populate("shop", "slug")
           .populate({
-            path: "variants",
-            populate: { path: "variant" },
+            path: "reviews",
+            options: {
+              sort: { rating: -1 }, // Sharhlarni saralash
+              limit: 8             // Limitni qo'llash
+            }
           })
           .limit(limit);
       };
