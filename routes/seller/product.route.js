@@ -226,7 +226,6 @@ async function productRoutes(fastify, options) {
             const { id } = req.params;
             let product = req.body;
 
-            product.slug = slugify(`${product.name.ru} ${generateOTP(30)}`);
             product.discount = parseInt(((product.orginal_price - product.sale_price) / product.orginal_price) * 100);
             if (isNaN(product.discount)) product.discount = 0;
 
@@ -368,14 +367,14 @@ async function productRoutes(fastify, options) {
             const batchSize = 100;
             let skip = 0;
             while (true) {
-                const products = await productModel.find({}).skip(skip).limit(batchSize).lean();
+                const products = await shopProductModel.find({}).skip(skip).limit(batchSize).select("slug").lean();
                 if (products.length === 0) {
                     break;
                 }
                 for (const product of products) {
                     await shopProductModel.updateOne(
-                        { parent: product._id },
-                        { $set: { images: product.images } },
+                        { _id: product._id },
+                        { $set: { slug: slugify(`${product.slug.slice(0,5)}-${product._id}`) } },
                     );
                 }
                 skip += batchSize;

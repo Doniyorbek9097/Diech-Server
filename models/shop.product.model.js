@@ -189,10 +189,12 @@ const shopProductsSchema = Schema({
 
     reviewsCount: {
         type: Number,
+        default: 0
     },
 
     discount: {
-        type: Number
+        type: Number,
+        default: 0
     },
 
 

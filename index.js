@@ -32,7 +32,7 @@ fastify.register(fastifyCors, {
 // Middleware'larni Fastifyga qo'shish
 // fastify.register(fastifyCors, {
 //   origin: function (origin, callback) {
-//     const allowedOrigins = ['http://frontend1.com', 'http://frontend2.com', 'http://frontend3.com'];
+//     const allowedOrigins = ['http://frontend1.', 'http://frontend2.com', 'http://frontend3.com'];
 //     if (allowedOrigins.includes(origin) || !origin) {
 //       callback(null, true);
 //     } else {
@@ -41,6 +41,11 @@ fastify.register(fastifyCors, {
 //   },
 //   credentials: true
 // });
+
+fastify.register(fastifyCors, {
+  origin: "*", // barcha manzillarga ruxsat berish
+  methods: ["GET", "POST", "PUT", "DELETE"], // qaysi metodlar uchun ruxsat berish
+});
 
 fastify.register(fastifyCookie);
 
