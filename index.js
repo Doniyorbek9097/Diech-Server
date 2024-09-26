@@ -42,10 +42,6 @@ fastify.register(fastifyCors, {
 //   credentials: true
 // });
 
-fastify.register(fastifyCors, {
-  origin: "*", // barcha manzillarga ruxsat berish
-  methods: ["GET", "POST", "PUT", "DELETE"], // qaysi metodlar uchun ruxsat berish
-});
 
 fastify.register(fastifyCookie);
 
