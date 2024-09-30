@@ -97,6 +97,11 @@ const productSchema = Schema({
 
     images: [],
     properteis: [propertiesSchema],
+    variantAttributes: {
+        type: [Schema.Types.ObjectId],
+        ref:"Attributes",
+        default: undefined
+    },
 
     categories: [{
         type: Schema.Types.ObjectId,

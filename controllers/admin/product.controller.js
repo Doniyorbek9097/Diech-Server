@@ -1,17 +1,11 @@
 const slugify = require("slugify");
-const path = require("path")
-const fs = require("fs");
-const { Base64ToFile } = require("../../utils/base64ToFile");
-const { baseDir } = require("../../config/uploadFolder");
+const { Types } = require("mongoose")
 const productModel = require("../../models/product.model")
 const shopProductModel = require("../../models/shop.product.model")
 const { algolia } = require("../../config/algolia")
 const fileService = require("../../services/file.service")
 const productsIndex = algolia.initIndex("products");
-const sharp = require("sharp")
 const { format } = require("date-fns")
-const mkdirp = require("mkdirp");
-const { generateOTP } = require("../../utils/otpGenrater");
 
 class Product {
 
@@ -19,10 +13,11 @@ class Product {
         let { body: products } = req;
 
         try {
-
             products = await Promise.all(products.map(async (product) => {
+                const newId = new Types.ObjectId()
+                product._id = newId;
                 product.slug = slugify(`${product.name.ru.toLowerCase()}`);
-
+                
                 if (product.barcode) {
                     const existsProduct = await productModel.findOne({ barcode: product.barcode });
                     if (existsProduct) {
