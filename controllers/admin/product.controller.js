@@ -156,10 +156,6 @@ class Product {
     async deleteById(req, reply) {
         try {
             const deleted = await productModel.findOneAndDelete({ _id: req.params.id });
-            const { images } = deleted;
-
-            // images?.length && await fileService.remove(images)
-
             return reply.status(200).send({ result: deleted });
 
         } catch (error) {

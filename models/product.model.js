@@ -244,8 +244,8 @@ const deleteProduct = async function (next) {
                 await shopProductModel.deleteMany({ parent: doc._id });
                 await productVariantModel.deleteMany({ product_id: doc._id });
             }
-        } 
-       
+        }
+
         // next funksiyasini chaqirish (xatolik bo'lmasa)
         next();
     } catch (err) {
