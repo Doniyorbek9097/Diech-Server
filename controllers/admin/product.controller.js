@@ -158,7 +158,7 @@ class Product {
             const deleted = await productModel.findOneAndDelete({ _id: req.params.id });
             const { images } = deleted;
 
-            images?.length && await fileService.remove(images)
+            // images?.length && await fileService.remove(images)
 
             return reply.status(200).send({ result: deleted });
 

@@ -1,5 +1,6 @@
 const { Schema, Types } = require("mongoose");
 const { serverDB } = require("../config/db")
+const fileService = require("../services/file.service")
 
 
 const shopProductModel = require("./shop.product.model")
@@ -13,12 +14,12 @@ const attributesSchema = Schema({
         type: String,
         intl: true,
         validate: {
-            validator: function(value) {
-              // Agar label object bo'lsa va {uz: "", ru: ""} ga teng bo'lsa, noto'g'ri qiymat qaytarish
-              return !(typeof value === 'object' && value.uz === "" && value.ru === "");
+            validator: function (value) {
+                // Agar label object bo'lsa va {uz: "", ru: ""} ga teng bo'lsa, noto'g'ri qiymat qaytarish
+                return !(typeof value === 'object' && value.uz === "" && value.ru === "");
             },
             message: props => `${props.value} label qabul qilinmaydi.`
-          }
+        }
     },
 
     type: {
@@ -29,20 +30,20 @@ const attributesSchema = Schema({
         type: String,
         intl: true,
         validate: {
-            validator: function(value) {
-              // Agar label object bo'lsa va {uz: "", ru: ""} ga teng bo'lsa, noto'g'ri qiymat qaytarish
-              return !(typeof value === 'object' && value.uz === "" && value.ru === "");
+            validator: function (value) {
+                // Agar label object bo'lsa va {uz: "", ru: ""} ga teng bo'lsa, noto'g'ri qiymat qaytarish
+                return !(typeof value === 'object' && value.uz === "" && value.ru === "");
             },
             message: props => `${props.value} label qabul qilinmaydi.`
-          }
+        }
     },
 
     values: [{
         type: Schema.Types.Mixed,
         intl: true,
         default: undefined
-      }]
-    
+    }]
+
 }, { toJSON: { virtuals: true } })
 
 const propertyOptionsSchema = Schema({
@@ -75,7 +76,7 @@ const keywordsSchema = Schema({
     ru: Array
 },
 
-{ toJSON: { virtuals: true } })
+    { toJSON: { virtuals: true } })
 
 
 const productSchema = Schema({
@@ -107,7 +108,7 @@ const productSchema = Schema({
 
     method_sale: {
         type: String,
-        enum:["piece", "weight"],
+        enum: ["piece", "weight"],
         default: "piece"
     },
 
@@ -165,8 +166,8 @@ const productSchema = Schema({
 
     attributes: [attributesSchema],
     owner: {
-        type:Schema.Types.ObjectId,
-        ref:"User"
+        type: Schema.Types.ObjectId,
+        ref: "User"
     },
 
     mixed: {
@@ -212,10 +213,10 @@ async function productUpdate(doc, next) {
         const updatedDoc = await this.model.findOne(this.getQuery()).populate("variants");
         const variants = updatedDoc?.variants || [];
         if (updatedDoc) {
-            const {_id, ...newData} = updatedDoc.toObject();
+            const { _id, ...newData } = updatedDoc.toObject();
 
             // `shopProductModel` ni yangilash
-            await shopProductModel.updateMany({parent: _id}, {...newData, variants});
+            await shopProductModel.updateMany({ parent: _id }, { ...newData, variants });
         }
     }
     // `next()` chaqirilishi `updateMany` tugaganidan keyin
@@ -226,31 +227,63 @@ productSchema.post('findByIdAndUpdate', productUpdate)
 productSchema.post('findOneAndUpdate', productUpdate)
 
 
-const deleteProduct = async function (docs, next) {
+const deleteProduct = async function (next) {
     try {
-        const doc = await this.model.findOne(this.getFilter());
-        if (doc) {
-            await shopProductModel.deleteMany({ parent: doc._id });
-            await productVariantModel.deleteMany({ product_id: doc._id });
-        }
+        // Query middlewarelar uchun: hujjatlarni topish
+        const docs = await this.model.find(this.getQuery());
+
+        // Topilgan hujjatlarni ko'rib chiqish
+        if (Array.isArray(docs) && docs.length) {
+            for (const doc of docs) {
+                // Agar hujjatda rasmlar mavjud bo'lsa, o'chirish
+                if (doc?.images?.length) {
+                    await fileService.remove(doc.images);
+                }
+
+                // Bog'langan product va variantlarni o'chirish
+                await shopProductModel.deleteMany({ parent: doc._id });
+                await productVariantModel.deleteMany({ product_id: doc._id });
+            }
+        } 
+       
+        // next funksiyasini chaqirish (xatolik bo'lmasa)
         next();
     } catch (err) {
-        console.log(err)
+        // Xatolikni next() orqali yuborish
         next(err);
     }
 };
 
-
-productSchema.post('findByIdAndDelete', deleteProduct)
-productSchema.post('findOneAndDelete', deleteProduct)
+// Middlewarelarni ulash
+productSchema.pre('findOneAndDelete', deleteProduct);
+productSchema.pre('findByIdAndDelete', deleteProduct);
 productSchema.pre('deleteMany', deleteProduct);
 productSchema.pre('deleteOne', deleteProduct);
-productSchema.pre('remove', deleteProduct);
+productSchema.pre('remove', async function (next) {
+    try {
+        // Document context (this) bevosita hujjatni bildiradi
+        const doc = this;
+
+        // Agar hujjatda rasmlar mavjud bo'lsa, o'chirish
+        if (doc?.images?.length) {
+            await fileService.remove(doc.images);
+        }
+
+        // Bog'langan product va variantlarni o'chirish
+        await shopProductModel.deleteMany({ parent: doc._id });
+        await productVariantModel.deleteMany({ product_id: doc._id });
+
+        next();
+    } catch (err) {
+        next(err);
+    }
+});
+
 
 
 
 // Statik metodni qo'shish
-productSchema.statics.getRandomProducts = async function({query = {}, limit = 10, page = 1, sort = {}}) {
+productSchema.statics.getRandomProducts = async function ({ query = {}, limit = 10, page = 1, sort = {} }) {
     const skip = page * limit; // Sahifani o'tkazib yuborish uchun hisoblash
 
     // Aggregation pipeline
