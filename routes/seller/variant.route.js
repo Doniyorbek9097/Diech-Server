@@ -1,5 +1,3 @@
-const shopProductVariantModel = require("../../models/shop.product.variant.model");
-
 async function shopVariantRoutes(fastify, options) {
     // GET route to fetch variants by ID
     fastify.get('/get-variants/:id', async (request, reply) => {

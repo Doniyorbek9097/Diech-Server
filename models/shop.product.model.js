@@ -1,8 +1,6 @@
 const { Schema } = require("mongoose")
 const { serverDB } = require("../config/db")
 
-const shopProductVariantModel = require("./shop.product.variant.model")
-
 const attributesSchema = Schema({
     label: {
         type: String,

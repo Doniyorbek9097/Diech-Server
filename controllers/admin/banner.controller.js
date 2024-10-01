@@ -20,7 +20,7 @@ class Banner {
             console.log(error);
             image?.uz && await fileService.remove(image.uz)
             image?.ru && await fileService.remove(image.uz)
-            return reply.status(500).send(error.message);
+            return reply.code(500).send(error.message);
         }
     }
 

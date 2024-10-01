@@ -1,13 +1,7 @@
 const { Schema, Types } = require("mongoose");
 const { serverDB } = require("../config/db")
 const fileService = require("../services/file.service")
-
-
 const shopProductModel = require("./shop.product.model")
-const productVariantModel = require("./product.varinat.model")
-
-
-
 
 const attributesSchema = Schema({
     label: {

@@ -1,7 +1,6 @@
 const mongoose = require("mongoose")
 const productModel = require("../../models/product.model");
 const shopProductModel = require("../../models/shop.product.model");
-const shopProductVariantModel = require("../../models/shop.product.variant.model");
 const { checkToken } = require("../../middlewares/authMiddleware");
 const { algolia } = require("../../config/algolia");
 const slugify = require("slugify");
@@ -167,10 +166,10 @@ async function productRoutes(fastify, options) {
             }
 
             const products = await productModel.find(query)
-                .populate("variants")
+                .populate("variantAttributes")
                 .limit(5)
-                .lean();
-
+                .lean()
+                
             return reply.send(products);
 
         } catch (error) {

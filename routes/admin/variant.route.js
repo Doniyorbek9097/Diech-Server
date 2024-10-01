@@ -1,4 +1,4 @@
-const productVariantModel = require("../../models/product.varinat.model");
+const productVariantModel = require("../../models/varinat.model");
 const slugify = require("slugify")
 const path = require("path")
 const fs = require("fs")
