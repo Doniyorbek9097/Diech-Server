@@ -44,7 +44,7 @@ class Category {
             const { lang = "" } = req.headers;
 
             const categories = await categoryModel.find({ parent: undefined })
-            .select("-fields -children -banners -showHomePage -createdAt -updatedAt")
+            .select("slug name icon")
 
             const data = { page: page + 1, limit, categories };
 
