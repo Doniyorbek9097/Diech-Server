@@ -74,7 +74,7 @@ class Category {
                 const populatedCategory = await categoryModel.populate(category, [
                     {
                         path: "shop_products",
-                        select:  'name original_price sale_price inStock slug images rating reviewsCount discount',
+                        select:  'name orginal_price sale_price inStock slug images rating reviewsCount discount',
                         options: {
                             sort: { updatedAt: -1 },
                             limit: 10
