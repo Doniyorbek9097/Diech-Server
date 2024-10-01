@@ -219,7 +219,10 @@ class Category {
                     totalPage: totalProducts,
                     page: page,
                     limit,
-                    category,
+                    category:{
+                        ...category,
+                        fields: undefined
+                    },
                     products,
                     filters
                 }
