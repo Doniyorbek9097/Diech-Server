@@ -6,7 +6,7 @@ const { algolia } = require("../../config/algolia");
 const productsIndex = algolia.initIndex("ShopProducts");
 
 class Category {
-    async all(req, reply) {
+    async allTree(req, reply) {
         try {
 
             const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
@@ -24,6 +24,27 @@ class Category {
                     }
                 })
                 .select("name slug icon image children")
+
+            const data = { page: page + 1, limit, categories };
+
+            return data;
+        } catch (err) {
+            console.log(err);
+            return reply.status(500).send({ message: "Server is not working" });
+        }
+    }
+
+
+    async allParent(req, reply) {
+        try {
+
+            const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
+            const limit = parseInt(req.query.limit, 10) || 8;
+            const search = req.query.search || "";
+            const { lang = "" } = req.headers;
+
+            const categories = await categoryModel.find({ parent: undefined })
+            .select("-fields -children -banners")
 
             const data = { page: page + 1, limit, categories };
 

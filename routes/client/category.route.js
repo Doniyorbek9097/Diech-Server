@@ -3,7 +3,9 @@ const categoryController = require("../../controllers/client/category.controller
 
 const categoryRoutes = async(router, options) => {
 // Get prent all category
-router.get("/categories", categoryController.all);
+router.get("/categories", categoryController.allTree);
+router.get("/parent-categories", categoryController.allParent);
+
 // Get by slug name 
 router.get("/category-slug/:slug", categoryController.oneBySlug)
 // get home page 
