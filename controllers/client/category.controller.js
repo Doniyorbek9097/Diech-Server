@@ -220,8 +220,12 @@ class Category {
                     page: page,
                     limit,
                     category:{
-                        ...category,
-                        fields: undefined
+                        name:category.name,
+                        slug:category.slug,
+                        banners: category.banners,
+                        products: category.products,
+                        image: category.image,
+                        icon: category.icon,
                     },
                     products,
                     filters
