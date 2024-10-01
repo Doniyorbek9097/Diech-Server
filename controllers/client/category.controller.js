@@ -1,5 +1,6 @@
 const mongoose = require("mongoose")
 const categoryModel = require("../../models/category.model");
+const fieldModel = require("../../models/field.model")
 const _ = require('lodash');
 const shopProductModel = require("../../models/shop.product.model");
 const { algolia } = require("../../config/algolia");
@@ -211,7 +212,7 @@ class Category {
                 .sort(sort)
                 .skip(page * limit)
                 .limit(limit)
-
+                .select('-description -attributes -variants -properties')
 
             const result = {
                 message: "success",
@@ -223,7 +224,7 @@ class Category {
                         name:category.name,
                         slug:category.slug,
                         banners: category.banners,
-                        products: category.products,
+                        children: category.children,
                         image: category.image,
                         icon: category.icon,
                     },

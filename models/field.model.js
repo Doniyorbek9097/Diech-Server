@@ -24,4 +24,12 @@ const fieldSchema = Schema({
     }]
 })
 
+
+fieldSchema.virtual("category", {
+    ref: "Category",
+    localField: "_id",
+    foreignField: "fields",
+})
+
+
 module.exports = serverDB.model('Field', fieldSchema)
