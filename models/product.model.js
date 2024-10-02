@@ -241,7 +241,6 @@ const deleteProduct = async function (next) {
 
                 // Bog'langan product va variantlarni o'chirish
                 await shopProductModel.deleteMany({ parent: doc._id });
-                await productVariantModel.deleteMany({ product_id: doc._id });
             }
         }
 
@@ -270,7 +269,6 @@ productSchema.pre('remove', async function (next) {
 
         // Bog'langan product va variantlarni o'chirish
         await shopProductModel.deleteMany({ parent: doc._id });
-        await productVariantModel.deleteMany({ product_id: doc._id });
 
         next();
     } catch (err) {

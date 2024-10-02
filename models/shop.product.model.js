@@ -257,7 +257,6 @@ const deleteShopVariants = async function (next) {
     try {
         const doc = await this.model.findOne(this.getFilter());
         if (doc) {
-            await shopProductVariantModel.deleteMany({ shopDetail: doc._id });
         }
         next();
     } catch (err) {

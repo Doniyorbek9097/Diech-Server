@@ -21,6 +21,10 @@ const attributeSchema = new Schema({
     },
     color: String,
     values: [options],
+    isImages: {
+        type: Boolean,
+        default: false
+    },
     isColor: {
         type: Boolean,
         default: false
