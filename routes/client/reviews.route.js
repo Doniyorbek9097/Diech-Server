@@ -17,7 +17,7 @@ async function reviewRoutes(fastify, options)  {
         const { body: review } = req;
 
         if (review?.images?.length) {
-            review.images = await fileService.upload(req, review.images)
+            review.images = await fileService.upload(review.images)
         }
 
         try {            

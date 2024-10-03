@@ -43,7 +43,7 @@ fastify.put('/update-variant/:id', async (req, reply) => {
     // Fayl yuklash jarayoni
     for (const attr of variant.attributes) {
         if (attr?.images?.length) {
-            attr.images = await fileService.upload(req, attr.images);
+            attr.images = await fileService.upload(attr.images);
         }
     }
 

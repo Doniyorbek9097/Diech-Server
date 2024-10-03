@@ -1,5 +1,7 @@
 const { Schema } = require("mongoose")
 const { serverDB } = require("../config/db")
+const variantModel = require("./varinat.model")
+
 
 const attributesSchema = Schema({
     label: {
@@ -78,11 +80,6 @@ const shopProductsSchema = Schema({
         required: true
     },
 
-    variants: {
-        type: Array,
-        default: undefined
-    },
-
     shop: {
         type: Schema.Types.ObjectId,
         ref: "Shop",
@@ -130,14 +127,12 @@ const shopProductsSchema = Schema({
 
     images: [],
     properteis: {
-        type:[propertiesSchema],
-        index: true,
+        type: [propertiesSchema],
     },
 
     categories: [{
         type: Schema.Types.ObjectId,
         ref: "Category",
-        index: true,
         required: true
     }],
 
@@ -213,15 +208,14 @@ const shopProductsSchema = Schema({
     }
 )
 
+shopProductsSchema.index({ slug: 1 });
 
-shopProductsSchema.index({ slug: 1, categories: 1, properteis: 1 });
 
-
-// shopProductsSchema.virtual("variants", {
-//     ref: "ShopVariant",
-//     localField: "_id",
-//     foreignField: "shopDetail"
-// })
+shopProductsSchema.virtual("variants", {
+    ref: "Variant",
+    localField: "_id",
+    foreignField: "product"
+})
 
 
 // Statik metodni qo'shish
@@ -256,7 +250,9 @@ shopProductsSchema.statics.getRandomProducts = async function ({ query = {}, lim
 const deleteShopVariants = async function (next) {
     try {
         const doc = await this.model.findOne(this.getFilter());
+        
         if (doc) {
+            await variantModel.deleteMany({ product: doc._id })
         }
         next();
     } catch (err) {

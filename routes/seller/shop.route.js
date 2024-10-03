@@ -43,10 +43,10 @@ async function shopRoutes(fastify, options) {
         const shopData = request.body;
         try {
             if (shopData?.image) {
-                shopData.image = await fileService.upload(request, shopData.image);
+                shopData.image = await fileService.upload(shopData.image);
             }
             if (shopData?.bannerImage) {
-                shopData.bannerImage = await fileService.upload(request, shopData.bannerImage);
+                shopData.bannerImage = await fileService.upload(shopData.bannerImage);
             }
 
             const result = await shopModel.findByIdAndUpdate(request.params.id, shopData, { new: true });

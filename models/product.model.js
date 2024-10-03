@@ -189,7 +189,7 @@ const productSchema = Schema({
 );
 
 
-productSchema.index({ slug: 1, categories: 1 });
+productSchema.index({ slug: 1 });
 
 
 

@@ -145,6 +145,7 @@ async function productRoutes(fastify, options) {
       )
         .populate("categories", "name slug")
         .populate("shop", "slug")
+        .populate("variants")
         .populate({
           path: "reviews",
           options: {
@@ -152,6 +153,8 @@ async function productRoutes(fastify, options) {
             limit: 8             // Limitni qo'llash
           }
         })
+
+        
 
       if (!product) {
         return reply.status(404).send({ message: "Product not found" });

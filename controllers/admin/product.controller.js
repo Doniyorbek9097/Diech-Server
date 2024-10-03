@@ -11,7 +11,6 @@ class Product {
 
     async add(req, reply) {
         let { body: products } = req;
-
         try {
             products = await Promise.all(products.map(async (product) => {
                 const newId = new Types.ObjectId()
@@ -30,11 +29,12 @@ class Product {
 
             for (const product of products) {
                 if (product?.images?.length) {
-                    product.images = await fileService.upload(req, product?.images)
+                    product.images = await fileService.upload(product?.images)
                 }
             }
 
             // Mahsulotlarni saqlash
+            
             const newProducts = await productModel.insertMany(products);
 
             return reply.send({ data: newProducts, message: "success added" });
@@ -134,7 +134,7 @@ class Product {
 
         const { body: product } = req;
 
-        product?.images?.length && (product.images = await fileService.upload(req, product.images).catch(err => console.log(err.message)))
+        product?.images?.length && (product.images = await fileService.upload(product.images).catch(err => console.log(err.message)))
         try {
             const updated = await productModel.findByIdAndUpdate(req.params.id, product);
             product?.deletedImages?.length && await fileService.remove(product?.deletedImages);

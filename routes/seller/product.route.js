@@ -15,11 +15,10 @@ async function productRoutes(fastify, options) {
         const parentProduct = await productModel.findById(body.parent).lean();
         if (parentProduct) {
             const { _id, ...parentProductData } = parentProduct;
-
+            
             // Discountni hisoblash
             body.discount = parseInt(((body.orginal_price - body.sale_price) / body.orginal_price) * 100);
             if (isNaN(body.discount)) body.discount = 0;
-
             return {
                 ...parentProductData,
                 ...body,
@@ -33,10 +32,10 @@ async function productRoutes(fastify, options) {
         try {
             product = product.parent ? await setParentProduct(product) : product; 
             const newProduct = await new shopProductModel(product)
+        
             newProduct.slug = slugify(`${product.name.uz.slice(0, 8)}-${newProduct._id.toString()}`);
             await newProduct.save();
             variants = variants.map( item => ({product: newProduct._id, ...item}));
-            console.log(variants)
             await variantModel.insertMany(variants)
 
             
@@ -69,7 +68,7 @@ async function productRoutes(fastify, options) {
 
         } catch (error) {
             console.error(error);
-            return reply.status(500).send("Serverda Xatolik");
+            return reply.status(500).send(error.message);
         }
     });
 
@@ -235,15 +234,10 @@ async function productRoutes(fastify, options) {
     // Delete product
     fastify.delete("/product-delete/:id", { preHandler: checkToken }, async (req, reply) => {
         try {
-            const deleted = await shopProductModel.findByIdAndDelete(req.params.id).populate('variants');
+            const deleted = await shopProductModel.findByIdAndDelete(req.params.id)
+            
             if (!deleted) {
                 return reply.status(404).send({ message: "Mahsulot topilmadi" });
-            }
-
-            if (deleted.variants && deleted.variants.length > 0) {
-                for (const variant of deleted.variants) {
-                    await shopProductVariantModel.deleteMany({ _id: variant._id });
-                }
             }
 
             return reply.status(200).send({ message: "success deleted!", data: deleted });

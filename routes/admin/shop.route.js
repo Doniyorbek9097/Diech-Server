@@ -22,10 +22,10 @@ fastify.post('/shop', { preHandler: checkToken }, async (req, reply) => {
       }
   
       if (shopData.image) {
-        shopData.image = await fileService.upload(req.raw, shopData.image);
+        shopData.image = await fileService.upload(shopData.image);
       }
       if (shopData.bannerImage) {
-        shopData.bannerImage = await fileService.upload(req.raw, shopData.bannerImage);
+        shopData.bannerImage = await fileService.upload(shopData.bannerImage);
       }
   
       const result = await new shopModel(shopData).save();
@@ -80,10 +80,10 @@ fastify.post('/shop', { preHandler: checkToken }, async (req, reply) => {
     try {
       shopData.slug = slugify(req.body.name);
       if (shopData.image) {
-        shopData.image = await fileService.upload(req.raw, shopData.image);
+        shopData.image = await fileService.upload(shopData.image);
       }
       if (shopData.bannerImage) {
-        shopData.bannerImage = await fileService.upload(req.raw, shopData.bannerImage);
+        shopData.bannerImage = await fileService.upload(shopData.bannerImage);
       }
   
       const result = await shopModel.findByIdAndUpdate(req.params.id, shopData, { new: true });

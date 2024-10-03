@@ -166,8 +166,8 @@ class Category {
     async updateById(req, reply) {
         const { body: category } = req;
         const { id, fileName } = req.params;
-        category?.icon && (category.icon = await fileService.upload(req, category.icon))
-        category?.image && (category.image = await fileService.upload(req, category.image))
+        category?.icon && (category.icon = await fileService.upload(category.icon))
+        category?.image && (category.image = await fileService.upload(category.image))
 
         try {
             const upadted = await categoryModel.findByIdAndUpdate(id, category);
