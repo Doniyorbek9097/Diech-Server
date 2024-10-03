@@ -1,6 +1,7 @@
 const mongoose = require("mongoose")
 const productModel = require("../../models/product.model");
 const shopProductModel = require("../../models/shop.product.model");
+const variantModel = require("../../models/varinat.model")
 const { checkToken } = require("../../middlewares/authMiddleware");
 const { algolia } = require("../../config/algolia");
 const slugify = require("slugify");
@@ -10,106 +11,95 @@ const fieldModel = require("../../models/field.model");
 const productsIndex = algolia.initIndex("ShopProducts");
 
 async function productRoutes(fastify, options) {
-    // Create new Product
-    fastify.post("/product-add", { preHandler: checkToken }, async (req, reply) => {
-        try {
-          let products = req.body;
-          if (Array.isArray(products)) {
-            // Process each product item asynchronously
-            products = await Promise.all(products.map(async (item) => {
-              const product = await productModel.findById(item.parent).lean();
-              if (product) {
-                const { _id, ...productData } = product;
-      
-                // Yangi _id yarating
-                const newId = new mongoose.Types.ObjectId()
-      
-                // Slugni yaratish
-                item.slug = slugify(`${productData.name.uz.slice(0, 8)}-${newId.toString()}`);
-      
-                // Discountni hisoblash
-                item.discount = parseInt(((item.orginal_price - item.sale_price) / item.orginal_price) * 100);
-                if (isNaN(item.discount)) item.discount = 0;
-                // Yangi _idni mahsulotga qo'shish
-                item._id = newId;
-                
-                return {
-                  ...productData,
-                  ...item,
-                };
-              }
-              // Agar product topilmasa, undefined qaytariladi
-              return null;
-            }));
-      
-            // Filtrlangan mahsulotlar (null bo'lmaganlar)
-            products = products.filter(product => product !== null);
-          }
-      
-          // Mahsulotlarni saqlash
+    const setParentProduct = async (body) => {
+        const parentProduct = await productModel.findById(body.parent).lean();
+        if (parentProduct) {
+            const { _id, ...parentProductData } = parentProduct;
 
-          
-          const body = products.flatMap((item) => {
-            const variant_uz = item?.variants?.flatMap(variant => variant?.attributes?.flatMap(attr => attr.value?.uz || [])) || [];
-            const variant_ru = item?.variants?.flatMap(variant => variant?.attributes?.flatMap(attr => attr.value?.ru || [])) || [];
-            const attribute_uz = item?.attributes?.flatMap(attr => attr.value?.uz)
-            const attribute_ru = item?.attributes?.flatMap(attr => attr.value?.ru)
-            const attributes_uz = item?.attributes?.flatMap(attr => attr?.values.flatMap(item => item.uz))
-            const attributes_ru = item?.attributes?.flatMap(attr => attr?.values.flatMap(item => item.ru))
+            // Discountni hisoblash
+            body.discount = parseInt(((body.orginal_price - body.sale_price) / body.orginal_price) * 100);
+            if (isNaN(body.discount)) body.discount = 0;
 
             return {
-                objectID: item._id.toString(),  // objectID ni _id dan olish
-                name_uz: item?.name?.uz,
-                name_ru: item?.name?.ru,
-                keywords_uz: item?.keywords?.uz,
-                keywords_ru: item?.keywords?.ru,
-                variant_uz: variant_uz,
-                variant_ru: variant_ru,
-                attribute_uz: attribute_uz,
-                attribute_ru: attribute_ru,
-                attributes_uz,
-                attributes_ru,
-                barcode: item?.barcode
-            }
-        });
-
-        await productsIndex.saveObjects(body);
-          const newProduct = await shopProductModel.insertMany(products);
-          return reply.status(200).send({ data: newProduct, message: "success added" });
-      
-        } catch (error) {
-          console.error(error);
-          return reply.status(500).send("Serverda Xatolik");
+                ...parentProductData,
+                ...body,
+            };
         }
-      });
-
-
-      fastify.get("/random", async (req, reply) => {
+    }
+    // Create new Product
+    fastify.post("/product-add", { preHandler: checkToken }, async (req, reply) => {
+        let {variants, ...product } = req.body;
+        
         try {
-          // Mahsulotlarning faqat `_id` larini olish
-          const products = await shopProductModel.find().select("_id");
-      
-          // Bulk yangilash uchun operatsiyalar ro'yxatini tuzamiz
-          const bulkOps = products.map(product => ({
-            updateOne: {
-              filter: { _id: product._id }, // Qaysi mahsulotni yangilash
-              update: { $set: { position: Math.floor(Math.random() * 1000000) } } // Tasodifiy `position`
-            }
-          }));
-      
-          // Bulk yangilash
-          await shopProductModel.bulkWrite(bulkOps);
-      
-          console.log("Success");
-          reply.send({ success: true });
-      
-        } catch (error) {
-          console.error(error);
-          reply.code(500).send({ success: false, error: error.message });
-        }
-      });
+            product = product.parent ? await setParentProduct(product) : product; 
+            const newProduct = await new shopProductModel(product)
+            newProduct.slug = slugify(`${product.name.uz.slice(0, 8)}-${newProduct._id.toString()}`);
+            await newProduct.save();
+            variants = variants.map( item => ({product: newProduct._id, ...item}));
+            console.log(variants)
+            await variantModel.insertMany(variants)
 
-      
+            
+            // const body = products.flatMap((item) => {
+            //     const variant_uz = item?.variants?.flatMap(variant => variant?.attributes?.flatMap(attr => attr.value?.uz || [])) || [];
+            //     const variant_ru = item?.variants?.flatMap(variant => variant?.attributes?.flatMap(attr => attr.value?.ru || [])) || [];
+            //     const attribute_uz = item?.attributes?.flatMap(attr => attr.value?.uz)
+            //     const attribute_ru = item?.attributes?.flatMap(attr => attr.value?.ru)
+            //     const attributes_uz = item?.attributes?.flatMap(attr => attr?.values.flatMap(item => item.uz))
+            //     const attributes_ru = item?.attributes?.flatMap(attr => attr?.values.flatMap(item => item.ru))
+
+            //     return {
+            //         objectID: item._id.toString(),  // objectID ni _id dan olish
+            //         name_uz: item?.name?.uz,
+            //         name_ru: item?.name?.ru,
+            //         keywords_uz: item?.keywords?.uz,
+            //         keywords_ru: item?.keywords?.ru,
+            //         variant_uz: variant_uz,
+            //         variant_ru: variant_ru,
+            //         attribute_uz: attribute_uz,
+            //         attribute_ru: attribute_ru,
+            //         attributes_uz,
+            //         attributes_ru,
+            //         barcode: item?.barcode
+            //     }
+            // });
+
+            // await productsIndex.saveObjects(body);
+            return reply.status(200).send({ data: newProduct, message: "success added" });
+
+        } catch (error) {
+            console.error(error);
+            return reply.status(500).send("Serverda Xatolik");
+        }
+    });
+
+
+    fastify.get("/random", async (req, reply) => {
+        try {
+            // Mahsulotlarning faqat `_id` larini olish
+            const products = await shopProductModel.find().select("_id");
+
+            // Bulk yangilash uchun operatsiyalar ro'yxatini tuzamiz
+            const bulkOps = products.map(product => ({
+                updateOne: {
+                    filter: { _id: product._id }, // Qaysi mahsulotni yangilash
+                    update: { $set: { position: Math.floor(Math.random() * 1000000) } } // Tasodifiy `position`
+                }
+            }));
+
+            // Bulk yangilash
+            await shopProductModel.bulkWrite(bulkOps);
+
+            console.log("Success");
+            reply.send({ success: true });
+
+        } catch (error) {
+            console.error(error);
+            reply.code(500).send({ success: false, error: error.message });
+        }
+    });
+
+
     // Get all products with pagination and search
     fastify.get("/product-all", async (req, reply) => {
         try {
@@ -169,7 +159,7 @@ async function productRoutes(fastify, options) {
                 .populate("variantAttributes")
                 .limit(5)
                 .lean()
-                
+
             return reply.send(products);
 
         } catch (error) {
@@ -270,30 +260,30 @@ async function productRoutes(fastify, options) {
             const products = await shopProductModel.find().lean();
 
             const body = products.flatMap((item) => {
-            // const variant_uz = item?.variants?.flatMap(variant => variant?.attributes?.flatMap(attr => attr.value?.uz || [])) || [];
-            // const variant_ru = item?.variants?.flatMap(variant => variant?.attributes?.flatMap(attr => attr.value?.ru || [])) || [];
-            const attribute_uz = item?.attributes?.flatMap(attr => attr.value?.uz)
-            const attribute_ru = item?.attributes?.flatMap(attr => attr.value?.ru)
-            const attributes_uz = item?.attributes?.flatMap(attr => attr?.values.flatMap(item => item.uz))
-            const attributes_ru = item?.attributes?.flatMap(attr => attr?.values.flatMap(item => item.ru))
+                // const variant_uz = item?.variants?.flatMap(variant => variant?.attributes?.flatMap(attr => attr.value?.uz || [])) || [];
+                // const variant_ru = item?.variants?.flatMap(variant => variant?.attributes?.flatMap(attr => attr.value?.ru || [])) || [];
+                const attribute_uz = item?.attributes?.flatMap(attr => attr.value?.uz)
+                const attribute_ru = item?.attributes?.flatMap(attr => attr.value?.ru)
+                const attributes_uz = item?.attributes?.flatMap(attr => attr?.values.flatMap(item => item.uz))
+                const attributes_ru = item?.attributes?.flatMap(attr => attr?.values.flatMap(item => item.ru))
 
-            return {
-                objectID: item._id.toString(),  // objectID ni _id dan olish
-                name_uz: item?.name?.uz,
-                name_ru: item?.name?.ru,
-                keywords_uz: item?.keywords?.uz,
-                keywords_ru: item?.keywords?.ru,
-                // variant_uz: variant_uz,
-                // variant_ru: variant_ru,
-                attribute_uz: attribute_uz,
-                attribute_ru: attribute_ru,
-                attributes_uz,
-                attributes_ru,
-                barcode: item?.barcode
-            }
-        });
-        
-        await productsIndex.saveObjects(body);
+                return {
+                    objectID: item._id.toString(),  // objectID ni _id dan olish
+                    name_uz: item?.name?.uz,
+                    name_ru: item?.name?.ru,
+                    keywords_uz: item?.keywords?.uz,
+                    keywords_ru: item?.keywords?.ru,
+                    // variant_uz: variant_uz,
+                    // variant_ru: variant_ru,
+                    attribute_uz: attribute_uz,
+                    attribute_ru: attribute_ru,
+                    attributes_uz,
+                    attributes_ru,
+                    barcode: item?.barcode
+                }
+            });
+
+            await productsIndex.saveObjects(body);
             return reply.send("Indeksatsiya qilindi");
         } catch (error) {
             console.error('Indeksatsiya xatosi:', error);
@@ -373,7 +363,7 @@ async function productRoutes(fastify, options) {
                 for (const product of products) {
                     await shopProductModel.updateOne(
                         { _id: product._id },
-                        { $set: { slug: slugify(`${product.slug.slice(0,5)}-${product._id}`) } },
+                        { $set: { slug: slugify(`${product.slug.slice(0, 5)}-${product._id}`) } },
                     );
                 }
                 skip += batchSize;

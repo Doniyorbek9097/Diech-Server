@@ -10,15 +10,19 @@ const capitalize = (value) => {
 };
 
 const attributesSchema = Schema({
-    label: {
+    title: {
         type: String,
         intl: true,
         set: capitalize
     },
-    value: {
+    name: {
         type: String,
         intl: true,
         set: capitalize
+    },
+    color: {
+        type: String,
+        default: undefined
     },
     images: {
         type: Array,
