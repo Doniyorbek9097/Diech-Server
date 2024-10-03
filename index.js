@@ -1,10 +1,14 @@
-const fastify = require('fastify')({ logger: false });
+const fastify = require('fastify')({ 
+  logger: false,
+  bodyLimit: 5 * 1024 * 1024
+});
 const fastifyCookie = require('@fastify/cookie');
 const fastifyCors = require('@fastify/cors');
 const fastifyHelmet = require('@fastify/helmet');
 const fastifyRateLimit = require('@fastify/rate-limit');
 const fastifyCompress = require('@fastify/compress');
 const fastifyStatic = require('@fastify/static');
+const formbody = require("@fastify/formbody")
 const path = require('path');
 const fs = require('fs');
 const { Server } = require('socket.io');
