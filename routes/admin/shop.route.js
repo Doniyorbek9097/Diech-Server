@@ -46,7 +46,7 @@ fastify.post('/shop', { preHandler: checkToken }, async (req, reply) => {
   });
   
   // GET /shops
-  fastify.get('/shops', async (req, reply) => {
+  fastify.get('/shops', { preHandler: checkToken }, async (req, reply) => {
     try {
       const shops = await shopModel.find()
         .populate('employees')
