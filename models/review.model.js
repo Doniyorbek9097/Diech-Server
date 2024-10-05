@@ -10,10 +10,23 @@ const reviewSchema = Schema(
       min: 1,  // Minimum rating
       max: 5   // Maximum rating
     },
-    images: { 
-      type: [String], 
-      default: []  // Agar bo'sh bo'lsa, bo'sh massiv
-    },
+    images: [
+      {
+          image_id: {
+              type: Schema.Types.ObjectId,
+              ref:"File",
+              required: true
+          },
+          small: {
+              type: String,
+              required: true
+          },
+          large: {
+              type: String,
+              required: true
+          }
+      }
+  ],
     comment: { 
       type: String, 
       required: true,
