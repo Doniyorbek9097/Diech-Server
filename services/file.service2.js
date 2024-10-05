@@ -28,7 +28,7 @@ class File {
                 .resize({ width })
                 .toFormat(format, { quality })
                 .toFile(path.join(uploadPath, fileName));
-            const url = `${process.env.BASE_API_URL}/${uploadPath}/${fileName}`;
+            const url = `${process.env.BASE_API_URL}/uploads/${foldername}/${fileName}`;
             return url;
 
         } catch (error) {
