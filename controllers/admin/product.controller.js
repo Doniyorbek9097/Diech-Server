@@ -2,53 +2,40 @@ const slugify = require("slugify");
 const { Types } = require("mongoose")
 const productModel = require("../../models/product.model")
 const shopProductModel = require("../../models/shop.product.model")
+const fileModel = require("../../models/file.model")
 const { algolia } = require("../../config/algolia")
-const fileService = require("../../services/file.service")
+const fileService = require("../../services/file.service2")
 const productsIndex = algolia.initIndex("products");
-const { format } = require("date-fns")
 
 class Product {
 
     async add(req, reply) {
-        let { body: products } = req;
+        let { body: product } = req;
         try {
-            products = await Promise.all(products.map(async (product) => {
-                const newId = new Types.ObjectId()
-                product._id = newId;
-                product.slug = slugify(`${product.name.ru.toLowerCase()}`);
-                
-                if (product.barcode) {
-                    const existsProduct = await productModel.findOne({ barcode: product.barcode });
-                    if (existsProduct) {
-                        throw new Error(`Bunday mahsulot mavjud! Barcode: ${product.barcode}`); // Throw an error to handle in catch block
-                    }
-                }
+            product.slug = slugify(`${product.name.ru.toLowerCase()}`);
 
-                return product;
-            }));
-
-            for (const product of products) {
-                if (product?.images?.length) {
-                    product.images = await fileService.upload(product?.images)
+            if (product.barcode) {
+                const existsProduct = await productModel.findOne({ barcode: product.barcode });
+                if (existsProduct) {
+                    throw new Error(`Bunday mahsulot mavjud! Barcode: ${product.barcode}`); // Throw an error to handle in catch block
                 }
             }
 
-            // Mahsulotlarni saqlash
-            
-            const newProducts = await productModel.insertMany(products);
+            const newProduct = await new productModel(product).save();
 
-            return reply.send({ data: newProducts, message: "success added" });
+            for (const item of newProduct.images) {
+                await fileModel.findByIdAndUpdate(item.image_id, { isActive: true })
+            }
+
+            return reply.send({ data: newProduct, message: "success added" });
 
         } catch (error) {
             console.error(error);
-
-            // Mahsulotlar o'chirilishi
-            for (const product of products) {
-                if (product?.images?.length) {
-                    await fileService.remove(product?.images)
-                }
+            for (const item of product.images) {
+                await fileService.remove(item.small)
+                await fileService.remove(item.large)
+                await fileModel.findByIdAndDelete(item._id, { isActive: false })
             }
-
             return reply.status(500).send({ error: error.message });
         }
     }
@@ -93,7 +80,7 @@ class Product {
                 const views = product.viewsCount;
                 return {
                     _id: product._id,
-                    image: product?.images?.length ? product?.images[0] : "",
+                    image: product?.images?.length ? product?.images[0]?.small : "",
                     name: product.name,
                     barcode: product?.barcode,
                     sold,
@@ -150,12 +137,89 @@ class Product {
 
     async deleteById(req, reply) {
         try {
-            const deleted = await productModel.findOneAndDelete({ _id: req.params.id });
+            const product = await productModel.findById(req.params.id);
+            await Promise.all(product.images.map(async item => {
+                try {
+                    await fileService.remove(item.small)
+                    await fileService.remove(item.large)
+                    await fileModel.findByIdAndDelete(item._id)
+                    return "Success"
+                } catch (error) {
+                    throw new Error(`${error.message}`);
+                }
+            }))
+
+            const deleted = await productModel.findByIdAndDelete(req.params.id);
             return reply.status(200).send({ result: deleted });
 
         } catch (error) {
             console.log(error);
             return reply.status(500).send(error.message)
+        }
+    }
+
+    async productImage(req, reply) {
+        try {
+            // Barcha mahsulotlarning images arrayini tozalash
+            await shopProductModel.updateMany({}, { $set: { images: [] } });
+            
+            const products = await productModel.find().select("images").lean()
+            
+            // File saqlashlarni to'plab, parallel ravishda bajarish uchun
+            const updatePromises = products.map(product => {
+                return shopProductModel.updateOne(
+                    { parent: product._id },
+                    { $push: {
+                        images: {
+                            $each: product.images // Agar images array bo'lsa, $each bilan qo'shish
+                        }
+                    }}
+                );
+            });
+    
+            // Barcha yangilanishlarni parallel ravishda bajarish
+            await Promise.all(updatePromises);
+    
+            return reply.send("updated"); // Yangilanganligini qaytarish
+        } catch (error) {
+            console.error(error);
+            reply.code(500).send({ message: "Server error" }); // Xato javob qaytarish
+        }
+    }
+    
+
+    async imageUpload(req, reply) {
+        try {
+            const part = await req.file();
+            const small = await fileService.photoUpload({ part, width: 100, quality: 10 })
+            const large = await fileService.photoUpload({ part })
+
+            const newdata = await new fileModel({ image: { small, large } }).save()
+            return reply.send({
+                image_id: newdata._id,
+                ...newdata.image
+            })
+
+        } catch (error) {
+            console.log(error);
+            reply.code(500).send(error.message)
+
+        }
+    }
+
+
+    async imageRemove(req, reply) {
+        try {
+            const { id } = req.params;
+            const file = await fileModel.findById(id);
+            await fileService.remove(file.image.large)
+            await fileService.remove(file.image.small)
+            const deleted = await fileModel.findByIdAndDelete(id);
+            return reply.send(deleted)
+        } catch (error) {
+            console.log(error);
+            reply.code(500).send(error.message)
+
         }
     }
 
@@ -194,7 +258,7 @@ class Product {
             console.error('Indeksatsiya xatosi:', error);
         }
     }
-    
+
 }
 
 

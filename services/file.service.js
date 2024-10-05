@@ -16,7 +16,6 @@ const unlinkAsync = promisify(fs.unlink);
 class File {
     async upload(files, filePathName = "diech") {
         const baseDir = `${process.env.STATIC_FOLDER}/images`;
-
         if (!fs.existsSync(baseDir)) mkdirp.sync(baseDir);
 
         // Array fayllarni qayta ishlash

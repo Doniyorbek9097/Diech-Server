@@ -89,11 +89,28 @@ const productSchema = Schema({
         intl: true,
     },
 
-    images: [],
+    images: [
+        {
+            image_id: {
+                type: Schema.Types.ObjectId,
+                ref:"File",
+                required: true
+            },
+            small: {
+                type: String,
+                required: true
+            },
+            large: {
+                type: String,
+                required: true
+            }
+        }
+    ],
+
     properteis: [propertiesSchema],
     variantAttributes: {
         type: [Schema.Types.ObjectId],
-        ref:"Attributes",
+        ref: "Attributes",
         default: undefined
     },
 
@@ -253,28 +270,28 @@ const deleteProduct = async function (next) {
 };
 
 // Middlewarelarni ulash
-productSchema.pre('findOneAndDelete', deleteProduct);
-productSchema.pre('findByIdAndDelete', deleteProduct);
-productSchema.pre('deleteMany', deleteProduct);
-productSchema.pre('deleteOne', deleteProduct);
-productSchema.pre('remove', async function (next) {
-    try {
-        // Document context (this) bevosita hujjatni bildiradi
-        const doc = this;
+// productSchema.pre('findOneAndDelete', deleteProduct);
+// productSchema.pre('findByIdAndDelete', deleteProduct);
+// productSchema.pre('deleteMany', deleteProduct);
+// productSchema.pre('deleteOne', deleteProduct);
+// productSchema.pre('remove', async function (next) {
+//     try {
+//         // Document context (this) bevosita hujjatni bildiradi
+//         const doc = this;
 
-        // Agar hujjatda rasmlar mavjud bo'lsa, o'chirish
-        if (doc?.images?.length) {
-            await fileService.remove(doc.images);
-        }
+//         // Agar hujjatda rasmlar mavjud bo'lsa, o'chirish
+//         if (doc?.images?.length) {
+//             await fileService.remove(doc.images);
+//         }
 
-        // Bog'langan product va variantlarni o'chirish
-        await shopProductModel.deleteMany({ parent: doc._id });
+//         // Bog'langan product va variantlarni o'chirish
+//         await shopProductModel.deleteMany({ parent: doc._id });
 
-        next();
-    } catch (err) {
-        next(err);
-    }
-});
+//         next();
+//     } catch (err) {
+//         next(err);
+//     }
+// });
 
 
 

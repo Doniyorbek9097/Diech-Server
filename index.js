@@ -8,7 +8,8 @@ const fastifyHelmet = require('@fastify/helmet');
 const fastifyRateLimit = require('@fastify/rate-limit');
 const fastifyCompress = require('@fastify/compress');
 const fastifyStatic = require('@fastify/static');
-// const formbody = require("@fastify/formbody")
+const fastifyMultiPart = require("@fastify/multipart")
+const formbody = require("@fastify/formbody")
 const path = require('path');
 const fs = require('fs');
 const { Server } = require('socket.io');
@@ -32,7 +33,6 @@ fastify.register(fastifyCors, {
 });
 
 
-
 // Middleware'larni Fastifyga qo'shish
 // fastify.register(fastifyCors, {
 //   origin: function (origin, callback) {
@@ -46,13 +46,11 @@ fastify.register(fastifyCors, {
 //   credentials: true
 // });
 
-
+fastify.register(formbody)
+fastify.register(fastifyMultiPart)
 fastify.register(fastifyCookie);
-
 // fastify.register(fastifyHelmet);
-
 fastify.register(fastifyCompress);
-
 // fastify.register(fastifyRateLimit, {
 //   max: 100,
 //   timeWindow: '1 minutes'
@@ -155,7 +153,7 @@ const PORT = process.env.PORT || 5000;
 
 const start = async () => {
   try {
-    await fastify.listen({ port: PORT, host: '0.0.0.0' }); // Yangi uslubda port va hostni ko'rsatish
+    fastify.listen({ port: PORT, host: '0.0.0.0' }); // Yangi uslubda port va hostni ko'rsatish
     console.log(`Server running at http://0.0.0.0:${PORT}`);
   } catch (err) {
     fastify.log.error(err);
