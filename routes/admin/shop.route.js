@@ -41,7 +41,7 @@ fastify.post('/shop', { preHandler: checkToken }, async (req, reply) => {
         await fileService.remove(req.raw, shopData.bannerImage);
       }
       console.log(error);
-      return reply.status(500).send("Serverda Xatolik");
+      return reply.code(500).send("Serverda Xatolik");
     }
   });
   
@@ -55,7 +55,7 @@ fastify.post('/shop', { preHandler: checkToken }, async (req, reply) => {
         return  reply.send(shops);
     } catch (error) {
       console.log(error);
-      return  reply.status(500).send("Serverda Xatolik");
+      return  reply.code(500).send("Serverda Xatolik");
     }
   });
   
@@ -102,7 +102,7 @@ fastify.post('/shop', { preHandler: checkToken }, async (req, reply) => {
         await fileService.remove(req.raw, shopData.bannerImage);
       }
       console.log(error);
-      return reply.status(500).send(error.message);
+      return reply.code(500).send(error.message);
     }
   });
   
@@ -113,7 +113,7 @@ fastify.post('/shop', { preHandler: checkToken }, async (req, reply) => {
       return reply.send({ data, message: "success deleted!" });
     } catch (error) {
       console.log(error);
-      return  reply.status(500).send("Serverda xatolik");
+      return  reply.code(500).send("Serverda xatolik");
     }
   });
   } catch (error) {

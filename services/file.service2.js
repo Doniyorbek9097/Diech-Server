@@ -15,25 +15,31 @@ const unlinkAsync = promisify(fs.unlink);
 
 class File {
     async photoUpload({ part, width = 800, format = "webp", quality = 100, foldername = "images" }) {
-        try {
-            const uploadPath = `${process.env.STATIC_FOLDER}/${foldername}`;
-            if (!fs.existsSync(uploadPath)) mkdirp.sync(uploadPath);
-
-            const timestamp = dateFns.format(new Date(), 'dd.MM.yyyy HH-mm-ss.SSS')
-            const originalName = path.basename(part.filename, path.extname(part.filename));
-            const fileName = `${originalName}-${slugify(`${timestamp}-${generateOTP(5)}.webp`)}`;
-
-            const fileBuffer = await part.toBuffer();
-            await sharp(fileBuffer)
-                .resize({ width })
-                .toFormat(format, { quality })
-                .toFile(path.join(uploadPath, fileName));
-            const url = `${process.env.BASE_API_URL}/uploads/${foldername}/${fileName}`;
-            return url;
-
-        } catch (error) {
-            console.log(error)
-        }
+        return await new Promise(async(resolve, reject) => {
+            try {
+                const uploadPath = `${process.env.STATIC_FOLDER}/${foldername}`;
+                if (!fs.existsSync(uploadPath)) mkdirp.sync(uploadPath);
+    
+                const timestamp = dateFns.format(new Date(), 'dd.MM.yyyy HH-mm-ss.SSS')
+                const extname = path.extname(part.filename);
+                const originalName = path.basename(part.filename, extname);
+                
+                const imagesFormats = [".jpg",".png", ".jpeg", ".webp",".avif"];
+                if (!imagesFormats.includes(extname)) return reject(new Error("Image format invalit"))
+                const fileName = `${originalName}-${slugify(`${timestamp}-${generateOTP(5)}.webp`)}`;
+                    const fileBuffer = await part.toBuffer();
+                    await sharp(fileBuffer)
+                        .resize({ width })
+                        .toFormat(format, { quality })
+                        .toFile(path.join(uploadPath, fileName));
+                    const url = `${process.env.BASE_API_URL}/uploads/${foldername}/${fileName}`;
+                    return resolve(url);
+    
+            } catch (error) {
+                console.log(error)
+                return reject(error.message)
+            }
+        })
     }
 
 

@@ -162,39 +162,41 @@ class Product {
         try {
             // Barcha mahsulotlarning images arrayini tozalash
             await shopProductModel.updateMany({}, { $set: { images: [] } });
-            
+
             const products = await productModel.find().select("images").lean()
-            
+
             // File saqlashlarni to'plab, parallel ravishda bajarish uchun
             const updatePromises = products.map(product => {
                 return shopProductModel.updateOne(
                     { parent: product._id },
-                    { $push: {
-                        images: {
-                            $each: product.images // Agar images array bo'lsa, $each bilan qo'shish
+                    {
+                        $push: {
+                            images: {
+                                $each: product.images // Agar images array bo'lsa, $each bilan qo'shish
+                            }
                         }
-                    }}
+                    }
                 );
             });
-    
+
             // Barcha yangilanishlarni parallel ravishda bajarish
             await Promise.all(updatePromises);
-    
+
             return reply.send("updated"); // Yangilanganligini qaytarish
         } catch (error) {
             console.error(error);
             reply.code(500).send({ message: "Server error" }); // Xato javob qaytarish
         }
     }
-    
+
 
     async imageUpload(req, reply) {
         try {
             const part = await req.file();
             const small = await fileService.photoUpload({ part, width: 100, quality: 10 })
             const large = await fileService.photoUpload({ part })
-
             const newdata = await new fileModel({ image: { small, large } }).save()
+            
             return reply.send({
                 image_id: newdata._id,
                 ...newdata.image
