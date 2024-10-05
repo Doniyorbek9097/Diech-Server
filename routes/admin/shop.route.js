@@ -46,13 +46,12 @@ fastify.post('/shop', { preHandler: checkToken }, async (req, reply) => {
   });
   
   // GET /shops
-  fastify.get('/shops', { preHandler: checkToken }, async (req, reply) => {
+  fastify.get('/shops', async (req, reply) => {
     try {
       const shops = await shopModel.find()
         .populate('employees')
-        .populate('products')
         .populate('point');
-        return  reply.send(shops);
+        return reply.send(shops);
     } catch (error) {
       console.log(error);
       return  reply.code(500).send("Serverda Xatolik");
