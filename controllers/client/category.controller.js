@@ -68,7 +68,7 @@ class Category {
                 .limit(limit)
                 .sort({ updatedAt: -1 })
                 .select('slug name')
-
+            
             const totalDocuments = await categoryModel.countDocuments(query)
             const populatedCategories = await Promise.all(categories.map(async category => {
                 const populatedCategory = await categoryModel.populate(category, [
@@ -88,7 +88,6 @@ class Category {
                 return populatedCategory;
 
             }));
-
 
             const data = {
                 totalPage: Math.ceil(totalDocuments / limit),

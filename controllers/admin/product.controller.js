@@ -22,7 +22,7 @@ class Product {
             }
 
             const newProduct = await new productModel(product).save();
-
+        
             for (const item of newProduct.images) {
                 await fileModel.findByIdAndUpdate(item.image_id, { isActive: true })
             }
@@ -199,7 +199,7 @@ class Product {
             const part = await req.file();
             const small = await fileService.photoUpload({ part, width: 100, quality: 10 })
             const large = await fileService.photoUpload({ part })
-            const newdata = await new fileModel({ image: { small, large } }).save()
+            const newdata = await new fileModel({ image: { small:small, large:large } }).save()
             
             return reply.send({
                 image_id: newdata._id,

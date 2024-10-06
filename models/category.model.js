@@ -80,7 +80,6 @@ categorySchema.virtual("banners", {
     foreignField: "category",
 })
 
-
 categorySchema.virtual("shop_products", {
     ref: "ShopProducts",
     localField: "_id",
