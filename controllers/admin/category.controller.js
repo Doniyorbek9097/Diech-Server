@@ -75,7 +75,6 @@ class Category {
             const search = req.query.search || "";
             const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
             const limit = parseInt(req.query.limit, 10) || 2;
-            console.log(id);
             
             let query = { parent: id };
 

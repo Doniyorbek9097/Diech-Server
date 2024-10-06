@@ -189,11 +189,6 @@ class Category {
             const fields = category?.fields || [];
             const filters = [
                 {
-                    label: "categories",
-                    items: category?.children || [],
-                    limit: 5,
-                },
-                {
                     label: "fields",
                     items: fields.map(field => ({
                         label: field.label[lang],
