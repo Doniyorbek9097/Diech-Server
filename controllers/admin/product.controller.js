@@ -124,11 +124,17 @@ class Product {
         product?.images?.length && (product.images = await fileService.upload(product.images).catch(err => console.log(err.message)))
         try {
             const updated = await productModel.findByIdAndUpdate(req.params.id, product);
-            product?.deletedImages?.length && await fileService.remove(product?.deletedImages);
-            return reply.send(updated);
+            for (const item of updated.images) {
+                await fileModel.findByIdAndUpdate(item.image_id, { isActive: true })
+            }
 
+            return reply.send(updated);
         } catch (error) {
-            product?.images?.length && await fileService.remove(images)
+            for (const item of product.images) {
+                await fileService.remove(item.small)
+                await fileService.remove(item.large)
+                await fileModel.findByIdAndDelete(item._id, { isActive: false })
+            }
             console.log(error);
             return reply.status(500).send("Server Xatosi: " + error);
         }
