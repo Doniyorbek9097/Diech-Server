@@ -120,10 +120,9 @@ class Product {
     async updateById(req, reply) {
 
         const { body: product } = req;
-
-        product?.images?.length && (product.images = await fileService.upload(product.images).catch(err => console.log(err.message)))
         try {
             const updated = await productModel.findByIdAndUpdate(req.params.id, product);
+            console.log(updated)
             for (const item of updated.images) {
                 await fileModel.findByIdAndUpdate(item.image_id, { isActive: true })
             }
@@ -131,9 +130,9 @@ class Product {
             return reply.send(updated);
         } catch (error) {
             for (const item of product.images) {
-                await fileService.remove(item.small)
-                await fileService.remove(item.large)
-                await fileModel.findByIdAndDelete(item._id, { isActive: false })
+                await fileService.remove(item?.small)
+                await fileService.remove(item?.large)
+                await fileModel.findByIdAndDelete(item.image_id, { isActive: false })
             }
             console.log(error);
             return reply.status(500).send("Server Xatosi: " + error);
@@ -220,8 +219,8 @@ class Product {
         try {
             const { id } = req.params;
             const file = await fileModel.findById(id);
-            await fileService.remove(file.image.large)
-            await fileService.remove(file.image.small)
+            await fileService.remove(file?.image?.large)
+            await fileService.remove(file?.image?.small)
             const deleted = await fileModel.findByIdAndDelete(id);
             return reply.send(deleted)
         } catch (error) {
