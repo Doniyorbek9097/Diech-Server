@@ -206,7 +206,7 @@ class Category {
                 .sort(sort)
                 .skip(page * limit)
                 .limit(limit)
-                .select('name original_price sale_price inStock slug images rating reviewsCount discount',)
+                .select('name orginal_price sale_price inStock slug images rating reviewsCount discount',)
 
             const result = {
                 message: "success",
