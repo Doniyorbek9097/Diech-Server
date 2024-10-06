@@ -17,8 +17,9 @@ require('dotenv').config();
 require('./prototypes');
 require('./testbot');
 // require("./bot")
+const { fileNotActiveRemove } = require("./services/file-cron.service")
 const { serverDB } = require('./config/db');
-
+fileNotActiveRemove()
 
 const io = new Server(fastify.server, {
   cors: {

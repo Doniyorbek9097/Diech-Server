@@ -221,7 +221,8 @@ const shopProductsSchema = Schema({
 
     {
         timestamps: true,
-        toJSON: { virtuals: true }
+        toJSON: { virtuals: true },
+        minimize: true
     }
 )
 

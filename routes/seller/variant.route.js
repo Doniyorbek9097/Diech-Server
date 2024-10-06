@@ -1,3 +1,6 @@
+const fileService = require('../../services/file.service2')
+const fileModel = require("../../models/file.model")
+
 async function shopVariantRoutes(fastify, options) {
     // GET route to fetch variants by ID
     fastify.get('/get-variants/:id', async (request, reply) => {
@@ -46,6 +49,43 @@ async function shopVariantRoutes(fastify, options) {
             return reply.status(500).send({ message: "Internal Server Error" });
         }
     });
+
+    fastify.post("/variant-images", async (req, reply) => {
+        try {
+            const part = await req.file();
+            const small = await fileService.photoUpload({ part, width: 200, quality: 10 })
+            const large = await fileService.photoUpload({ part })
+            const newdata = await new fileModel({ image: { small, large } }).save()
+            
+            return reply.send({
+                image_id: newdata._id,
+                ...newdata.image
+            })
+    
+        } catch (error) {
+            console.log(error);
+            reply.code(500).send(error.message)
+    
+        }
+    })
+    
+    fastify.delete("/variant-images/:id", async (req, reply) => {
+        try {
+            const { id } = req.params;
+            const file = await fileModel.findById(id);
+            await fileService.remove(file.image.large)
+            await fileService.remove(file.image.small)
+            const deleted = await fileModel.findByIdAndDelete(id);
+            return reply.send(deleted)
+        } catch (error) {
+            console.log(error);
+            reply.code(500).send(error.message)
+    
+        }
+    })
+
+
 }
+
 
 module.exports = shopVariantRoutes;

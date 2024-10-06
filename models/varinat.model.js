@@ -1,6 +1,7 @@
 const { Schema } = require("mongoose")
 const { serverDB } = require("../config/db")
-const fileService = require("../services/file.service")
+const fileService = require("../services/file.service2")
+const fileModel = require("../models/file.model")
 
 const reviewSchema = require("./review.model")
 
@@ -25,12 +26,30 @@ const attributesSchema = Schema({
         type: String,
         default: undefined
     },
-    images: {
-        type: Array,
-        default: undefined
-    },
 
-}, { toJSON: { virtuals: true } })
+    images: [
+        {
+            image_id: {
+                type: Schema.Types.ObjectId,
+                ref: "File",
+                required: true
+            },
+            small: {
+                type: String,
+                required: true
+            },
+            large: {
+                type: String,
+                required: true
+            }
+        }
+    ],
+
+},
+    {
+        toJSON: { virtuals: true },
+        minimize: true
+    })
 
 
 const variantsSchema = Schema({
@@ -44,10 +63,6 @@ const variantsSchema = Schema({
     inStock: { type: Number, default: 1 },
     name: String,
     slug: String,
-    images: {
-        type: Array,
-        default: undefined
-    },
     orginal_price: Number,
     sale_price: Number,
     discount: Number,
@@ -90,19 +105,24 @@ const variantsSchema = Schema({
 
 })
 
-
 const deleteShopVariants = async function (next) {
     try {
         // Hujjatlarni o'chirishdan oldin topish
-        const docs = await this.model.find(this.getQuery());
-
+        const docs = Array.isArray(this.getQuery()) 
+            ? await this.model.find(this.getQuery()) 
+            : [await this.model.findOne(this.getQuery())];
+        
         // Agar topilgan hujjatlar bo'lsa
-        if (Array.isArray(docs) && docs.length) {
+        if (docs && docs.length) {
             for (const doc of docs) {
                 // Har bir hujjatning attributes maydonidagi rasmlarni o'chirish
                 for (const attr of doc.attributes) {
                     if (attr?.images?.length) {
-                        await fileService.remove(attr.images);
+                        for (const image of attr?.images) {
+                            await fileService.remove(image.small);
+                            await fileService.remove(image.large);
+                            await fileModel.findByIdAndDelete(image.image_id);
+                        }
                     }
                 }
             }
@@ -121,6 +141,7 @@ variantsSchema.pre('findOneAndDelete', deleteShopVariants);
 variantsSchema.pre('findByIdAndDelete', deleteShopVariants);
 variantsSchema.pre('deleteMany', deleteShopVariants);
 variantsSchema.pre('deleteOne', deleteShopVariants);
+
 
 variantsSchema.pre("insertMany", async function (next, docs) {
     try {

@@ -1,6 +1,7 @@
 const { Schema } = require("mongoose")
 const { serverDB } = require("../config/db")
 const fileService = require("../services/file.service2")
+const cron = require('node-cron');
 
 const fileSchema = Schema({
     image: {
@@ -20,6 +21,7 @@ const fileSchema = Schema({
 },
 {
     timestamps: true,
+    minimize: true
 })
 
 

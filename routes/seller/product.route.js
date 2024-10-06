@@ -7,6 +7,7 @@ const { algolia } = require("../../config/algolia");
 const slugify = require("slugify");
 const { generateOTP } = require("../../utils/otpGenrater");
 const fieldModel = require("../../models/field.model");
+const fileModel = require("../../models/file.model");
 
 const productsIndex = algolia.initIndex("ShopProducts");
 
@@ -15,7 +16,7 @@ async function productRoutes(fastify, options) {
         const parentProduct = await productModel.findById(body.parent).lean();
         if (parentProduct) {
             const { _id, ...parentProductData } = parentProduct;
-            
+
             // Discountni hisoblash
             body.discount = parseInt(((body.orginal_price - body.sale_price) / body.orginal_price) * 100);
             if (isNaN(body.discount)) body.discount = 0;
@@ -27,18 +28,35 @@ async function productRoutes(fastify, options) {
     }
     // Create new Product
     fastify.post("/product-add", { preHandler: checkToken }, async (req, reply) => {
-        let {variants, ...product } = req.body;
-        
+        let { variants, ...product } = req.body;
+
         try {
-            product = product.parent ? await setParentProduct(product) : product; 
+            product = product.parent ? await setParentProduct(product) : product;
             const newProduct = await new shopProductModel(product)
-        
+
             newProduct.slug = slugify(`${product.name.uz.slice(0, 8)}-${newProduct._id.toString()}`);
             await newProduct.save();
-            variants = variants.map( item => ({product: newProduct._id, ...item}));
+
+            variants = await Promise.all(
+                variants.map(async (item) => {
+                    for (const attr of item.attributes) {
+                        if (attr?.images?.length) {
+                            for (const image of attr?.images) {
+                                await fileModel.updateOne({ _id: image.image_id }, { isActive: true });
+                            }
+                        }
+
+                    }
+                    return {
+                        product: newProduct._id,
+                        ...item
+                    };
+                })
+            );
+
             await variantModel.insertMany(variants)
 
-            
+
             // const body = products.flatMap((item) => {
             //     const variant_uz = item?.variants?.flatMap(variant => variant?.attributes?.flatMap(attr => attr.value?.uz || [])) || [];
             //     const variant_ru = item?.variants?.flatMap(variant => variant?.attributes?.flatMap(attr => attr.value?.ru || [])) || [];
@@ -235,7 +253,7 @@ async function productRoutes(fastify, options) {
     fastify.delete("/product-delete/:id", { preHandler: checkToken }, async (req, reply) => {
         try {
             const deleted = await shopProductModel.findByIdAndDelete(req.params.id)
-            
+
             if (!deleted) {
                 return reply.status(404).send({ message: "Mahsulot topilmadi" });
             }

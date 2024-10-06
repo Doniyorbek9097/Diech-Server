@@ -45,6 +45,7 @@ const reviewSchema = Schema(
   },
   {
     timestamps: true,
+    minimize: true
   }
 );
 
