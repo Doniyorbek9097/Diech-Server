@@ -17,15 +17,12 @@ const categorySchema = new Schema({
         image_id: {
             type: Schema.Types.ObjectId,
             ref:"File",
-            required: true
         },
         small: {
             type: String,
-            required: true
         },
         large: {
             type: String,
-            required: true
         }
     },
     
