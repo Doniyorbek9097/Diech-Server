@@ -108,10 +108,8 @@ const variantsSchema = Schema({
 const deleteShopVariants = async function (next) {
     try {
         // Hujjatlarni o'chirishdan oldin topish
-        const docs = Array.isArray(this.getQuery()) 
-            ? await this.model.find(this.getQuery()) 
-            : [await this.model.findOne(this.getQuery())];
-        
+        const docs = await this.model.find(this.getQuery());
+
         // Agar topilgan hujjatlar bo'lsa
         if (docs && docs.length) {
             for (const doc of docs) {
@@ -143,26 +141,26 @@ variantsSchema.pre('deleteMany', deleteShopVariants);
 variantsSchema.pre('deleteOne', deleteShopVariants);
 
 
-variantsSchema.pre("insertMany", async function (next, docs) {
-    try {
+// variantsSchema.pre("insertMany", async function (next, docs) {
+//     try {
 
-        // Asosiy hujjatlarni qayta ishlash
-        for (const doc of docs) {
-            // Har bir hujjat uchun atributlarni qayta ishlash
-            for (const attr of doc.attributes) {
-                if (attr.images && attr.images.length) {
-                    // Rasmlarni yuklash va attr.images ni yangilash
-                    attr.images = await fileService.upload(attr.images);
-                }
-            }
-        }
-        // Asinxron jarayonlar tugagandan keyin next() chaqiriladi
-        next();
-    } catch (err) {
-        // Xatolik yuz berganda, next() orqali xato uzatish
-        next(err);
-    }
-});
+//         // Asosiy hujjatlarni qayta ishlash
+//         for (const doc of docs) {
+//             // Har bir hujjat uchun atributlarni qayta ishlash
+//             for (const attr of doc.attributes) {
+//                 if (attr.images && attr.images.length) {
+//                     // Rasmlarni yuklash va attr.images ni yangilash
+//                     attr.images = await fileService.upload(attr.images);
+//                 }
+//             }
+//         }
+//         // Asinxron jarayonlar tugagandan keyin next() chaqiriladi
+//         next();
+//     } catch (err) {
+//         // Xatolik yuz berganda, next() orqali xato uzatish
+//         next(err);
+//     }
+// });
 
 
 

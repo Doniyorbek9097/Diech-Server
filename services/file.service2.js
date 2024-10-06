@@ -25,7 +25,7 @@ class File {
                 const originalName = path.basename(part.filename, extname);
                 
                 const imagesFormats = [".jpg",".png", ".jpeg", ".webp",".avif"];
-                if (!imagesFormats.includes(extname)) return reject(new Error("Image format invalit"))
+                if (!imagesFormats.includes(extname.toLocaleLowerCase())) return reject(new Error("Image format invalit"))
                 const fileName = `${originalName}-${slugify(`${timestamp}-${generateOTP(5)}.webp`)}`;
                     const fileBuffer = await part.toBuffer();
                     await sharp(fileBuffer)
