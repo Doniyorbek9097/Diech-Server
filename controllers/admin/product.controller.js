@@ -121,8 +121,7 @@ class Product {
 
         const { body: product } = req;
         try {
-            const updated = await productModel.findByIdAndUpdate(req.params.id, product);
-            console.log(updated)
+            const updated = await productModel.findByIdAndUpdate(req.params.id, product, { new: true });
             for (const item of updated.images) {
                 await fileModel.findByIdAndUpdate(item.image_id, { isActive: true })
             }
