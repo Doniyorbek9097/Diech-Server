@@ -124,7 +124,7 @@ class Product {
             const updated = await productModel.findByIdAndUpdate(req.params.id, product);
             console.log(updated)
             for (const item of updated.images) {
-                await fileModel.findByIdAndUpdate(item.image_id, {$set:{ isActive: true }})
+                await fileModel.findByIdAndUpdate(item.image_id, { isActive: true })
             }
 
             return reply.send(updated);
