@@ -1,5 +1,7 @@
 const { checkToken } = require("../../middlewares/authMiddleware");
-const productController = require("../../controllers/admin/product.controller")
+const productController = require("../../controllers/admin/product.controller");
+const productModel = require("../../models/product.model");
+const shopProductModel = require("../../models/shop.product.model");
 
 const productRoutes = async (fastify, options) => {
     try {
@@ -21,8 +23,20 @@ const productRoutes = async (fastify, options) => {
         fastify.post("/upload", productController.imageUpload)
         fastify.delete("/remove/:id", productController.imageRemove)
         fastify.get("/images", productController.productImage)
-
         fastify.get("/product-all-indexed", productController.indexed)
+
+        fastify.post("/images-replace", async(req, reply) => {
+            try {
+                const { id, images } = req.body;
+                await productModel.findByIdAndUpdate(id, { images })
+                await shopProductModel.findByIdAndUpdate(id, { images })
+                return reply.send("success")
+
+            } catch (error) {
+                console.log(error);
+                
+            }
+        })
 
     } catch (error) {
         console.log(error);

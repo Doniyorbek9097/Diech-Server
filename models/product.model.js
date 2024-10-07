@@ -91,22 +91,18 @@ const productSchema = Schema({
 
     images: [
         {
-            image_id: {
-                type: Schema.Types.ObjectId,
-                ref:"File",
-                required: true
-            },
-            small: {
-                type: String,
-                required: true
-            },
-            large: {
-                type: String,
-                required: true
-            }
+          _id: {  // yoki id deb ham nomlashingiz mumkin
+            type: Schema.Types.ObjectId,
+            ref: "File",
+            required: true
+          },
+          url: {
+            type: String,
+            required: true
+          }
         }
-    ],
-
+      ],
+      
     properteis: [propertiesSchema],
     variantAttributes: {
         type: [Schema.Types.ObjectId],
