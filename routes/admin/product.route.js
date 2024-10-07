@@ -20,8 +20,8 @@ const productRoutes = async (fastify, options) => {
         //delete by id
         fastify.delete("/product-delete/:id", { preHandler: checkToken }, productController.deleteById);
 
-        fastify.post("/upload", productController.imageUpload)
-        fastify.delete("/remove/:id", productController.imageRemove)
+        fastify.post("/prodct-image-upload", productController.imageUpload)
+        fastify.delete("/product-image-remove/:id", productController.imageRemove)
         fastify.get("/images", productController.productImage)
         fastify.get("/product-all-indexed", productController.indexed)
 
@@ -29,7 +29,7 @@ const productRoutes = async (fastify, options) => {
             try {
                 const { id, images } = req.body;
                 await productModel.findByIdAndUpdate(id, { images })
-                await shopProductModel.findByIdAndUpdate(id, { images })
+                await shopProductModel.findOneAndUpdate({parent: id}, { images })
                 return reply.send("success")
 
             } catch (error) {

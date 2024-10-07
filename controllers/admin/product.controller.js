@@ -30,8 +30,8 @@ class Product {
             const newProduct = await new productModel(product).save();
     
             // Tasvirlarni faollashtirish
-            const updatePromises = newProduct.images.map(item => 
-                fileModel.updateOne({ _id: item._id }, { isActive: true, product_id: newProduct._id })
+            const updatePromises = newProduct.images.map(async item => 
+                await fileModel.updateOne({ _id: item._id }, { isActive: true, owner_id: newProduct._id, owner_type:"product" })
             );
             await Promise.all(updatePromises); // Parallel bajariladi
     
@@ -145,8 +145,8 @@ async updateById(req, reply) {
         }
 
         // Tasvirlarni faollashtirish
-        const updatePromises = updated.images.map(item => 
-            fileModel.findByIdAndUpdate(item._id, { isActive: true })
+        const updatePromises = updated.images.map(async item => 
+           await fileModel.updateOne({ _id: item._id }, { isActive: true, owner_id: newProduct._id, owner_type:"product" })
         );
         await Promise.all(updatePromises); // Parallel bajariladi
 
@@ -195,19 +195,19 @@ async updateById(req, reply) {
     async productImage(req, reply) {
         try {
             // Barcha mahsulotlarning images arrayini tozalash
-            await shopProductModel.updateMany({}, { $set: { images: [] } });
+            // await shopProductModel.updateMany({}, { $set: { images: [] } });
 
-            const products = await productModel.find().select("images").lean()
+            const files = await fileModel.find().lean()
 
             // File saqlashlarni to'plab, parallel ravishda bajarish uchun
-            const updatePromises = products.map(product => {
-                return shopProductModel.updateOne(
-                    { parent: product._id },
+            const updatePromises = files.map(file => {
+                return fileModel.updateOne(
+                    { _id: file._id },
                     {
-                        $push: {
-                            images: {
-                                $each: product.images // Agar images array bo'lsa, $each bilan qo'shish
-                            }
+                        $set: {
+                           image_url: file.image.large,
+                           owner_id: file.product_id,
+                           owner_type: "product"
                         }
                     }
                 );
@@ -227,13 +227,12 @@ async updateById(req, reply) {
     async imageUpload(req, reply) {
         try {
             const part = await req.file();
-            const small = await fileService.photoUpload({ part, width: 100, quality: 10 })
-            const large = await fileService.photoUpload({ part })
-            const newdata = await new fileModel({ image: { small:small, large:large } }).save()
+            const image_url = await fileService.photoUpload({ part })
+            const newdata = await new fileModel({ image_url }).save()
             
             return reply.send({
-                image_id: newdata._id,
-                ...newdata.image
+                _id: newdata._id,
+                url: newdata.image_url
             })
 
         } catch (error) {
@@ -248,7 +247,7 @@ async updateById(req, reply) {
         try {
             const { id } = req.params;
             const file = await fileModel.findById(id);
-            await fileService.remove(file?.url)
+            await fileService.remove(file.image_url)
             const deleted = await fileModel.findByIdAndDelete(file._id);
             return reply.send(deleted)
         } catch (error) {

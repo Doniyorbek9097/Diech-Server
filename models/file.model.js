@@ -4,6 +4,10 @@ const fileService = require("../services/file.service2")
 const cron = require('node-cron');
 
 const fileSchema = Schema({
+    image_url:String,
+    owner_id: String,
+    owner_type: String,
+    
     image: {
         small: String,
         large: String
