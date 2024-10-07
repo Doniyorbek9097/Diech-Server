@@ -135,26 +135,42 @@ class Product {
 
 
     async updateById(req, reply) {
-
         const { body: product } = req;
+    
         try {
+            // Mahsulotni yangilash
             const updated = await productModel.findByIdAndUpdate(req.params.id, product, { new: true });
-            for (const item of updated.images) {
-                await fileModel.findByIdAndUpdate(item.image_id, { isActive: true })
+    
+            if (!updated) {
+                return reply.status(404).send({ error: "Mahsulot topilmadi" });
             }
-
+    
+            // Tasvirlarni faollashtirish
+            const updatePromises = updated.images.map(item => 
+                fileModel.findByIdAndUpdate(item.image_id, { isActive: true })
+            );
+            await Promise.all(updatePromises); // Parallel bajariladi
+    
             return reply.send(updated);
         } catch (error) {
-            for (const item of product.images) {
-                await fileService.remove(item?.small)
-                await fileService.remove(item?.large)
-                await fileModel.findByIdAndDelete(item.image_id, { isActive: false })
+            console.error("Yangilashda xato:", error);
+            
+            // Xato bo'lsa, rasmlarni o'chirish
+            try {
+                const removePromises = product.images.map(async item => {
+                    await fileService.remove(item?.small);
+                    await fileService.remove(item?.large);
+                    await fileModel.findByIdAndDelete(item.image_id);
+                });
+                await Promise.all(removePromises); // Parallel bajariladi
+            } catch (cleanupError) {
+                console.error("Rasmlarni o'chirishda xato:", cleanupError);
             }
-            console.log(error);
-            return reply.status(500).send("Server Xatosi: " + error);
+    
+            return reply.status(500).send("Server Xatosi: " + error.message);
         }
     }
-
+    
 
     async deleteById(req, reply) {
         try {
