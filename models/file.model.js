@@ -7,22 +7,13 @@ const fileSchema = Schema({
     image_url:String,
     owner_id: String,
     owner_type: String,
-    
-    image: {
-        small: String,
-        large: String
-    },
 
     isActive: {
         type: Boolean,
         default: false
     },
-
-    product_id: {
-        type: Schema.Types.ObjectId,
-        ref:"product"
-    }
 },
+
 {
     timestamps: true,
     minimize: true

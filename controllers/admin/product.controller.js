@@ -204,10 +204,9 @@ async updateById(req, reply) {
                 return fileModel.updateOne(
                     { _id: file._id },
                     {
-                        $set: {
-                           image_url: file.image.large,
-                           owner_id: file.product_id,
-                           owner_type: "product"
+                        $unset: {
+                            image: "", // Maydonni o'chirish uchun qiymatni bo'sh stringga qo'yamiz
+                            product_id: ""
                         }
                     }
                 );
