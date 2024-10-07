@@ -12,33 +12,50 @@ class Product {
     async add(req, reply) {
         let { body: product } = req;
         try {
-            product.slug = slugify(`${product.name.ru.toLowerCase()}`);
-
+            // Mahsulot nomi mavjudligini tekshirish va slug yaratish
+            if (!product.name?.ru) {
+                throw new Error("Mahsulot nomi mavjud emas");
+            }
+            product.slug = slugify(product.name.ru.toLowerCase());
+    
+            // Barcode bo'yicha mahsulotni qidirish
             if (product.barcode) {
                 const existsProduct = await productModel.findOne({ barcode: product.barcode });
                 if (existsProduct) {
-                    throw new Error(`Bunday mahsulot mavjud! Barcode: ${product.barcode}`); // Throw an error to handle in catch block
+                    throw new Error(`Bunday mahsulot mavjud! Barcode: ${product.barcode}`);
                 }
             }
-
+    
+            // Yangi mahsulotni saqlash
             const newProduct = await new productModel(product).save();
-        
-            for (const item of newProduct.images) {
-                await fileModel.findByIdAndUpdate(item.image_id, { isActive: true })
-            }
-
+    
+            // Tasvirlarni faollashtirish
+            const updatePromises = newProduct.images.map(item => 
+                fileModel.updateOne({ _id: item.image_id }, { isActive: true, product_id: newProduct._id })
+            );
+            await Promise.all(updatePromises); // Parallel bajariladi
+    
             return reply.send({ data: newProduct, message: "success added" });
-
+    
         } catch (error) {
             console.error(error);
-            for (const item of product.images) {
-                await fileService.remove(item.small)
-                await fileService.remove(item.large)
-                await fileModel.findByIdAndDelete(item._id, { isActive: false })
+    
+            // Xato bo'lsa, rasmlarni o'chirish
+            try {
+                const removePromises = product.images.map(async item => {
+                    await fileService.remove(item.small);
+                    await fileService.remove(item.large);
+                    await fileModel.deleteOne({ _id: item._id });
+                });
+                await Promise.all(removePromises); // Parallel bajariladi
+            } catch (cleanupError) {
+                console.error("Rasmlarni o'chirishda xato: ", cleanupError);
             }
+    
             return reply.status(500).send({ error: error.message });
         }
     }
+    
 
 
     async all(req, reply) {
