@@ -174,7 +174,7 @@ async updateById(req, reply) {
 
         // Tasvirlarni faollashtirish
         const updatePromises = updated.images.map(async item => 
-           await fileModel.updateOne({ _id: item._id }, { isActive: true, owner_id: newProduct._id, owner_type:"product" })
+           await fileModel.updateOne({ _id: item._id }, { isActive: true, owner_id: updated._id, owner_type:"product" })
         );
         await Promise.all(updatePromises); // Parallel bajariladi
 
@@ -274,7 +274,7 @@ async updateById(req, reply) {
         try {
             const { id } = req.params;
             const file = await fileModel.findById(id);
-            await fileService.remove(file.url)
+            await fileService.remove(file.image_url)
             const deleted = await fileModel.findByIdAndDelete(file._id);
             return reply.send(deleted)
         } catch (error) {
