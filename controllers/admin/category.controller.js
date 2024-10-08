@@ -1,9 +1,9 @@
 const slugify = require("slugify");
 const mongoose = require("mongoose");
 const categoryModel = require("../../models/category.model");
-const { Base64ToFile } = require("../../utils/base64ToFile");
 const { generateOTP } = require("../../utils/otpGenrater")
-const fileService = require("../../services/file.service")
+const fileService = require("../../services/file.service2")
+const fileModel = require("../../models/file.model")
 
 class Category {
     async create(req, reply) {
@@ -209,6 +209,41 @@ class Category {
             return reply.status(500).send("category o'chirib bo'lmadi")
         }
     }
+
+
+    async imageUpload(req, reply) {
+        try {
+            const part = await req.file();
+            const image_url = await fileService.photoUpload({ part })
+            const newdata = await new fileModel({ image_url }).save()
+            
+            return reply.send({
+                _id: newdata._id,
+                url: newdata.image_url
+            })
+
+        } catch (error) {
+            console.log(error);
+            reply.code(500).send(error.message)
+
+        }
+    }
+
+
+    async imageRemove(req, reply) {
+        try {
+            const { id } = req.params;
+            const file = await fileModel.findById(id);
+            await fileService.remove(file.image_url)
+            const deleted = await fileModel.findByIdAndDelete(file._id);
+            return reply.send(deleted)
+        } catch (error) {
+            console.log(error);
+            reply.code(500).send(error.message)
+
+        }
+    }
+
 
 }
 

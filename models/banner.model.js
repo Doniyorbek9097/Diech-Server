@@ -1,9 +1,16 @@
 const { Schema } = require("mongoose");
 const { serverDB } = require("../config/db")
+
+
 const bannerSchema = new Schema({
     image: {
         type: String,
         intl: true
+    },
+
+    image_id: {
+        uz: String,
+        ru: String
     },
 
     smallImage: {

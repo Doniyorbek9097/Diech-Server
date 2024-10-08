@@ -1,16 +1,23 @@
 const slugify = require("slugify")
-const fileService = require("../../services/file.service")
+const fileService = require("../../services/file.service2")
 const bannerModel = require("../../models/banner.model")
 
 class Banner {
     async create(req, reply) {
         const { image, slug } = req.body;
-        req.body.slug = slugify(slug);
-        image && (req.body.image.uz = await fileService.upload(req, image.uz));
-        image && (req.body.image.ru = await fileService.upload(req, image.ru));
-
         try {
-            const result = await new bannerModel(req.body).save();
+            const result = await new bannerModel({
+                slug: slug,
+                image: {
+                    uz: image.uz.url,
+                    ru: image.ru.url
+                },
+                image: {
+                    uz: image.uz._id,
+                    ru: image.ru._id
+                },
+
+            }).save();
             return reply.send({
                 data: result,
                 message: "Success"

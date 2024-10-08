@@ -33,7 +33,35 @@ class Product {
             const updatePromises = newProduct.images.map(async item => 
                 await fileModel.updateOne({ _id: item._id }, { isActive: true, owner_id: newProduct._id, owner_type:"product" })
             );
+
             await Promise.all(updatePromises); // Parallel bajariladi
+
+            const productIndexed = async (product) => {
+                    const variant_uz = product?.variantAttributes?.flatMap(attr => attr.name?.uz || []) || [];
+                    const variant_ru = item?.variants?.flatMap(variant => variant?.attributes?.flatMap(attr => attr.value?.ru || [])) || [];
+                    const attribute_uz = item?.attributes?.flatMap(attr => attr.value?.uz)
+                    const attribute_ru = item?.attributes?.flatMap(attr => attr.value?.ru)
+                    const attributes_uz = item?.attributes?.flatMap(attr => attr?.values.flatMap(item => item.uz))
+                    const attributes_ru = item?.attributes?.flatMap(attr => attr?.values.flatMap(item => item.ru))
+    
+                    return {
+                        objectID: item._id.toString(),  // objectID ni _id dan olish
+                        name_uz: item?.name?.uz,
+                        name_ru: item?.name?.ru,
+                        keywords_uz: item?.keywords?.uz,
+                        keywords_ru: item?.keywords?.ru,
+                        variant_uz: variant_uz,
+                        variant_ru: variant_ru,
+                        attribute_uz: attribute_uz,
+                        attribute_ru: attribute_ru,
+                        attributes_uz,
+                        attributes_ru,
+                        barcode: item?.barcode
+                    }
+            }
+
+            // await productIndexed(newProduct)
+            // await productsIndex.saveObjects(body);
     
             return reply.send({ data: newProduct, message: "success added" });
     
@@ -246,7 +274,7 @@ async updateById(req, reply) {
         try {
             const { id } = req.params;
             const file = await fileModel.findById(id);
-            await fileService.remove(file.image_url)
+            await fileService.remove(file.url)
             const deleted = await fileModel.findByIdAndDelete(file._id);
             return reply.send(deleted)
         } catch (error) {
