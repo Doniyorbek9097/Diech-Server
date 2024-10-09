@@ -13,8 +13,7 @@ const fileNotActiveRemove = () => {
                 const deletePromises = files.map(async (file) => {
                     try {
                         // Faylni o'chirish
-                        await fileService.remove(file.image.small);
-                        await fileService.remove(file.image.large);
+                        await fileService.remove(file.image_url);
                         // Faylni bazadan o'chirish
                         await fileModel.findByIdAndDelete(file._id);
                     } catch (error) {

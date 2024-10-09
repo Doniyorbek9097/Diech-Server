@@ -53,13 +53,12 @@ async function shopVariantRoutes(fastify, options) {
     fastify.post("/variant-images", async (req, reply) => {
         try {
             const part = await req.file();
-            const small = await fileService.photoUpload({ part, width: 200, quality: 10 })
-            const large = await fileService.photoUpload({ part })
-            const newdata = await new fileModel({ image: { small, large } }).save()
+            const image_url = await fileService.photoUpload({ part })
+            const newdata = await new fileModel({ image_url }).save()
             
             return reply.send({
-                image_id: newdata._id,
-                ...newdata.image
+                _id: newdata._id,
+                url: newdata.image_url
             })
     
         } catch (error) {
@@ -73,9 +72,8 @@ async function shopVariantRoutes(fastify, options) {
         try {
             const { id } = req.params;
             const file = await fileModel.findById(id);
-            await fileService.remove(file.image.large)
-            await fileService.remove(file.image.small)
-            const deleted = await fileModel.findByIdAndDelete(id);
+            await fileService.remove(file.image_url)
+            const deleted = await fileModel.findByIdAndDelete(file._id);
             return reply.send(deleted)
         } catch (error) {
             console.log(error);
