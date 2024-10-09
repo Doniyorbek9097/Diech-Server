@@ -38,6 +38,10 @@ const attributesSchema = Schema({
         type: String,
         default: undefined
     },
+    images: {
+        type: [imagesSchema],
+        default: undefined
+    },
 },
     {
         toJSON: { virtuals: true },
