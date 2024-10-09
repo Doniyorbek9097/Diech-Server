@@ -40,21 +40,16 @@ async function productRoutes(fastify, options) {
 
             variants = await Promise.all(
                 variants.map(async (item) => {
-                    for (const attr of item.attributes) {
-                        if (attr?.images?.length) {
-                            for (const image of attr?.images) {
-                                await fileModel.updateOne({ _id: image._id }, { isActive: true, owner_id: newProduct._id, owner_type: "shopProduct" });
-                            }
+                    if (item?.images?.length) {
+                        for (const image of attr?.images) {
+                            await fileModel.updateOne({ _id: image._id }, { isActive: true, owner_id: newProduct._id, owner_type: "shopProduct" });
                         }
-
                     }
-                    return {
-                        product: newProduct._id,
-                        ...item
-                    };
+
+                    return item;
                 })
             );
-            
+
             await variantModel.insertMany(variants)
 
 
@@ -89,14 +84,11 @@ async function productRoutes(fastify, options) {
             try {
                 await Promise.all(
                     variants.map(async (item) => {
-                        for (const attr of item.attributes) {
-                            if (attr?.images?.length) {
-                                for (const image of attr?.images) {
-                                    await fileService.remove(image.url);
-                                    await fileModel.deleteOne({ _id: image._id });
-                                }
+                        if (item?.images?.length) {
+                            for (const image of item?.images) {
+                                await fileService.remove(image.url);
+                                await fileModel.deleteOne({ _id: image._id });
                             }
-    
                         }
                     })
                 );

@@ -38,12 +38,6 @@ const attributesSchema = Schema({
         type: String,
         default: undefined
     },
-
-    images: {
-        type: [imagesSchema],
-        default: undefined
-    },
-
 },
     {
         toJSON: { virtuals: true },
@@ -62,6 +56,10 @@ const variantsSchema = Schema({
     inStock: { type: Number, default: 1 },
     name: String,
     slug: String,
+    images: {
+        type: [imagesSchema],
+        default: undefined
+    },
     orginal_price: Number,
     sale_price: Number,
     discount: Number,
@@ -116,9 +114,8 @@ const deleteShopVariants = async function (next) {
                 for (const attr of doc.attributes) {
                     if (attr?.images?.length) {
                         for (const image of attr?.images) {
-                            await fileService.remove(image.small);
-                            await fileService.remove(image.large);
-                            await fileModel.findByIdAndDelete(image.image_id);
+                            await fileService.remove(image.url);
+                            await fileModel.findByIdAndDelete(image._id);
                         }
                     }
                 }
