@@ -7,7 +7,20 @@ const productSchema = Schema({
         type: String,
         intl: true,
     },
-    images:[String],
+    images: [
+        {
+          _id: {  // yoki id deb ham nomlashingiz mumkin
+            type: Schema.Types.ObjectId,
+            ref: "File",
+            required: true
+          },
+          url: {
+            type: String,
+            required: true
+          }
+        }
+      ],
+      
     orginal_price: Number,
     sale_price: Number,
     discount: Number,

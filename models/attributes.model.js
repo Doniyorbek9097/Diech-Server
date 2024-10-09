@@ -4,10 +4,11 @@ const { serverDB } = require("../config/db")
 const options = Schema({
     name: {
         type: String,
-        intl: true
+        intl: true,
+        required: true
     },
 
-    color: String
+    color: String,
 },
 {
     toJSON: { virtuals: true }
@@ -15,9 +16,16 @@ const options = Schema({
 )
 
 const attributeSchema = new Schema({
+    type: {
+        type: String,
+        intl: true,
+        required: true
+    },
     label: {
         type: String,
-        intl: true
+        intl: true,
+        required: true
+
     },
     color: String,
     values: [options],

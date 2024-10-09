@@ -125,7 +125,6 @@ class Category {
 
             if (!category) return reply.send({ error: 'Category not found' });
 
-
             let query = {};
             let sort = {};
             switch (sortQuery) {

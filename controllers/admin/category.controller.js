@@ -151,7 +151,7 @@ class Category {
             let category = await categoryModel.findOne({ slug })
                 .populate("children")
                 .populate('fields')
-            
+                
             if (!category) return reply.status(404).send("Category topilmadi");
             return reply.status(200).send(category);
 
