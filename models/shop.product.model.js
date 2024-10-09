@@ -127,17 +127,17 @@ const shopProductsSchema = Schema({
 
     images: [
         {
-          _id: {  // yoki id deb ham nomlashingiz mumkin
-            type: Schema.Types.ObjectId,
-            ref: "File",
-            required: true
-          },
-          url: {
-            type: String,
-            required: true
-          }
+            _id: {  // yoki id deb ham nomlashingiz mumkin
+                type: Schema.Types.ObjectId,
+                ref: "File",
+                required: true
+            },
+            url: {
+                type: String,
+                required: true
+            }
         }
-      ],
+    ],
 
     properteis: {
         type: [propertiesSchema],
@@ -264,7 +264,7 @@ shopProductsSchema.statics.getRandomProducts = async function ({ query = {}, lim
 const deleteShopVariants = async function (next) {
     try {
         const doc = await this.model.findOne(this.getFilter());
-        
+
         if (doc) {
             await variantModel.deleteMany({ product: doc._id })
         }

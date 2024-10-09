@@ -54,7 +54,7 @@ async function productRoutes(fastify, options) {
                     };
                 })
             );
-
+            
             await variantModel.insertMany(variants)
 
 
@@ -86,24 +86,24 @@ async function productRoutes(fastify, options) {
             return reply.status(200).send({ data: newProduct, message: "success added" });
 
         } catch (error) {
-            await Promise.all(
-                variants.map(async (item) => {
-                    for (const attr of item.attributes) {
-                        if (attr?.images?.length) {
-                            for (const image of attr?.images) {
-                                await fileService.remove(image.url);
-                                await fileModel.deleteOne({ _id: image._id });
+            try {
+                await Promise.all(
+                    variants.map(async (item) => {
+                        for (const attr of item.attributes) {
+                            if (attr?.images?.length) {
+                                for (const image of attr?.images) {
+                                    await fileService.remove(image.url);
+                                    await fileModel.deleteOne({ _id: image._id });
+                                }
                             }
+    
                         }
-
-                    }
-                    return {
-                        product: newProduct._id,
-                        ...item
-                    };
-                })
-            );
-            console.error(error);
+                    })
+                );
+            } catch (clupError) {
+                console.log(clupError)
+            }
+            console.log(error);
             return reply.status(500).send(error.message);
         }
     });

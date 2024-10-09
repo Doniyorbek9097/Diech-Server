@@ -29,16 +29,12 @@ const attributesSchema = Schema({
 
     images: [
         {
-            image_id: {
+            _id: {  // yoki id deb ham nomlashingiz mumkin
                 type: Schema.Types.ObjectId,
                 ref: "File",
                 required: true
             },
-            small: {
-                type: String,
-                required: true
-            },
-            large: {
+            url: {
                 type: String,
                 required: true
             }
