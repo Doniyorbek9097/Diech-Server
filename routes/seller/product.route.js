@@ -8,6 +8,7 @@ const slugify = require("slugify");
 const { generateOTP } = require("../../utils/otpGenrater");
 const fieldModel = require("../../models/field.model");
 const fileModel = require("../../models/file.model");
+const fileService = require("../../services/file.service2");
 
 const productsIndex = algolia.initIndex("ShopProducts");
 
@@ -42,7 +43,7 @@ async function productRoutes(fastify, options) {
                     for (const attr of item.attributes) {
                         if (attr?.images?.length) {
                             for (const image of attr?.images) {
-                                await fileModel.updateOne({ _id: image.image_id }, { isActive: true });
+                                await fileModel.updateOne({ _id: image._id }, { isActive: true, owner_id: newProduct._id, owner_type: "shopProduct" });
                             }
                         }
 
@@ -85,6 +86,23 @@ async function productRoutes(fastify, options) {
             return reply.status(200).send({ data: newProduct, message: "success added" });
 
         } catch (error) {
+            await Promise.all(
+                variants.map(async (item) => {
+                    for (const attr of item.attributes) {
+                        if (attr?.images?.length) {
+                            for (const image of attr?.images) {
+                                await fileService.remove(image.url);
+                                await fileModel.deleteOne({ _id: image._id });
+                            }
+                        }
+
+                    }
+                    return {
+                        product: newProduct._id,
+                        ...item
+                    };
+                })
+            );
             console.error(error);
             return reply.status(500).send(error.message);
         }
