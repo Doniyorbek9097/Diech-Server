@@ -41,12 +41,15 @@ async function productRoutes(fastify, options) {
             variants = await Promise.all(
                 variants.map(async (item) => {
                     if (item?.images?.length) {
-                        for (const image of attr?.images) {
+                        for (const image of item?.images) {
                             await fileModel.updateOne({ _id: image._id }, { isActive: true, owner_id: newProduct._id, owner_type: "shopProduct" });
                         }
                     }
 
-                    return item;
+                    return {
+                        product: newProduct._id,
+                        ...item
+                    };
                 })
             );
 

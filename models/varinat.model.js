@@ -111,12 +111,10 @@ const deleteShopVariants = async function (next) {
         if (docs && docs.length) {
             for (const doc of docs) {
                 // Har bir hujjatning attributes maydonidagi rasmlarni o'chirish
-                for (const attr of doc.attributes) {
-                    if (attr?.images?.length) {
-                        for (const image of attr?.images) {
-                            await fileService.remove(image.url);
-                            await fileModel.findByIdAndDelete(image._id);
-                        }
+                if (doc?.images?.length) {
+                    for (const image of doc?.images) {
+                        await fileService.remove(image.url);
+                        await fileModel.findByIdAndDelete(image._id);
                     }
                 }
             }
