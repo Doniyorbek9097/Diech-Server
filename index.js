@@ -19,7 +19,7 @@ require('./testbot');
 // require("./bot")
 const { fileNotActiveRemove } = require("./services/file-cron.service")
 const { serverDB } = require('./config/db');
-// fileNotActiveRemove()
+fileNotActiveRemove()
 
 const io = new Server(fastify.server, {
   cors: {
