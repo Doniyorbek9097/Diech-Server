@@ -37,23 +37,30 @@ async function productRoutes(fastify, options) {
 
             newProduct.slug = slugify(`${product.name.uz.slice(0, 8)}-${newProduct._id.toString()}`);
             await newProduct.save();
-
             variants = await Promise.all(
                 variants.map(async (item) => {
                     if (item?.images?.length) {
-                        for (const image of item?.images) {
-                            await fileModel.updateOne({ _id: image._id }, { isActive: true, owner_id: newProduct._id, owner_type: "shopProduct" });
-                        }
+                        // Barcha rasmlar yangilangunicha kutish
+                        await Promise.all(
+                            item.images.map(async (image) => {
+                                await fileModel.updateOne(
+                                    { _id: image._id }, 
+                                    { isActive: true, owner_id: newProduct._id, owner_type: "shopProduct" }
+                                );
+                            })
+                        );
                     }
-
+            
                     return {
                         product: newProduct._id,
                         ...item
                     };
                 })
             );
-
-            await variantModel.insertMany(variants)
+            
+            // Faqat barcha fayllar to'g'ri yangilangandan keyin variantlarni saqlash
+            await variantModel.insertMany(variants);
+            
 
 
             // const body = products.flatMap((item) => {
@@ -226,6 +233,7 @@ async function productRoutes(fastify, options) {
         try {
             const product = await shopProductModel.findById(req.params.id)
                 .populate("categories")
+                .populate("variants")
                 .lean();
 
             if (!product) {
