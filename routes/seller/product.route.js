@@ -9,7 +9,6 @@ const { generateOTP } = require("../../utils/otpGenrater");
 const fieldModel = require("../../models/field.model");
 const fileModel = require("../../models/file.model");
 const fileService = require("../../services/file.service2");
-
 const productsIndex = algolia.initIndex("ShopProducts");
 
 async function productRoutes(fastify, options) {
