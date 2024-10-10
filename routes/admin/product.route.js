@@ -9,7 +9,7 @@ const productRoutes = async (fastify, options) => {
         fastify.post("/product-add", { preHandler: checkToken }, productController.add);
 
         // get all products 
-        fastify.get("/product-all", { preHandler: checkToken }, productController.all)
+        fastify.get("/product-all", productController.all)
 
         // get one by id 
         fastify.get("/product-one/:id", { preHandler: checkToken }, productController.oneById);
