@@ -1,6 +1,7 @@
 const productModel = require("../../models/product.model");
 const shopProductModel = require("../../models/shop.product.model");
 const { algolia } = require("../../config/algolia");
+const { $exists } = require("sift");
 const productsIndex = algolia.initIndex("ShopProducts");
 
 
@@ -153,6 +154,7 @@ async function productRoutes(fastify, options) {
             limit: 8             // Limitni qo'llash
           }
         })
+        .select("-keywords")
 
         
 
@@ -173,9 +175,9 @@ async function productRoutes(fastify, options) {
         ]);
 
         const randomProductIds = result ? result.ids : [];
-        return await shopProductModel.find({ _id: { $in: randomProductIds } })
+        return await shopProductModel.find({ _id: { $in: randomProductIds, },  slug: { $ne: slug } })
           .populate("categories", "slug")
-          .select("categories name slug images orginal_price sale_price discount reviews viewsCount")
+          .select("categories name slug images orginal_price sale_price discount reviewsCount viewsCount")
           .limit(8);
       };
 

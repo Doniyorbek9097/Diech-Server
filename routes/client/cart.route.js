@@ -36,29 +36,11 @@ const cartRoutes = async (router, options) => {
             }
 
             cart = await cart.save()
-
-            cart = await cartModel.findOne({ _id: cart.id })
-                .populate('products.product_id')
-                .populate('products.variant_id')
-
-            const products = cart?.products?.flatMap(item => ({
-                variant: item?.variant_id,
-                product: item?.product_id,
-                quantity: item.quantity
-            }))
-
-            const data = {
-                ...cart?.toJSON(),
-                products
-            }
-
-            // res.status(200).json(data);
-
-            return { message: "success added", data: data };
+            return res.code(200).send(cart);
 
         } catch (error) {
             console.error(error);
-            return res.status(500).send({ message: error.message });
+            return res.code(500).send(error.message);
         }
     });
 
@@ -75,7 +57,7 @@ const cartRoutes = async (router, options) => {
                     }
                 })
                 .populate("products.variant_id")
-            
+
             const products = cart?.products?.flatMap(item => ({
                 variant: item?.variant_id,
                 product: item?.product_id,
