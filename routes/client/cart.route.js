@@ -14,7 +14,7 @@ const cartRoutes = async (router, options) => {
                 cart = new cartModel(req.body);
                 cart.products.push(req.body.product)
                 const data = await cart.save()
-                return { message: "success created", data };
+                return res.code(201).send(data);
             }
 
 
@@ -40,7 +40,7 @@ const cartRoutes = async (router, options) => {
 
         } catch (error) {
             console.error(error);
-            return res.code(500).send(error.message);
+            return res.code(500).send({ message: error.message });
         }
     });
 
@@ -57,7 +57,7 @@ const cartRoutes = async (router, options) => {
                     }
                 })
                 .populate("products.variant_id")
-
+            
             const products = cart?.products?.flatMap(item => ({
                 variant: item?.variant_id,
                 product: item?.product_id,
