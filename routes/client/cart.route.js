@@ -40,7 +40,7 @@ const cartRoutes = async (router, options) => {
 
         } catch (error) {
             console.error(error);
-            return res.code(500).send({ message: error.message });
+            return res.code(500).send(error.message);
         }
     });
 
