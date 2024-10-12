@@ -210,7 +210,11 @@ const shopProductsSchema = Schema({
     },
 
 
-    attributes: [attributesSchema],
+    attributes: {
+        type:[attributesSchema],
+        default: undefined,
+        index: true
+    },
     position: Number,
 
 },

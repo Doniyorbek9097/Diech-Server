@@ -10,61 +10,51 @@ const productsIndex = algolia.initIndex("products");
 class Product {
     async add(req, reply) {
         let { body: product } = req;
-        const session = await serverDB.startSession() // Sessiyani boshlaymiz
+        const session = await serverDB.startSession(); // Sessiyani boshlaymiz
+    
         try {
-            // Tranzaktsiyani withTransaction() ichida boshqaramiz
-            await session.withTransaction(async () => {
-                // Mahsulot nomi mavjudligini tekshirish va slug yaratish
-
-                if (!product.name?.ru) {
-                    throw new Error("Mahsulot nomi mavjud emas");
+            session.startTransaction(); // Tranzaktsiyani boshlash
+    
+            if (!product.name?.ru) {
+                throw new Error("Mahsulot nomi mavjud emas");
+            }
+            product.slug = slugify(product.name.ru.toLowerCase());
+    
+            // Barcode bo'yicha mahsulotni qidirish
+            if (product.barcode) {
+                const existsProduct = await productModel.findOne({ barcode: product.barcode }).session(session);
+                if (existsProduct) {
+                    throw new Error(`Bunday mahsulot mavjud! Barcode: ${product.barcode}`);
                 }
-                product.slug = slugify(product.name.ru.toLowerCase());
-
-                // Barcode bo'yicha mahsulotni qidirish
-                if (product.barcode) {
-                    const existsProduct = await productModel.findOne({ barcode: product.barcode });
-                    if (existsProduct) {
-                        throw new Error(`Bunday mahsulot mavjud! Barcode: ${product.barcode}`);
-                    }
-                }
-
-                // Yangi mahsulotni saqlash
-                const newProduct = await new productModel(product).save({ session });
-
-                // Tasvirlarni faollashtirish
-                const updatePromises = newProduct.images.map(async (item) =>
-                    await fileModel.updateOne({ _id: item._id }, { isActive: true, owner_id: newProduct._id, owner_type: "product" }, { session })
-                );
-                await Promise.all(updatePromises); // Parallel bajariladi
-
-                // Optional: Productni indekslash yoki boshqa jarayonlar
-                // await productIndexed(newProduct);
-                // await productsIndex.saveObjects(body);
-
-                // Tranzaktsiya muvaffaqiyatli tugaydi, withTransaction() avtomatik commit qiladi
-                return reply.send({ data: newProduct, message: "success added" });
-            });
+            }
+    
+            // Yangi mahsulotni saqlash
+            const newProduct = await new productModel(product).save({ session });
+    
+            // Tasvirlarni faollashtirish
+            const updatePromises = newProduct.images.map(async (item) =>
+                await fileModel.updateOne(
+                    { _id: item._id },
+                    { isActive: true, owner_id: newProduct._id, owner_type: "product" },
+                    { session }
+                )
+            );
+            await Promise.all(updatePromises); // Parallel bajariladi
+    
+            // Tranzaktsiya muvaffaqiyatli tugaydi
+            await session.commitTransaction();
+            return reply.send({ data: newProduct, message: "success added" });
         } catch (error) {
             console.error("Xato:", error);
-
-            // Tranzaktsiya muvaffaqiyatsiz bo'lsa, rasmlarni o'chirish
-            try {
-                const removePromises = product.images.map(async (item) => {
-                    await fileService.remove(item.url);
-                    await fileModel.deleteOne({ _id: item._id });
-                });
-                await Promise.all(removePromises); // Parallel bajariladi
-            } catch (cleanupError) {
-                console.error("Rasmlarni o'chirishda xato: ", cleanupError);
-            }
-
+            
+            // Agar xato bo'lsa, sessiyani yopish va tranzaktsiyani bekor qilish
+            await session.abortTransaction();
             return reply.status(500).send({ error: error.message });
         } finally {
             await session.endSession(); // Sessiyani yopish
         }
     }
-
+    
 
     async all(req, reply) {
         const search = req.query.search || "";
@@ -149,7 +139,7 @@ class Product {
             // Mahsulotni yangilash
             session.withTransaction(async () => {
                 const updated = await productModel.findByIdAndUpdate(req.params.id, product, { new: true });
-                if (!updated)  return reply.status(404).send({ error: "Mahsulot topilmadi" });
+                if (!updated) return reply.status(404).send({ error: "Mahsulot topilmadi" });
 
                 // Tasvirlarni faollashtirish
                 await Promise.all(updated.images.map(async item =>
@@ -176,36 +166,36 @@ class Product {
 
             return reply.status(500).send("Server Xatosi: " + error.message);
         } finally {
-           await session.endSession();
+            await session.endSession();
         }
     }
 
 
     async deleteById(req, reply) {
         const session = await serverDB.startSession(); // Sessiyani boshlaymiz
-    
+
         try {
             const product = await productModel.findById(req.params.id)
-    
+
             if (!product) {
                 return reply.status(404).send({ error: "Mahsulot topilmadi" });
             }
-    
+
             await session.withTransaction(async () => {
                 // Tasvirlarni o'chirish
                 const removePromises = product.images.map(async (item) => {
                     await fileService.remove(item.url);
                     await fileModel.findByIdAndDelete(item._id, { session }); // Tasvirlarni sessiya bilan o'chirish
                 });
-    
+
                 await Promise.all(removePromises); // Paralel bajariladi
-    
+
                 // Mahsulotni o'chirish
                 const deleted = await productModel.findByIdAndDelete(req.params.id, { session }); // Mahsulotni sessiya bilan o'chirish
                 if (!deleted) {
                     throw new Error("Mahsulotni o'chirishda xato");
                 }
-    
+
                 return reply.status(200).send({ result: deleted });
             });
         } catch (error) {
@@ -215,7 +205,7 @@ class Product {
             await session.endSession(); // Sessiyani yopish
         }
     }
-    
+
 
     async productImage(req, reply) {
         try {

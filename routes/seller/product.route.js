@@ -26,88 +26,78 @@ async function productRoutes(fastify, options) {
             };
         }
     }
-    // Create new Product
-    fastify.post("/product-add", { preHandler: checkToken }, async (req, reply) => {
-        let { variants, ...product } = req.body;
+// Create new Product
+fastify.post("/product-add", { preHandler: checkToken }, async (req, reply) => {
+    let { variants, ...product } = req.body;
+    const session = await shopProductModel.startSession();  // Sessiya boshlanadi
 
+    try {
+        session.startTransaction();  // Tranzaktsiya boshlanadi
+
+        // Parent mahsulotni o'rnatish
+        product = product.parent ? await setParentProduct(product) : product;
+
+        const newProduct = await new shopProductModel(product).save({ session });
+
+        newProduct.slug = slugify(`${product.name.uz.slice(0, 8)}-${newProduct._id.toString()}`);
+        await newProduct.save({ session });
+
+        variants = await Promise.all(
+            variants.map(async (item) => {
+                if (item?.images?.length) {
+                    // Barcha rasmlar yangilangunicha kutish
+                    await Promise.all(
+                        item.images.map(async (image) => {
+                            await fileModel.updateOne(
+                                { _id: image._id }, 
+                                { isActive: true, owner_id: newProduct._id, owner_type: "shopProduct" },
+                                { session }
+                            );
+                        })
+                    );
+                }
+        
+                return {
+                    product: newProduct._id,
+                    ...item
+                };
+            })
+        );
+
+        // Variantlarni saqlash
+        await variantModel.insertMany(variants, { session });
+
+        // Tranzaktsiyani yakunlash
+        await session.commitTransaction();
+        session.endSession();
+
+        return reply.status(200).send({ data: newProduct, message: "success added" });
+
+    } catch (error) {
+        // Tranzaktsiyani bekor qilish
+        await session.abortTransaction();
+        session.endSession();
+
+        // Variantlar muvaffaqiyatsiz bo'lgan holatda tozalash
         try {
-            product = product.parent ? await setParentProduct(product) : product;
-            const newProduct = await new shopProductModel(product)
-
-            newProduct.slug = slugify(`${product.name.uz.slice(0, 8)}-${newProduct._id.toString()}`);
-            await newProduct.save();
-            variants = await Promise.all(
+            await Promise.all(
                 variants.map(async (item) => {
                     if (item?.images?.length) {
-                        // Barcha rasmlar yangilangunicha kutish
-                        await Promise.all(
-                            item.images.map(async (image) => {
-                                await fileModel.updateOne(
-                                    { _id: image._id }, 
-                                    { isActive: true, owner_id: newProduct._id, owner_type: "shopProduct" }
-                                );
-                            })
-                        );
+                        for (const image of item?.images) {
+                            await fileService.remove(image.url);
+                            await fileModel.deleteOne({ _id: image._id });
+                        }
                     }
-            
-                    return {
-                        product: newProduct._id,
-                        ...item
-                    };
                 })
             );
-            
-            // Faqat barcha fayllar to'g'ri yangilangandan keyin variantlarni saqlash
-            await variantModel.insertMany(variants);
-            
-
-
-            // const body = products.flatMap((item) => {
-            //     const variant_uz = item?.variants?.flatMap(variant => variant?.attributes?.flatMap(attr => attr.value?.uz || [])) || [];
-            //     const variant_ru = item?.variants?.flatMap(variant => variant?.attributes?.flatMap(attr => attr.value?.ru || [])) || [];
-            //     const attribute_uz = item?.attributes?.flatMap(attr => attr.value?.uz)
-            //     const attribute_ru = item?.attributes?.flatMap(attr => attr.value?.ru)
-            //     const attributes_uz = item?.attributes?.flatMap(attr => attr?.values.flatMap(item => item.uz))
-            //     const attributes_ru = item?.attributes?.flatMap(attr => attr?.values.flatMap(item => item.ru))
-
-            //     return {
-            //         objectID: item._id.toString(),  // objectID ni _id dan olish
-            //         name_uz: item?.name?.uz,
-            //         name_ru: item?.name?.ru,
-            //         keywords_uz: item?.keywords?.uz,
-            //         keywords_ru: item?.keywords?.ru,
-            //         variant_uz: variant_uz,
-            //         variant_ru: variant_ru,
-            //         attribute_uz: attribute_uz,
-            //         attribute_ru: attribute_ru,
-            //         attributes_uz,
-            //         attributes_ru,
-            //         barcode: item?.barcode
-            //     }
-            // });
-
-            // await productsIndex.saveObjects(body);
-            return reply.status(200).send({ data: newProduct, message: "success added" });
-
-        } catch (error) {
-            try {
-                await Promise.all(
-                    variants.map(async (item) => {
-                        if (item?.images?.length) {
-                            for (const image of item?.images) {
-                                await fileService.remove(image.url);
-                                await fileModel.deleteOne({ _id: image._id });
-                            }
-                        }
-                    })
-                );
-            } catch (clupError) {
-                console.log(clupError)
-            }
-            console.log(error);
-            return reply.status(500).send(error.message);
+        } catch (cleanupError) {
+            console.log("Cleanup Error:", cleanupError);
         }
-    });
+
+        console.log("Error:", error);
+        return reply.status(500).send(error.message);
+    }
+});
 
 
     fastify.get("/random", async (req, reply) => {

@@ -1,5 +1,16 @@
-const { Schema } = require("mongoose")
+const { Schema, default: mongoose } = require("mongoose")
 const { serverDB } = require("../config/db")
+
+const optionsSchema = Schema({
+    value: {
+        type: String,
+        intl: true,
+    }
+},
+{
+    timestamps: true,
+    toJSON: { virtuals: true }
+})
 
 const fieldSchema = Schema({
     category_id: {
@@ -18,10 +29,20 @@ const fieldSchema = Schema({
         default: "input"
     },
 
-    values: [{
-        uz: String,
-        ru: String
-    }]
+    value: {
+        type: String,
+        intl: true
+    },
+
+    options: {
+        type: [optionsSchema],
+        default: undefined
+    }
+}, 
+
+{
+    timestamps: true,
+    toJSON: { virtuals: true }
 })
 
 
