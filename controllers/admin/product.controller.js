@@ -11,26 +11,26 @@ class Product {
     async add(req, reply) {
         let { body: product } = req;
         const session = await serverDB.startSession(); // Sessiyani boshlaymiz
-    
+
         try {
             session.startTransaction(); // Tranzaktsiyani boshlash
-    
+
             if (!product.name?.ru) {
                 throw new Error("Mahsulot nomi mavjud emas");
             }
             product.slug = slugify(product.name.ru.toLowerCase());
-    
+
             // Barcode bo'yicha mahsulotni qidirish
             if (product.barcode) {
-                const existsProduct = await productModel.findOne({ barcode: product.barcode }).session(session);
+                const existsProduct = await productModel.findOne({ barcode: product.barcode });
                 if (existsProduct) {
                     throw new Error(`Bunday mahsulot mavjud! Barcode: ${product.barcode}`);
                 }
             }
-    
+
             // Yangi mahsulotni saqlash
             const newProduct = await new productModel(product).save({ session });
-    
+
             // Tasvirlarni faollashtirish
             const updatePromises = newProduct.images.map(async (item) =>
                 await fileModel.updateOne(
@@ -40,13 +40,13 @@ class Product {
                 )
             );
             await Promise.all(updatePromises); // Parallel bajariladi
-    
+
             // Tranzaktsiya muvaffaqiyatli tugaydi
             await session.commitTransaction();
             return reply.send({ data: newProduct, message: "success added" });
         } catch (error) {
             console.error("Xato:", error);
-            
+
             // Agar xato bo'lsa, sessiyani yopish va tranzaktsiyani bekor qilish
             await session.abortTransaction();
             return reply.status(500).send({ error: error.message });
@@ -54,7 +54,7 @@ class Product {
             await session.endSession(); // Sessiyani yopish
         }
     }
-    
+
 
     async all(req, reply) {
         const search = req.query.search || "";
@@ -136,23 +136,22 @@ class Product {
         const { body: product } = req;
         const session = await serverDB.startSession()
         try {
+            session.startTransaction()
             // Mahsulotni yangilash
-            session.withTransaction(async () => {
-                const updated = await productModel.findByIdAndUpdate(req.params.id, product, { new: true });
-                if (!updated) return reply.status(404).send({ error: "Mahsulot topilmadi" });
+            const updated = await productModel.findByIdAndUpdate(req.params.id, product, { new: true }, { session });
+            if (!updated) return reply.status(404).send({ error: "Mahsulot topilmadi" });
 
-                // Tasvirlarni faollashtirish
-                await Promise.all(updated.images.map(async item =>
-                    await fileModel.updateOne({ _id: item._id }, { isActive: true, owner_id: updated._id, owner_type: "product" })
-                ))
-                // Parallel bajariladi
-
-                return reply.send(updated);
-            })
+            // Tasvirlarni faollashtirish
+            await Promise.all(updated.images.map(async item =>
+                await fileModel.updateOne({ _id: item._id }, { isActive: true, owner_id: updated._id, owner_type: "product" }, { session })
+            ))
+            // Parallel bajariladi
+            await session.commitTransaction()
+            return reply.send(updated);
 
         } catch (error) {
             console.error("Yangilashda xato:", error);
-
+            await session.abortTransaction()
             // Xato bo'lsa, rasmlarni o'chirish
             try {
                 const removePromises = product.images.map(async item => {
@@ -164,7 +163,7 @@ class Product {
                 console.error("Rasmlarni o'chirishda xato:", cleanupError);
             }
 
-            return reply.status(500).send("Server Xatosi: " + error.message);
+            return reply.code(500).send("Server Xatosi: " + error.message);
         } finally {
             await session.endSession();
         }

@@ -165,17 +165,16 @@ class Category {
     async updateById(req, reply) {
         const { body: category } = req;
         const { id, fileName } = req.params;
-        category?.icon && (category.icon = await fileService.upload(category.icon))
-        category?.image && (category.image = await fileService.upload(category.image))
+        // category?.icon && (category.icon = await fileService.upload(category.icon))
+        // category?.image && (category.image = await fileService.upload(category.image))
 
         try {
             const upadted = await categoryModel.findByIdAndUpdate(id, category);
-            category.deletedImages.length && category.deletedImages.forEach(async item => await fileService.remove(item));
             return reply.status(200).send(upadted);
 
         } catch (error) {
-            category?.icon && await fileService.remove(category.icon)
-            category?.image && await fileService.remove(category.image)
+            // category?.icon && await fileService.remove(category.icon)
+            // category?.image && await fileService.remove(category.image)
             return reply.status(500).send(error.message)
         }
     }

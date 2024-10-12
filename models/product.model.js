@@ -91,18 +91,18 @@ const productSchema = Schema({
 
     images: [
         {
-          _id: {  // yoki id deb ham nomlashingiz mumkin
-            type: Schema.Types.ObjectId,
-            ref: "File",
-            required: true
-          },
-          url: {
-            type: String,
-            required: true
-          }
+            _id: {  // yoki id deb ham nomlashingiz mumkin
+                type: Schema.Types.ObjectId,
+                ref: "File",
+                required: true
+            },
+            url: {
+                type: String,
+                required: true
+            }
         }
-      ],
-      
+    ],
+
     properteis: [propertiesSchema],
     variantAttributes: {
         type: [Schema.Types.ObjectId],
@@ -219,6 +219,16 @@ productSchema.virtual("details", {
     foreignField: "product"
 })
 
+
+// productSchema.pre('save', function (next) {
+//     console.log(this.attributes);
+//     if (this.attributes.length > 0) {
+//         this.attributes = this.attributes.filter(item => item?.value?.uz && item?.value?.ru);
+//         console.log(this.attributes);
+        
+//     }
+//     next();
+// });
 
 async function productUpdate(doc, next) {
     if (doc) {
