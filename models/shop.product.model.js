@@ -16,10 +16,6 @@ const attributesSchema = Schema({
         }
     },
 
-    type: {
-        type: String
-    },
-
     value: {
         type: String,
         intl: true,
@@ -31,12 +27,6 @@ const attributesSchema = Schema({
             message: props => `${props.value} label qabul qilinmaydi.`
         }
     },
-
-    values: [{
-        type: Schema.Types.Mixed,
-        intl: true,
-        default: undefined
-    }]
 
 }, { toJSON: { virtuals: true } })
 

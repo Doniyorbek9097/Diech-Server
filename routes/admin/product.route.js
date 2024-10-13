@@ -25,23 +25,42 @@ const productRoutes = async (fastify, options) => {
         fastify.get("/images", productController.productImage)
         fastify.get("/product-all-indexed", productController.indexed)
 
-        fastify.post("/images-replace", async(req, reply) => {
+        fastify.post("/images-replace", async (req, reply) => {
             try {
                 const { id, images } = req.body;
                 await productModel.findByIdAndUpdate(id, { images })
-                await shopProductModel.findOneAndUpdate({parent: id}, { images })
+                await shopProductModel.findOneAndUpdate({ parent: id }, { images })
                 return reply.send("success")
 
             } catch (error) {
                 console.log(error);
-                
+
             }
         })
+
+
+        fastify.get("/del-attrs", async (req, reply) => {
+            try {
+                await shopProductModel.updateMany(
+                    {},
+                    { $unset: { 'attributes.$[].values': "" } } // Har bir attributes obyektidan values ni o'chiradi
+                );
+                reply.send({ message: 'All values in attributes have been removed successfully' });
+            } catch (error) {
+                console.log(error);
+                reply.status(500).send({ error: 'Failed to update attributes' });
+            }
+        });
+
 
     } catch (error) {
         console.log(error);
     }
+
+
 }
+
+
 
 
 module.exports = productRoutes;
