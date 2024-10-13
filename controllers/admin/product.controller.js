@@ -52,11 +52,11 @@ class Product {
             return reply.send({ data: newProduct, message: "success added" });
     
         } catch (error) {
-            console.error("Xato:", error);
+            console.log("Xato:", error);
     
             // Tranzaktsiyani bekor qilish
             await session.abortTransaction();
-            return reply.status(500).send({ error: error.message });
+            return reply.code(500).send({ error: error.message });
         } finally {
             await session.endSession(); // Sessiyani yopish
         }
@@ -159,7 +159,7 @@ class Product {
             return reply.send(updated);
     
         } catch (error) {
-            console.error("Yangilashda xato:", error);
+            console.log("Yangilashda xato:", error);
             await session.abortTransaction();
     
             // Xato bo'lsa, rasmlarni o'chirish
@@ -170,7 +170,7 @@ class Product {
                 });
                 await Promise.all(removePromises); // Parallel bajariladi
             } catch (cleanupError) {
-                console.error("Rasmlarni o'chirishda xato:", cleanupError);
+                console.log("Rasmlarni o'chirishda xato:", cleanupError);
             }
     
             return reply.code(500).send({ error: "Server Xatosi", message: error.message });
