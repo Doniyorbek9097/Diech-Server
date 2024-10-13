@@ -123,7 +123,6 @@ routesFolder.forEach(dir => {
 // });
 
 
-
 const locations = {latitude: 22222, longitude:33333}; // Joylashuvlarni vaqtinchalik saqlash uchun obyekt
 
 // API orqali joylashuvlarni qabul qilish

@@ -65,13 +65,6 @@ const propertiesSchema = Schema({
 );
 
 
-const keywordsSchema = Schema({
-    uz: Array,
-    ru: Array
-},
-
-    { toJSON: { virtuals: true } })
-
 
 const productSchema = Schema({
     name: {
@@ -115,7 +108,6 @@ const productSchema = Schema({
         ref: "Category"
     }],
 
-    keywords: keywordsSchema,
     barcode: String,
 
     method_sale: {
@@ -176,7 +168,11 @@ const productSchema = Schema({
     },
 
 
-    attributes: [attributesSchema],
+    attributes: {
+        type: [attributesSchema],
+        default: undefined,
+        index: true
+    },
     owner: {
         type: Schema.Types.ObjectId,
         ref: "User"
@@ -220,15 +216,6 @@ productSchema.virtual("details", {
 })
 
 
-// productSchema.pre('save', function (next) {
-//     console.log(this.attributes);
-//     if (this.attributes.length > 0) {
-//         this.attributes = this.attributes.filter(item => item?.value?.uz && item?.value?.ru);
-//         console.log(this.attributes);
-        
-//     }
-//     next();
-// });
 
 async function productUpdate(doc, next) {
     if (doc) {

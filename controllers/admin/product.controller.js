@@ -28,6 +28,10 @@ class Product {
                 }
             }
 
+            if (product?.attributes?.length) {
+                product.attributes = product.attributes.filter(item => item?.value?.uz && item?.value?.ru)
+            }
+
             // Yangi mahsulotni saqlash
             const newProduct = await new productModel(product).save({ session });
 

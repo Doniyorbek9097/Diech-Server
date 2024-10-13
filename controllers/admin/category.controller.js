@@ -4,7 +4,12 @@ const categoryModel = require("../../models/category.model");
 const { generateOTP } = require("../../utils/otpGenrater")
 const fileService = require("../../services/file.service2")
 const fileModel = require("../../models/file.model")
+const conn = mongoose.connection;
+// let gfs;
 
+// conn.on("open", () => {
+
+// })
 class Category {
     async create(req, reply) {
         try {
@@ -75,7 +80,7 @@ class Category {
             const search = req.query.search || "";
             const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
             const limit = parseInt(req.query.limit, 10) || 2;
-            
+
             let query = { parent: id };
 
             if (search) {
@@ -109,7 +114,7 @@ class Category {
                 .skip(page * limit)
                 .limit(limit)
                 .sort({ _id: -1 })
-            
+
             return reply.send({
                 message: "success get products",
                 data: categories,
@@ -134,7 +139,7 @@ class Category {
                 .populate({
                     path: "children",
                 })
-        
+
             if (!category) return reply.status(404).send("Category topilmadi");
             return reply.status(200).send(category);
 
@@ -151,7 +156,7 @@ class Category {
             let category = await categoryModel.findOne({ slug })
                 .populate("children")
                 .populate('fields')
-                
+
             if (!category) return reply.status(404).send("Category topilmadi");
             return reply.status(200).send(category);
 
@@ -165,16 +170,14 @@ class Category {
     async updateById(req, reply) {
         const { body: category } = req;
         const { id, fileName } = req.params;
-        // category?.icon && (category.icon = await fileService.upload(category.icon))
-        // category?.image && (category.image = await fileService.upload(category.image))
-
         try {
             const upadted = await categoryModel.findByIdAndUpdate(id, category);
             return reply.status(200).send(upadted);
 
         } catch (error) {
-            // category?.icon && await fileService.remove(category.icon)
-            // category?.image && await fileService.remove(category.image)
+            category?.icon && await fileService.remove(category.icon)
+            category?.image && await fileService.remove(category.image)
+            
             return reply.status(500).send(error.message)
         }
     }
@@ -182,7 +185,7 @@ class Category {
 
     async updateField(req, reply) {
         try {
-            const { body: category } = req;        
+            const { body: category } = req;
             await categoryModel.updateOne({ _id: category._id }, { $set: { showHomePage: category.showHomePage } })
             return reply.send("Success updated")
 
@@ -215,7 +218,7 @@ class Category {
             const part = await req.file();
             const image_url = await fileService.photoUpload({ part })
             const newdata = await new fileModel({ image_url }).save()
-            
+
             return reply.send({
                 _id: newdata._id,
                 url: newdata.image_url

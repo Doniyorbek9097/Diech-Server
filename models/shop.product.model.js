@@ -65,13 +65,6 @@ const propertiesSchema = Schema({
 );
 
 
-const keywordsSchema = Schema({
-    uz: Array,
-    ru: Array
-},
-
-    { toJSON: { virtuals: true } })
-
 
 const shopProductsSchema = Schema({
     parent: {
@@ -149,7 +142,6 @@ const shopProductsSchema = Schema({
         required: true
     }],
 
-    keywords: keywordsSchema,
     barcode: String,
 
     method_sale: {
