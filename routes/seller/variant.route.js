@@ -55,11 +55,7 @@ async function shopVariantRoutes(fastify, options) {
             const part = await req.file();
             const image_url = await fileService.photoUpload({ part })
             const newdata = await new fileModel({ image_url }).save()
-            
-            return reply.send({
-                _id: newdata._id,
-                url: newdata.image_url
-            })
+            return reply.send(newdata.image_url)
     
         } catch (error) {
             console.log(error);

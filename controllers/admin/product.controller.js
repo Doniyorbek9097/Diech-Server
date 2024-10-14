@@ -102,7 +102,7 @@ class Product {
                 const views = product.viewsCount;
                 return {
                     _id: product._id,
-                    images: product?.newImages,
+                    images: product?.images,
                     name: product.name,
                     barcode: product?.barcode,
                     sold,
