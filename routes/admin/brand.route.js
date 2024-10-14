@@ -29,18 +29,21 @@ const brendRoutes = async (fastify, options) => {
             }
 
             const newBrend = await new brendModel(req.body).save();
-            const { icon, image, _id: brend_id } = newBrend;
-            if (icon) {
-                await fileModel.updateOne({ image_url: icon }, { isActive: true, owner_id: brend_id, owner_type: "brand" });
+            const { icon, image, _id: brend_id } = req.body;
+            if(newBrend) {
+                if (icon) {
+                    await fileModel.updateOne({ image_url: icon }, { isActive: true, owner_id: brend_id, owner_type: "brand" });
+                }
+    
+                if (image?.uz) {
+                    await fileModel.updateOne({ image_url: image.uz }, { isActive: true, owner_id: brend_id, owner_type: "brand" });
+                }
+    
+                if (image?.ru) {
+                    await fileModel.updateOne({ image_url: image.ru }, { isActive: true, owner_id: brend_id, owner_type: "brand" });
+                }
             }
-
-            if (image?.uz) {
-                await fileModel.updateOne({ image_url: image.uz }, { isActive: true, owner_id: brend_id, owner_type: "brand" });
-            }
-
-            if (image?.ru) {
-                await fileModel.updateOne({ image_url: image.ru }, { isActive: true, owner_id: brend_id, owner_type: "brand" });
-            }
+           
 
             return reply.status(201).send(newBrend);
         } catch (error) {
@@ -105,14 +108,13 @@ const brendRoutes = async (fastify, options) => {
     fastify.delete('/brand/:id', async (req, reply) => {
         try {
             const deleteBrend = await brendModel.findByIdAndDelete(req.params.id).lean()
-            console.log(deleteBrend)
+        
             if (!deleteBrend) {
                 return reply.status(404).send("Brand topilmadi");
             }
     
             const { logo, image } = deleteBrend;
     
-            // Faylni o'chirish jarayoni
             if (logo) {
                 try {
                     await fileService.remove(logo);
