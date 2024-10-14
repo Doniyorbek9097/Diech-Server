@@ -22,6 +22,7 @@ const productRoutes = async (fastify, options) => {
 
         fastify.post("/prodct-image-upload", productController.imageUpload)
         fastify.delete("/product-image-remove/:image_url", productController.imageRemove)
+        
         fastify.get("/images", productController.productImage)
         fastify.get("/product-all-indexed", productController.indexed)
 

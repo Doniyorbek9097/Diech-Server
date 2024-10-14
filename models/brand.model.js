@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const { serverDB } = require("../config/db")
 
-const brendSchema = mongoose.Schema({
+const brandSchema = mongoose.Schema({
     name: {
         type: String,
         default: ""
@@ -51,24 +51,24 @@ const brendSchema = mongoose.Schema({
 );
 
 
-brendSchema.virtual("products", {
+brandSchema.virtual("products", {
     "ref": "ShopProducts",
     localField: "_id",
     foreignField: "brend",
 });
 
-brendSchema.virtual("categories", {
+brandSchema.virtual("categories", {
     "ref": "Category",
     localField: "_id",
     foreignField: "brendId",
 })
 
-brendSchema.virtual("carousel", {
+brandSchema.virtual("carousel", {
     ref: "Carousel",
     localField: "_id",
     foreignField: "brends",
 })
 
-const brendModel = serverDB.model("Brend", brendSchema);
+const brandModel = serverDB.model("Brend", brandSchema);
 
-module.exports = brendModel
+module.exports = brandModel

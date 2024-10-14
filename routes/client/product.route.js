@@ -177,7 +177,7 @@ async function productRoutes(fastify, options) {
         const randomProductIds = result ? result.ids : [];
         return await shopProductModel.find({ _id: { $in: randomProductIds, },  slug: { $ne: slug } })
           .populate("categories", "slug")
-          .select("categories name slug images orginal_price sale_price discount reviewsCount viewsCount")
+          .select("categories name slug images inStock orginal_price sale_price discount reviewsCount viewsCount")
           .limit(8);
       };
 
