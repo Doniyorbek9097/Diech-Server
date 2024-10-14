@@ -27,11 +27,9 @@ const productRoutes = async (fastify, options) => {
 
         fastify.get("/images-replace", async (req, reply) => {
             try {
-                // const { id, images } = req.body;
-                const products = productModel.find().select("images")
-                console.log(products)
-                // await productModel.findByIdAndUpdate(id, { images })
-                // await shopProductModel.findOneAndUpdate({ parent: id }, { images })
+                const { id, images } = req.body;
+                await productModel.findByIdAndUpdate(id, { images })
+                await shopProductModel.findOneAndUpdate({ parent: id }, { images })
                 return reply.send("success")
 
             } catch (error) {
