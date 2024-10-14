@@ -218,11 +218,7 @@ class Category {
             const part = await req.file();
             const image_url = await fileService.photoUpload({ part })
             const newdata = await new fileModel({ image_url }).save()
-
-            return reply.send({
-                _id: newdata._id,
-                url: newdata.image_url
-            })
+            return reply.send(newdata.image_url)
 
         } catch (error) {
             console.log(error);
@@ -234,10 +230,10 @@ class Category {
 
     async imageRemove(req, reply) {
         try {
-            const { id } = req.params;
-            const file = await fileModel.findById(id);
-            await fileService.remove(file.image_url)
-            const deleted = await fileModel.findByIdAndDelete(file._id);
+            const { image_url } = req.params;
+            const file = await fileModel.findOne({ image_url });
+            await fileService.remove(file?.image_url)
+            const deleted = await fileModel.findByIdAndDelete(file?._id);
             return reply.send(deleted)
         } catch (error) {
             console.log(error);
@@ -245,7 +241,6 @@ class Category {
 
         }
     }
-
 
 }
 

@@ -8,6 +8,17 @@ const fieldSchema = Schema({
         ref:"Category"
     },
 
+    title: {
+        uz: {
+            type:String,
+            default:""
+        },
+        ru: {
+            type:String,
+            default:""
+        },
+    },
+
     label: {
         uz: String,
         ru: String
@@ -15,7 +26,7 @@ const fieldSchema = Schema({
     
     type: {
         type: String,
-        enum:['select','checkbox','radio','input'],
+        enum:['select','input'],
         default: "input"
     },
 

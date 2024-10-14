@@ -21,15 +21,17 @@ const productRoutes = async (fastify, options) => {
         fastify.delete("/product-delete/:id", { preHandler: checkToken }, productController.deleteById);
 
         fastify.post("/prodct-image-upload", productController.imageUpload)
-        fastify.delete("/product-image-remove/:id", productController.imageRemove)
+        fastify.delete("/product-image-remove/:image_url", productController.imageRemove)
         fastify.get("/images", productController.productImage)
         fastify.get("/product-all-indexed", productController.indexed)
 
-        fastify.post("/images-replace", async (req, reply) => {
+        fastify.get("/images-replace", async (req, reply) => {
             try {
-                const { id, images } = req.body;
-                await productModel.findByIdAndUpdate(id, { images })
-                await shopProductModel.findOneAndUpdate({ parent: id }, { images })
+                // const { id, images } = req.body;
+                const products = productModel.find().select("images")
+                console.log(products)
+                // await productModel.findByIdAndUpdate(id, { images })
+                // await shopProductModel.findOneAndUpdate({ parent: id }, { images })
                 return reply.send("success")
 
             } catch (error) {

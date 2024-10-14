@@ -72,20 +72,8 @@ const productSchema = Schema({
         intl: true,
     },
 
-    images: [
-        {
-            _id: {  // yoki id deb ham nomlashingiz mumkin
-                type: Schema.Types.ObjectId,
-                ref: "File",
-                required: true
-            },
-            url: {
-                type: String,
-                required: true
-            }
-        }
-    ],
-
+    images: [],
+    newImages:[],
     properteis: [propertiesSchema],
     variantAttributes: {
         type: [Schema.Types.ObjectId],

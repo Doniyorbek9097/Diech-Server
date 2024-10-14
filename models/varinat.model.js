@@ -10,17 +10,6 @@ const capitalize = (value) => {
     return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
 };
 
-const imagesSchema = Schema({
-    _id: {  // yoki id deb ham nomlashingiz mumkin
-        type: Schema.Types.ObjectId,
-        ref: "File",
-        required: true
-    },
-    url: {
-        type: String,
-        required: true
-    }
-})
 
 const attributesSchema = Schema({
     skuid: String,
@@ -39,7 +28,7 @@ const attributesSchema = Schema({
         default: undefined
     },
     images: {
-        type: [imagesSchema],
+        type: Array,
         default: undefined
     },
 },
@@ -61,7 +50,7 @@ const variantsSchema = Schema({
     name: String,
     slug: String,
     images: {
-        type: [imagesSchema],
+        type: Array,
         default: undefined
     },
     orginal_price: Number,

@@ -49,7 +49,7 @@ fastify.post("/product-add", { preHandler: checkToken }, async (req, reply) => {
                     await Promise.all(
                         item.images.map(async (image) => {
                             await fileModel.updateOne(
-                                { _id: image._id }, 
+                                { image_url: image }, 
                                 { isActive: true, owner_id: newProduct._id, owner_type: "shopProduct" },
                                 { session }
                             );
@@ -69,34 +69,16 @@ fastify.post("/product-add", { preHandler: checkToken }, async (req, reply) => {
 
         // Tranzaktsiyani yakunlash
         await session.commitTransaction();
-        session.endSession();
-
         return reply.status(200).send({ data: newProduct, message: "success added" });
 
     } catch (error) {
-        // Tranzaktsiyani bekor qilish
         await session.abortTransaction();
-        session.endSession();
-
-        // Variantlar muvaffaqiyatsiz bo'lgan holatda tozalash
-        try {
-            await Promise.all(
-                variants.map(async (item) => {
-                    if (item?.images?.length) {
-                        for (const image of item?.images) {
-                            await fileService.remove(image.url);
-                            await fileModel.deleteOne({ _id: image._id });
-                        }
-                    }
-                })
-            );
-        } catch (cleanupError) {
-            console.log("Cleanup Error:", cleanupError);
-        }
-
         console.log("Error:", error);
-        return reply.status(500).send(error.message);
+        return reply.code(500).send(error.message);
+    } finally {
+        session.endSession();
     }
+
 });
 
 

@@ -38,9 +38,9 @@ class Product {
             const newProduct = await new productModel(product).save({ session });
     
             // Tasvirlarni faollashtirish
-            const updatePromises = newProduct.images.map(async (item) => {
+            const updatePromises = newProduct.images.map(async (image) => {
                 return fileModel.updateOne(
-                    { _id: item._id },
+                    { image_url: image },
                     { isActive: true, owner_id: newProduct._id, owner_type: "product" },
                     { session }
                 );
@@ -150,8 +150,8 @@ class Product {
             if (!updated) return reply.status(404).send({ error: "Mahsulot topilmadi" });
     
             // Tasvirlarni faollashtirish
-            await Promise.all(updated.images.map(async item => {
-                return fileModel.updateOne({ _id: item._id }, { isActive: true, owner_id: updated._id, owner_type: "product" }, { session });
+            await Promise.all(updated.images.map(async image => {
+                return fileModel.updateOne({ image_url: image }, { isActive: true, owner_id: updated._id, owner_type: "product" }, { session });
             }));
     
             // Tranzaksiyani commit qilish
@@ -159,21 +159,9 @@ class Product {
             return reply.send(updated);
     
         } catch (error) {
-            console.log("Yangilashda xato:", error);
             await session.abortTransaction();
-    
-            // Xato bo'lsa, rasmlarni o'chirish
-            try {
-                const removePromises = product.images.map(async item => {
-                    await fileService.remove(item?.url);
-                    return fileModel.findByIdAndDelete(item._id);
-                });
-                await Promise.all(removePromises); // Parallel bajariladi
-            } catch (cleanupError) {
-                console.log("Rasmlarni o'chirishda xato:", cleanupError);
-            }
-    
-            return reply.code(500).send({ error: "Server Xatosi", message: error.message });
+            console.log("Yangilashda xato:", error);
+            return reply.code(500).send(error.message);
         } finally {
             await session.endSession();
         }
@@ -192,9 +180,9 @@ class Product {
 
             await session.withTransaction(async () => {
                 // Tasvirlarni o'chirish
-                const removePromises = product.images.map(async (item) => {
-                    await fileService.remove(item.url);
-                    await fileModel.findByIdAndDelete(item._id, { session }); // Tasvirlarni sessiya bilan o'chirish
+                const removePromises = product.images.map(async (image) => {
+                    await fileService.remove(image);
+                    await fileModel.findOneAndDelete({image_url: image}, { session }); // Tasvirlarni sessiya bilan o'chirish
                 });
 
                 await Promise.all(removePromises); // Paralel bajariladi
@@ -252,11 +240,7 @@ class Product {
             const part = await req.file();
             const image_url = await fileService.photoUpload({ part })
             const newdata = await new fileModel({ image_url }).save()
-
-            return reply.send({
-                _id: newdata._id,
-                url: newdata.image_url
-            })
+            return reply.send(newdata.image_url)
 
         } catch (error) {
             console.log(error);
@@ -268,8 +252,8 @@ class Product {
 
     async imageRemove(req, reply) {
         try {
-            const { id } = req.params;
-            const file = await fileModel.findById(id);
+            const { image_url } = req.params;
+            const file = await fileModel.findOne({ image_url });
             await fileService.remove(file?.image_url)
             const deleted = await fileModel.findByIdAndDelete(file?._id);
             return reply.send(deleted)

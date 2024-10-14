@@ -13,18 +13,7 @@ const categorySchema = new Schema({
     },
 
     icon: String,
-    image: {
-        image_id: {
-            type: Schema.Types.ObjectId,
-            ref:"File",
-        },
-        small: {
-            type: String,
-        },
-        large: {
-            type: String,
-        }
-    },
+    image: String,
     
     parent: {
         ref: "Category",

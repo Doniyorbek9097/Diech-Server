@@ -108,19 +108,8 @@ const shopProductsSchema = Schema({
         required: true
     },
 
-    images: [
-        {
-            _id: {  // yoki id deb ham nomlashingiz mumkin
-                type: Schema.Types.ObjectId,
-                ref: "File",
-                required: true
-            },
-            url: {
-                type: String,
-                required: true
-            }
-        }
-    ],
+    images: [],
+    newImages:[],
 
     properteis: {
         type: [propertiesSchema],
