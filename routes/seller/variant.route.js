@@ -56,25 +56,25 @@ async function shopVariantRoutes(fastify, options) {
             const image_url = await fileService.photoUpload({ part })
             const newdata = await new fileModel({ image_url }).save()
             return reply.send(newdata.image_url)
-    
+
         } catch (error) {
             console.log(error);
             reply.code(500).send(error.message)
-    
+
         }
     })
-    
-    fastify.delete("/variant-images/:id", async (req, reply) => {
+
+    fastify.delete("/variant-images/:image_url", async (req, reply) => {
         try {
-            const { id } = req.params;
-            const file = await fileModel.findById(id);
+            const { image_url } = req.params;
+            const file = await fileModel.findOne({ image_url });
             await fileService.remove(file.image_url)
             const deleted = await fileModel.findByIdAndDelete(file._id);
             return reply.send(deleted)
         } catch (error) {
             console.log(error);
             reply.code(500).send(error.message)
-    
+
         }
     })
 

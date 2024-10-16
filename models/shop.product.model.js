@@ -96,6 +96,10 @@ const shopProductsSchema = Schema({
         required: true
     },
 
+    isOrginal: {
+        type: Boolean,
+        default: false
+    },
 
     slug: {
         type: String,
