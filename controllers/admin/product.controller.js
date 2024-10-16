@@ -64,18 +64,18 @@ class Product {
     
 
     async all(req, reply) {
-        const search = req.query.search || "";
-        const page = Math.max(0, parseInt(req.query.page, 10) || 1);
-        const limit = parseInt(req.query.limit, 10) || 1;
+        const search = (req.query.search || "").trim();
+        const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+        const limit = parseInt(req.query.limit, 10) || 50;
         const { selectedfields = "" } = req.headers;
 
-        let query;
+        let query = {};
         if (search) {
             const regex = new RegExp(search, 'i'); // 'i' flagi case-insensitive qidiruvni belgilaydi
             query = {
                 $or: [
-                    { 'keywords.uz': { $elemMatch: { $regex: regex } } },
-                    { 'keywords.ru': { $elemMatch: { $regex: regex } } },
+                    // { 'keywords.uz': { $elemMatch: { $regex: regex } } },
+                    // { 'keywords.ru': { $elemMatch: { $regex: regex } } },
                     { 'name.uz': regex },
                     { 'name.ru': regex },
                     { 'barcode': regex }
@@ -85,20 +85,17 @@ class Product {
 
         const totalDocuments = await productModel.countDocuments(query).exec()
         const totalPages = Math.ceil(totalDocuments / limit);
-
+    
         try {
             let products = await productModel.find(query, selectedfields)
-                .populate("variants")
                 .populate("owner", "username")
-                .skip(page * limit)
+                .skip((page - 1) * limit)
                 .limit(limit)
                 .sort({ _id: -1 })
 
             products = products.map(product => {
-                const sold = product.variants.length ? product.variants.reduce((count, item) => count += item.soldOutCount, 0) : product.soldOutCount;
-                const sold_variants = product.variants.reduce((acc, item) => acc.concat({ sku: item.sku, count: item.soldOutCount }), []);
-                const returned = product.variants.length ? product.variants.reduce((count, item) => count += item.returnedCount, 0) : product.returnedCount;
-                const returned_variants = product.variants.reduce((acc, item) => acc.concat({ sku: item.sku, count: item.returnedCount }), []);
+                const sold = product.soldOutCount;
+                const returned = product.returnedCount;
                 const views = product.viewsCount;
                 return {
                     _id: product._id,
@@ -106,9 +103,7 @@ class Product {
                     name: product.name,
                     barcode: product?.barcode,
                     sold,
-                    sold_variants,
                     returned,
-                    returned_variants,
                     views,
                     owner: product?.owner
                 }

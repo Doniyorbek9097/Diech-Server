@@ -27,7 +27,7 @@ const attributesSchema = Schema({
             message: props => `${props.value} label qabul qilinmaydi.`
         }
     },
-    
+
 }, { toJSON: { virtuals: true } })
 
 const propertyOptionsSchema = Schema({
@@ -73,7 +73,7 @@ const productSchema = Schema({
     },
 
     images: [],
-    newImages:[],
+    newImages: [],
     properteis: [propertiesSchema],
     variantAttributes: {
         type: [Schema.Types.ObjectId],
@@ -177,9 +177,7 @@ const productSchema = Schema({
 );
 
 
-productSchema.index({ slug: 1 });
-
-
+productSchema.index({ 'slug': 1, 'name.uz': 'text', 'name.ru': 'text', 'barcode': 1 });
 
 productSchema.virtual("variants", {
     ref: "Variant",
