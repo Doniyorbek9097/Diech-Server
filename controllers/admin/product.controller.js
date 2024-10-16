@@ -65,7 +65,7 @@ class Product {
 
     async all(req, reply) {
         const search = req.query.search || "";
-        const page = Math.max(0, parseInt(req.query.page, 10) - 1 || 0);
+        const page = Math.max(0, parseInt(req.query.page, 10) || 1);
         const limit = parseInt(req.query.limit, 10) || 1;
         const { selectedfields = "" } = req.headers;
 

@@ -50,7 +50,7 @@ const cartRoutes = async (router, options) => {
             let cart = await cartModel.findOne({ _id: req.params.id })
                 .populate({
                     path: "products.product_id",
-                    select: "name images orginal_price sale_price discount",
+                    select: "name images orginal_price sale_price discount inStock",
                     populate: {
                         path: "shop",
                         select: "name slug",
