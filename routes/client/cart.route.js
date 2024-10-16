@@ -49,14 +49,14 @@ const cartRoutes = async (router, options) => {
         try {
             let cart = await cartModel.findOne({ _id: req.params.id })
                 .populate({
-                    path: "products.product_id",
+                    path: "product",
                     select: "name images orginal_price sale_price discount inStock",
                     populate: {
                         path: "shop",
                         select: "name slug",
                     }
                 })
-                .populate("products.variant_id")
+                .populate("variant")
             
             const products = cart?.products?.flatMap(item => ({
                 variant: item?.variant_id,

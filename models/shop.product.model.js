@@ -104,6 +104,7 @@ const shopProductsSchema = Schema({
     slug: {
         type: String,
         index: true,
+        unique: true,
         required: true
     },
     description: {
@@ -113,7 +114,7 @@ const shopProductsSchema = Schema({
     },
 
     images: [],
-    newImages:[],
+    newImages: [],
 
     properteis: {
         type: [propertiesSchema],
@@ -186,22 +187,28 @@ const shopProductsSchema = Schema({
 
 
     attributes: {
-        type:[attributesSchema],
+        type: [attributesSchema],
         default: undefined,
         index: true
     },
     position: Number,
 
 },
-
     {
         timestamps: true,
         toJSON: { virtuals: true },
-        minimize: true
+        minimize: true,
     }
 )
 
+
 shopProductsSchema.index({ slug: 1 });
+shopProductsSchema.index({ 'name.uz': 1 });
+shopProductsSchema.index({ 'name.ru': 1 });
+shopProductsSchema.index({ sale_price: 1 });
+shopProductsSchema.index({ barcode: 1 });
+shopProductsSchema.index({ 'attributes.value.uz': 1 });
+shopProductsSchema.index({ 'attributes.value.ru': 1 });
 
 
 shopProductsSchema.virtual("variants", {

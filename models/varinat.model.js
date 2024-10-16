@@ -47,7 +47,10 @@ const variantsSchema = Schema({
     soldOutCount: { type: Number, default: 0 },
     returnedCount: { type: Number, default: 0 },
     inStock: { type: Number, default: 1 },
-    name: String,
+    name: {
+        type: String,
+        intl: true
+    },
     slug: String,
     images: {
         type: Array,
@@ -92,8 +95,13 @@ const variantsSchema = Schema({
         default: 0,
     },
 
-
-})
+},
+    {
+        timestamps: true,
+        toJSON: { virtuals: true },
+        minimize: true,
+    }
+)
 
 const deleteShopVariants = async function (next) {
     try {
