@@ -184,26 +184,15 @@ class Category {
             }
             
 
-            const uniqueAttributes = await shopProductModel.distinct("attributes", {
-                attributes: { 
-                    $exists: true,
-                    $ne: []
-                }
-            });
-
-            console.log(uniqueAttributes)
-
-            const uniqueProducts = await shopProductModel.find({attributes: { $in: uniqueAttributes }}).select("attributes");
-            console.log(uniqueProducts)
 
             const filters = [
                 {
                     label: "fields",
-                    // items: fields.map(field => ({
-                    //     label: field.label[lang],
-                    //     items: field.values.map(val => val[lang]),
-                    //     limit: 5,
-                    // })),
+                    items: category.fields.map(field => ({
+                        label: field.label[lang],
+                        items: field.values.map(val => val[lang]),
+                        limit: 5,
+                    })),
                     limit: 5,
                 },
             ]

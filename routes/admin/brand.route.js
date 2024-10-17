@@ -85,8 +85,8 @@ const brendRoutes = async (fastify, options) => {
         req.body.slug = slugify(req.body.name);
         try {
             const newBrend = await brendModel.findOneAndUpdate({ _id: id }, req.body, {new: true}).lean();
-            const { icon, image, _id: brend_id } = newBrend;
-            if (icon) {
+            const { logo, image, _id: brend_id } = newBrend;
+            if (logo) {
                 await fileModel.updateOne({ image_url: icon }, { isActive: true, owner_id: brend_id, owner_type: "brand" });
             }
 
