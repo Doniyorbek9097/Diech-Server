@@ -1,6 +1,6 @@
 const { Scenes, Markup, session } = require("telegraf");
 const userModel = require("../models/user.model");
-const channelModel = require("../models/channnel.model");
+const channelModel = require("../models/channel.model");
 
 const subscribeScene = new Scenes.BaseScene("subscribeScene")
 
@@ -15,7 +15,10 @@ subscribeScene.enter(async (ctx) => {
             const botId = ctx.botInfo.id;
 
             const nonMembersBot = await ctx.telegram.getChatMember(channel.username, botId)
-                .catch(err => ctx.scene.enter("registerScene"));
+                .catch(err => {
+                    console.log('Error checking bot membership:', err);
+                    return ctx.scene.enter("registerScene");
+                });
 
             let nonMembersUser = await ctx.telegram.getChatMember(channel.username, ctx.from.id)
             if (nonMembersUser.status == 'left') nonMembers.push(nonMembersUser.status);

@@ -14,16 +14,39 @@ const categorySchema = new Schema({
 
     icon: String,
     image: String,
-    
+
     parent: {
         ref: "Category",
         type: Schema.Types.ObjectId,
     },
 
     fields: [{
-        type: Schema.Types.ObjectId,
-        ref:"Field",
-        default: undefined
+        _id: {
+            type: Schema.Types.ObjectId,
+            ref: "Field",
+            default: undefined,
+        },
+        
+        title: {
+            uz: {
+                type: String,
+                default: ""
+            },
+            ru: {
+                type: String,
+                default: ""
+            },
+        },
+
+        label: {
+            uz: String,
+            ru: String
+        },
+
+        values: {
+            type: Array,
+            default: undefined
+        }
     }],
 
     createdBy: {
@@ -37,9 +60,9 @@ const categorySchema = new Schema({
     },
 
     type: {
-        type:String,
-        enum:["category"],
-        default:"category"
+        type: String,
+        enum: ["category"],
+        default: "category"
     }
 },
     {
@@ -77,7 +100,7 @@ categorySchema.virtual("shop_products", {
 
 
 // Statik metodni qo'shish
-categorySchema.statics.getRandomProducts = async function({query = {}, limit = 10, page = 1, sort = {}}) {
+categorySchema.statics.getRandomProducts = async function ({ query = {}, limit = 10, page = 1, sort = {} }) {
     const skip = page * limit; // Sahifani o'tkazib yuborish uchun hisoblash
 
     // Aggregation pipeline
@@ -106,9 +129,9 @@ categorySchema.statics.getRandomProducts = async function({query = {}, limit = 1
 
 
 // Statik metodni qo'shish
-categorySchema.statics.getRandomCategories = async function({ query = {}, limit = 10, page = 1, sort = {}, fields = {} }) {
+categorySchema.statics.getRandomCategories = async function ({ query = {}, limit = 10, page = 1, sort = {}, fields = {} }) {
     const skip = page * limit; // Sahifani o'tkazib yuborish uchun to'g'ri hisoblash
-    
+
     // Aggregation pipeline
     const pipeline = [
         { $match: query }, // Qo'shimcha filtrlarni qo'llash

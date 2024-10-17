@@ -3,11 +3,6 @@ const { serverDB } = require("../config/db")
 
 
 const fieldSchema = Schema({
-    category_id: {
-        type: Schema.Types.ObjectId,
-        ref:"Category"
-    },
-
     title: {
         uz: {
             type:String,
@@ -24,12 +19,6 @@ const fieldSchema = Schema({
         ru: String
     },
     
-    type: {
-        type: String,
-        enum:['select','input'],
-        default: "input"
-    },
-
     values: {
         type: Array,
         default: undefined
