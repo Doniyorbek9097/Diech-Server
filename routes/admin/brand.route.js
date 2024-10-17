@@ -29,10 +29,10 @@ const brendRoutes = async (fastify, options) => {
             }
 
             const newBrend = await new brendModel(req.body).save();
-            const { icon, image, _id: brend_id } = req.body;
+            const { logo, image, _id: brend_id } = req.body;
             if(newBrend) {
-                if (icon) {
-                    await fileModel.updateOne({ image_url: icon }, { isActive: true, owner_id: brend_id, owner_type: "brand" });
+                if (logo) {
+                    await fileModel.updateOne({ image_url: logo }, { isActive: true, owner_id: brend_id, owner_type: "brand" });
                 }
     
                 if (image?.uz) {

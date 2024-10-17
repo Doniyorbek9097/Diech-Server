@@ -1,38 +1,36 @@
 const mongoose = require("mongoose");
-const { serverDB } = require("../config/db")
+const { serverDB } = require("../config/db");
 
 const brandSchema = mongoose.Schema({
     name: {
         type: String,
-        default: ""
+        required: true
     },
 
     slug: {
         type: String,
         lowercase: true,
-        default:""
     },
 
     title: {
         type: String,
-        default:"",
-        intl: true
+        intl: true,
+        required: true,
+        trim: true,
     },
 
     image: {
         type: String,
-        default:"",
         intl: true
     },
 
     logo: {
         type:String,
-        default:""
+        required: true
     },
 
     description: {
         type: String,
-        default:"",
         intl: true
     },
 
