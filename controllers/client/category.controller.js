@@ -184,15 +184,24 @@ class Category {
             }
             
 
-            const fields = category?.fields || [];
+            const uniqueAttributes = await shopProductModel.distinct("attributes", {
+                attributes: { 
+                    $exists: true,
+                    $ne: []
+                }
+            });
+
+            const uniqueProducts = await shopProductModel.find({attributes: { $in: uniqueAttributes }}).select("attributes");
+            console.log(uniqueProducts)
+
             const filters = [
                 {
                     label: "fields",
-                    items: fields.map(field => ({
-                        label: field.label[lang],
-                        items: field.values.map(val => val[lang]),
-                        limit: 5,
-                    })),
+                    // items: fields.map(field => ({
+                    //     label: field.label[lang],
+                    //     items: field.values.map(val => val[lang]),
+                    //     limit: 5,
+                    // })),
                     limit: 5,
                 },
             ]
@@ -200,7 +209,6 @@ class Category {
             // let productsIds = [];
             // productsIds = await shopProductModel.getRandomProducts({ query, limit, page, sort })
             // productsIds.length && (query._id = { $in: productsIds })
-
             const products = await shopProductModel.find(query)
                 .sort(sort)
                 .skip(page * limit)

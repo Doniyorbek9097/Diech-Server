@@ -30,7 +30,7 @@ const brandSchema = mongoose.Schema({
         default:""
     },
 
-    discription: {
+    description: {
         type: String,
         default:"",
         intl: true

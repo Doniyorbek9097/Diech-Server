@@ -30,17 +30,5 @@ const cartSchema = Schema({
 });
 
 
-cartSchema.virtual("product", {
-    ref: "ShopProducts",
-    localField: "_id",
-    foreignField: "products.product_id"
-})
-
-cartSchema.virtual("variant", {
-    ref: "Variant",
-    localField: "_id",
-    foreignField: "products.variant_id"
-})
-
 const cartModel = serverDB.model("Cart", cartSchema)
 module.exports = cartModel
