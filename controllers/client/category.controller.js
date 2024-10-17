@@ -191,6 +191,8 @@ class Category {
                 }
             });
 
+            console.log(uniqueAttributes)
+
             const uniqueProducts = await shopProductModel.find({attributes: { $in: uniqueAttributes }}).select("attributes");
             console.log(uniqueProducts)
 

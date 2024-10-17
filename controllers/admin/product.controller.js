@@ -36,15 +36,21 @@ class Product {
     
             // Yangi mahsulotni saqlash
             const newProduct = await new productModel(product).save({ session });
-    
             // Tasvirlarni faollashtirish
             const updatePromises = newProduct.images.map(async (image) => {
-                return fileModel.updateOne(
+                const result = fileModel.updateOne(
                     { image_url: image },
                     { isActive: true, owner_id: newProduct._id, owner_type: "product" },
                     { session }
                 );
+
+                if (result.matchedCount === 0) {
+                    throw new Error(`Tasvir topilmadi yoki yangilanmadi: ${image}`);
+                }
+
+                return result;
             });
+
             await Promise.all(updatePromises); // Parallel bajariladi
     
             // Tranzaktsiya muvaffaqiyatli tugaydi
@@ -53,7 +59,6 @@ class Product {
     
         } catch (error) {
             console.log("Xato:", error);
-    
             // Tranzaktsiyani bekor qilish
             await session.abortTransaction();
             return reply.code(500).send({ error: error.message });

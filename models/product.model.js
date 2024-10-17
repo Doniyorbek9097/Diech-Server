@@ -140,9 +140,9 @@ const productSchema = Schema({
         default: 0
     },
 
-    brend: {
+    brand: {
         type: Schema.Types.ObjectId,
-        ref: "Brend",
+        ref: "Brand",
     },
 
 

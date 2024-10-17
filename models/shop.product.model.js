@@ -180,11 +180,10 @@ const shopProductsSchema = Schema({
     },
 
 
-    brend: {
+    brand: {
         type: Schema.Types.ObjectId,
-        ref: "Brend",
+        ref: "Brand",
     },
-
 
     attributes: {
         type: [attributesSchema],

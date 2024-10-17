@@ -31,6 +31,7 @@ const brandSchema = mongoose.Schema({
 
     description: {
         type: String,
+        required: true,
         intl: true
     },
 
@@ -52,19 +53,19 @@ const brandSchema = mongoose.Schema({
 brandSchema.virtual("products", {
     "ref": "ShopProducts",
     localField: "_id",
-    foreignField: "brend",
+    foreignField: "brand",
 });
 
 brandSchema.virtual("categories", {
     "ref": "Category",
     localField: "_id",
-    foreignField: "brendId",
+    foreignField: "brandId",
 })
 
 brandSchema.virtual("carousel", {
     ref: "Carousel",
     localField: "_id",
-    foreignField: "brends",
+    foreignField: "brands",
 })
 
 const brandModel = serverDB.model("Brend", brandSchema);
