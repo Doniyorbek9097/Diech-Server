@@ -1,5 +1,7 @@
 const { checkToken } = require("../../middlewares/authMiddleware");
+const fileController = require("../../controllers/file.controller")
 const productController = require("../../controllers/admin/product.controller");
+
 const productModel = require("../../models/product.model");
 const shopProductModel = require("../../models/shop.product.model");
 
@@ -20,8 +22,8 @@ const productRoutes = async (fastify, options) => {
         //delete by id
         fastify.delete("/product-delete/:id", { preHandler: checkToken }, productController.deleteById);
 
-        fastify.post("/prodct-image-upload", productController.imageUpload)
-        fastify.delete("/product-image-remove/:image_url", productController.imageRemove)
+        fastify.post("/prodct-image-upload", fileController.imageUpload)
+        fastify.delete("/product-image-remove/:image_url", fileController.imageRemove)
         
         fastify.get("/images", productController.productImage)
         fastify.get("/product-all-indexed", productController.indexed)

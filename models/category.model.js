@@ -28,14 +28,8 @@ const categorySchema = new Schema({
         },
         
         title: {
-            uz: {
-                type: String,
-                default: ""
-            },
-            ru: {
-                type: String,
-                default: ""
-            },
+            uz: String,
+            ru: String,
         },
 
         label: {

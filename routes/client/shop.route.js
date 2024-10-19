@@ -1,26 +1,46 @@
 const slugify = require("slugify");
 const shopModel = require("../../models/shop.model");
+const fileModel = require("../../models/file.model")
 
 const shopRoutes = async (router, options) => {
 
-    router.post("/shop", async(req,res) => {
+    router.post("/shop", async (req, res) => {
+        const shop = req.body;
         try {
-            req.body.slug = slugify(req.body.slug);
-            const result = await new shopModel(req.body).save();
-            return  result;
+            shop.slug = slugify(shop.slug);
+            const newShop = await new shopModel(shop).save();
+            const { image, bannerImage } = newShop;
+            if (image) {
+                await fileModel.updateOne(
+                    { image_url: image },
+                    { isActive: true, owner_id: newProduct._id, owner_type: "shop" },
+                    { session }
+                );
+            }
+
+            if (bannerImage) {
+                await fileModel.updateOne(
+                    { image_url: bannerImage },
+                    { isActive: true, owner_id: newProduct._id, owner_type: "shop" },
+                    { session }
+                );
+            }
+
+            return res.send(newShop);
         } catch (error) {
             console.log(error)
+            return res.code(500).send(error.message)
         }
     });
-    
 
-    router.get("/shops", async(req,res) => {
+
+    router.get("/shops", async (req, res) => {
         try {
             const shops = await shopModel.find()
-            .populate("employees")
-            .populate("products")
-            .populate("point")
-    
+                .populate("employees")
+                .populate("products")
+                .populate("point")
+
             return {
                 data: shops,
                 message: "success"
@@ -31,28 +51,28 @@ const shopRoutes = async (router, options) => {
             res.status(500).send(error.message)
         }
     });
-    
-    
-    
-    router.get("/shop/:slug", async(req,res) => {
+
+
+
+    router.get("/shop/:slug", async (req, res) => {
         try {
-            const result = await shopModel.findOne({slug:req.params.slug})
-            .populate(
-            {
-                path:"products",
-                populate: [
+            const result = await shopModel.findOne({ slug: req.params.slug })
+                .populate(
                     {
-                        path:"product"
-                    },
-                    {
-                        path:"shop"
-                    }
-                ]
-            })
-            
+                        path: "products",
+                        populate: [
+                            {
+                                path: "product"
+                            },
+                            {
+                                path: "shop"
+                            }
+                        ]
+                    })
+
             return {
                 data: result,
-                message:"success"
+                message: "success"
             }
 
         } catch (error) {
@@ -60,28 +80,51 @@ const shopRoutes = async (router, options) => {
             res.status(500).send(error.message)
         }
     });
-    
-    
-    router.put("/shop/:id", async(req,res) => {
+
+
+    router.put("/shop/:id", async (req, res) => {
+        const shop = req.body;
         try {
-            req.body.slug = slugify(req.body.name);
-            const result = await shopModel.findByIdAndUpdate(req.params.id, req.body);
-            return {result, message:"success updated!"};
+            shop.slug = slugify(shop.name);
+            const newShop = await shopModel.findByIdAndUpdate(req.params.id, shop);
+            const { image, bannerImage } = newShop;
+            if (image) {
+                await fileModel.updateOne(
+                    { image_url: image },
+                    { isActive: true, owner_id: newProduct._id, owner_type: "shop" },
+                    { session }
+                );
+            }
+
+            if (bannerImage) {
+                await fileModel.updateOne(
+                    { image_url: bannerImage },
+                    { isActive: true, owner_id: newProduct._id, owner_type: "shop" },
+                    { session }
+                );
+            }
+
+            return res.send(newShop)
         } catch (error) {
             console.log(error)
+            return res.code(500).send(error.message)
         }
     });
-    
-    
-    router.delete("/shop/:id", async(req,res)=> {
+
+
+    router.delete("/shop/:id", async (req, res) => {
         try {
-            const result = await shopModel.findByIdAndDelete(req.params.id);
-            return {result, message:"success deleted!"};
+            const shop = await shopModel.findById(req.params.id);
+            await fileService.remove(shop.image);
+            await fileModel.findOneAndDelete({ image_url: shop.image });
+            const deleted = await shopModel.findByIdAndDelete(shop._id);
+            return res.send(deleted);
         } catch (error) {
             console.log(error)
+            return res.code(500).send(error.message)
         }
     });
-    
+
 }
 
 
