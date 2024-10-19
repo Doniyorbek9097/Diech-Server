@@ -6,6 +6,7 @@ const shopProductModel = require("../../models/shop.product.model");
 const { algolia } = require("../../config/algolia");
 const productsIndex = algolia.initIndex("ShopProducts");
 
+
 class Category {
     async allTree(req, reply) {
         try {
@@ -116,7 +117,6 @@ class Category {
             const sortQuery = req.query.sort || "";
 
             let category = await categoryModel.findOne({ slug })
-                .populate("fields")
                 .populate("banners")
                 .populate({
                     path: "children",
@@ -182,15 +182,69 @@ class Category {
                 const countProducts = await shopProductModel.countDocuments(query);
                 totalProducts = Math.ceil(countProducts / limit); // Sahifalar sonini hisoblash
             }
-            
 
 
-            const filters = [
+            const maxMinPrices = await shopProductModel.aggregate([
+                    { $match: query }, // Qo'shimcha filtrlarni qo'llash
+                    { $sort: { sale_price: -1 } },
                 {
+                  $group: {
+                    _id: null,
+                    maxPrice: { $max: "$sale_price" },  // Eng qimmat narx
+                    minPrice: { $min: "$sale_price" }   // Eng arzon narx
+                  }
+                },
+
+                {
+                    $project: {
+                      _id: 0, // _id maydonini olib tashlash
+                      maxPrice: 1,
+                      minPrice: 1
+                    }
+                  }
+              ]);
+
+
+              
+              const attributes = await shopProductModel.aggregate([
+                {
+                  $match: {
+                    categories: {
+                      $in: [new mongoose.Types.ObjectId(category._id)]
+                    }
+                  }
+                },
+                {
+                  $unwind: "$attributes"  // `attributes` arrayini elementlarga ajratish
+                },
+                {
+                  $group: {
+                    _id: "$attributes.label",  // `label` bo'yicha guruhlash
+                    values: { $addToSet: "$attributes.value" }  // `value` qiymatlarini yig'ish va unikal qilish
+                  }
+                },
+                {
+                  $project: {
+                    _id: 0,  // `_id` ni olib tashlash
+                    label: "$_id",  // `label`ni `_id` dan olamiz
+                    values: 1  // yig'ilgan `values` qiymatlarini qaytarish
+                  }
+                }
+              ]);
+              
+              
+              
+            const filters = [
+                {  
+                    label: "prices",
+                    maxPrice: maxMinPrices[0],
+                    minPrice: maxMinPrices[1]
+                },
+                {  
                     label: "fields",
-                    items: category.fields.map(field => ({
+                    items: attributes.map(field => ({
                         label: field.label[lang],
-                        items: field.values.map(val => val[lang]),
+                        items: field.values.map(val => val ? val[lang] : ''),
                         limit: 5,
                     })),
                     limit: 5,

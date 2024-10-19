@@ -21,26 +21,9 @@ const categorySchema = new Schema({
     },
 
     fields: [{
-        _id: {
-            type: Schema.Types.ObjectId,
-            ref: "Field",
-            default: undefined,
-        },
-        
-        title: {
-            uz: String,
-            ru: String,
-        },
-
-        label: {
-            uz: String,
-            ru: String
-        },
-
-        values: {
-            type: Array,
-            default: undefined
-        }
+        type: Schema.Types.ObjectId,
+        ref: "Field",
+        default: undefined,
     }],
 
     createdBy: {
