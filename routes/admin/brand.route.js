@@ -71,11 +71,11 @@ const brendRoutes = async (fastify, options) => {
     fastify.get('/brand/:id', async (req, reply) => {
         try {
             const { id } = req.params;
-            let brend = await brendModel.findOne({ _id: id });
-            return reply.status(200).send(brend.toObject());
+            let brend = await brendModel.findOne({ _id: id }).lean()
+            return reply.code(200).send(brend);
         } catch (error) {
             console.log(error);
-            return reply.status(500).send("Serverda Xatolik");
+            return reply.code(500).send("Serverda Xatolik");
         }
     });
 
@@ -87,7 +87,7 @@ const brendRoutes = async (fastify, options) => {
             const newBrend = await brendModel.findOneAndUpdate({ _id: id }, req.body, {new: true}).lean();
             const { logo, image, _id: brend_id } = newBrend;
             if (logo) {
-                await fileModel.updateOne({ image_url: icon }, { isActive: true, owner_id: brend_id, owner_type: "brand" });
+                await fileModel.updateOne({ image_url: logo }, { isActive: true, owner_id: brend_id, owner_type: "brand" });
             }
 
             if (image?.uz) {
@@ -97,10 +97,10 @@ const brendRoutes = async (fastify, options) => {
             if (image?.ru) {
                 await fileModel.updateOne({ image_url: image.ru }, { isActive: true, owner_id: brend_id, owner_type: "brand" });
             }
-            return reply.status(200).send(newBrend.toObject());
+            return reply.code(200).send(newBrend);
         } catch (error) {
             console.log(error);
-            return reply.status(500).send("Serverda Xatolik");
+            return reply.code(500).send("Serverda Xatolik");
         }
     });
 

@@ -1,5 +1,5 @@
 const { Scenes: { BaseScene }, Markup } = require("telegraf");
-const channelModel = require("../models/channnel.model")
+const channelModel = require("../models/channel.model")
 
 const homeScene = new BaseScene("homeScene")
 

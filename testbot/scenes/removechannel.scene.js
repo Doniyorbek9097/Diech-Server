@@ -1,5 +1,5 @@
 const { Scenes: { WizardScene }, Markup } = require("telegraf")
-const channelModel = require("../models/channnel.model")
+const channelModel = require("../models/channel.model")
 
 
 const removeChannelScene = new WizardScene(

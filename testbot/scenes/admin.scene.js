@@ -1,6 +1,6 @@
 const { Scenes: { BaseScene }, Markup } = require("telegraf");
 const userModel = require('../models/user.model')
-const channelModel = require("../models/channnel.model")
+const channelModel = require("../models/channel.model")
 const testModel = require("../models/test.model")
 
 const adminScene = new BaseScene("adminScene")
