@@ -213,10 +213,44 @@ class Category {
         try {
             const lang = req.headers["lang"] || 'uz';
             const { slug = "" } = req.params;
+            const search = req.query.search || "";
+            const prices = req.query?.prices ? req.query.prices.split(",") : [];
+            const attrs = req.query?.attrs ? req.query?.attrs.split(",") : [];
+            let query = {};
+            let totalDocuments;
+            
             let category = await categoryModel.findOne({ slug }).select("_id");
 
             if (!category) return reply.send({ error: 'Category not found' });
-            const query = { categories: { $in: [new mongoose.Types.ObjectId(category._id)] } }
+            query = { categories: { $in: [new mongoose.Types.ObjectId(category._id)] } }
+            
+            const [minPrice = 0, maxPrice = Number.MAX_VALUE] = prices.map(Number);
+            query.sale_price = { $gte: minPrice, $lte: maxPrice }
+
+
+            if (search || attrs.length) {
+                // Atributlarni qidiruv qatoriga qo'shamiz
+                let searchQuery = search || '';
+
+                // Atributlarni qidiruv so'ziga qo'shamiz
+                if (attrs.length) {
+                    searchQuery += ' ' + attrs.join(' '); // Atributlarni bo'sh joy bilan qo'shish
+                }
+
+                const options = {
+                    page,
+                    hitsPerPage: limit
+                };
+
+                // Algolia qidiruvini bajaramiz
+                const { hits, nbPages, nbHits } = await productsIndex.search(searchQuery, options);
+                totalDocuments = nbHits;
+
+            } else {
+                // Agar search yoki attrs bo'lmasa, MongoDB orqali qidirish
+                const countProducts = await shopProductModel.countDocuments(query);
+                totalDocuments = countProducts;
+            }
 
             const maxMinPrices = await shopProductModel.aggregate([
                 {
@@ -270,13 +304,12 @@ class Category {
                 }
             ]);
 
-            const totalDocuments = await shopProductModel.countDocuments(query)
-            const { maxPrice, minPrice } = maxMinPrices[0];
-
+            console.log(totalDocuments)
+            
             return reply.send({
                 totalDocuments,
-                maxPrice,
-                minPrice,
+                maxPrice: maxMinPrices[0].maxPrice,
+                minPrice: maxMinPrices[0].minPrice,
                 attributes: attributes.length ? attributes.map(field => ({
                     label: field.label[lang],
                     items: field.values.map(val => val ? val[lang] : ''),
