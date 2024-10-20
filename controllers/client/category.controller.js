@@ -46,7 +46,7 @@ class Category {
             const { lang = "" } = req.headers;
 
             const categories = await categoryModel.find({ parent: undefined })
-            .select("slug name icon")
+                .select("slug name icon")
 
             const data = { page: page + 1, limit, categories };
 
@@ -69,13 +69,13 @@ class Category {
                 .limit(limit)
                 .sort({ updatedAt: -1 })
                 .select('slug name')
-            
+
             const totalDocuments = await categoryModel.countDocuments(query)
             const populatedCategories = await Promise.all(categories.map(async category => {
                 const populatedCategory = await categoryModel.populate(category, [
                     {
                         path: "shop_products",
-                        select:  'name orginal_price sale_price inStock slug images rating reviewsCount discount',
+                        select: 'name orginal_price sale_price inStock slug images rating reviewsCount discount',
                         options: {
                             sort: { updatedAt: -1 },
                             limit: 10
@@ -107,7 +107,6 @@ class Category {
 
     async oneBySlug(req, reply) {
         try {
-            const lang = req.headers["lang"] || 'uz';
             const slug = req.params?.slug || "";
             const page = parseInt(req.query?.page) - 1 || 0;
             const limit = parseInt(req.query?.limit) || 10;
@@ -120,8 +119,9 @@ class Category {
                 .populate("banners")
                 .populate({
                     path: "children",
-                    select: ['image', 'slug', 'name', 'icon'],
+                    select: 'image slug name icon',
                 })
+                .select('image slug name icon')
 
             if (!category) return reply.send({ error: 'Category not found' });
 
@@ -152,131 +152,50 @@ class Category {
 
             query.sale_price = { $gte: minPrice, $lte: maxPrice }
 
-            let totalProducts;
+            let totalPage;
 
             if (search || attrs.length) {
                 // Atributlarni qidiruv qatoriga qo'shamiz
                 let searchQuery = search || '';
-                
+
                 // Atributlarni qidiruv so'ziga qo'shamiz
                 if (attrs.length) {
                     searchQuery += ' ' + attrs.join(' '); // Atributlarni bo'sh joy bilan qo'shish
                 }
-            
+
                 const options = {
                     page,
                     hitsPerPage: limit
                 };
-            
+
                 // Algolia qidiruvini bajaramiz
                 const { hits, nbPages, nbHits } = await productsIndex.search(searchQuery, options);
-                
+
                 // Mahsulotlar IDlarini yig'ib olish
                 const ids = hits.map(item => item.objectID);
                 query._id = { $in: ids };
-            
+
                 // Mahsulotlar sonini nbHits orqali olish
-                totalProducts = Math.ceil(nbHits / limit);
+                totalPage = Math.ceil(nbHits / limit);
+
             } else {
                 // Agar search yoki attrs bo'lmasa, MongoDB orqali qidirish
                 const countProducts = await shopProductModel.countDocuments(query);
-                totalProducts = Math.ceil(countProducts / limit); // Sahifalar sonini hisoblash
+                totalPage = Math.ceil(countProducts / limit); // Sahifalar sonini hisoblash
             }
 
-
-            const maxMinPrices = await shopProductModel.aggregate([
-                    { $match: query }, // Qo'shimcha filtrlarni qo'llash
-                    { $sort: { sale_price: -1 } },
-                {
-                  $group: {
-                    _id: null,
-                    maxPrice: { $max: "$sale_price" },  // Eng qimmat narx
-                    minPrice: { $min: "$sale_price" }   // Eng arzon narx
-                  }
-                },
-
-                {
-                    $project: {
-                      _id: 0, // _id maydonini olib tashlash
-                      maxPrice: 1,
-                      minPrice: 1
-                    }
-                  }
-              ]);
-
-
-              
-              const attributes = await shopProductModel.aggregate([
-                {
-                  $match: {
-                    categories: {
-                      $in: [new mongoose.Types.ObjectId(category._id)]
-                    }
-                  }
-                },
-                {
-                  $unwind: "$attributes"  // `attributes` arrayini elementlarga ajratish
-                },
-                {
-                  $group: {
-                    _id: "$attributes.label",  // `label` bo'yicha guruhlash
-                    values: { $addToSet: "$attributes.value" }  // `value` qiymatlarini yig'ish va unikal qilish
-                  }
-                },
-                {
-                  $project: {
-                    _id: 0,  // `_id` ni olib tashlash
-                    label: "$_id",  // `label`ni `_id` dan olamiz
-                    values: 1  // yig'ilgan `values` qiymatlarini qaytarish
-                  }
-                }
-              ]);
-              
-              
-              
-            const filters = [
-                {  
-                    label: "prices",
-                    maxPrice: maxMinPrices[0],
-                    minPrice: maxMinPrices[1]
-                },
-                {  
-                    label: "fields",
-                    items: attributes.map(field => ({
-                        label: field.label[lang],
-                        items: field.values.map(val => val ? val[lang] : ''),
-                        limit: 5,
-                    })),
-                    limit: 5,
-                },
-            ]
-
-            // let productsIds = [];
-            // productsIds = await shopProductModel.getRandomProducts({ query, limit, page, sort })
-            // productsIds.length && (query._id = { $in: productsIds })
             const products = await shopProductModel.find(query)
                 .sort(sort)
                 .skip(page * limit)
                 .limit(limit)
-                .select('name orginal_price sale_price inStock slug images rating reviewsCount discount',)
+                .select('name orginal_price sale_price inStock slug images rating reviewsCount discount')
 
             const result = {
-                message: "success",
-                data: {
-                    totalPage: totalProducts,
-                    page: page,
-                    limit,
-                    category:{
-                        name:category.name,
-                        slug:category.slug,
-                        banners: category.banners,
-                        children: category.children,
-                        image: category.image,
-                        icon: category.icon,
-                    },
-                    products,
-                    filters
-                }
+                totalPage,
+                page,
+                limit,
+                category,
+                products,
             }
 
             return reply.send(result);
@@ -288,6 +207,89 @@ class Category {
             }
         }
     }
+
+
+    async filterData(req, reply) {
+        try {
+            const lang = req.headers["lang"] || 'uz';
+            const { slug = "" } = req.params;
+            let category = await categoryModel.findOne({ slug }).select("_id");
+
+            if (!category) return reply.send({ error: 'Category not found' });
+            const query = { categories: { $in: [new mongoose.Types.ObjectId(category._id)] } }
+
+            const maxMinPrices = await shopProductModel.aggregate([
+                {
+                    $match: query
+                },
+
+                { $sort: { sale_price: -1 } },
+                {
+                    $group: {
+                        _id: null,
+                        maxPrice: { $max: "$sale_price" },  // Eng qimmat narx
+                        minPrice: { $min: "$sale_price" }   // Eng arzon narx
+                    }
+                },
+
+                {
+                    $project: {
+                        _id: 0, // _id maydonini olib tashlash
+                        maxPrice: 1,
+                        minPrice: 1
+                    }
+                }
+            ]);
+
+
+            const attributes = await shopProductModel.aggregate([
+                {
+                    $match: query
+                },
+                {
+                    $unwind: "$attributes"  // `attributes` arrayini elementlarga ajratish
+                },
+                {
+                    $match: {
+                        "attributes.label": { $exists: true, $ne: "" },  // `value` maydoni bo'sh emasligini tekshirish
+                        "attributes.value": { $exists: true, $ne: "" }
+                    }
+                },
+                {
+                    $group: {
+                        _id: "$attributes.label",  // `label` bo'yicha guruhlash
+                        values: { $addToSet: "$attributes.value" }  // `value` qiymatlarini yig'ish va unikal qilish
+                    }
+                },
+                {
+                    $project: {
+                        _id: 0,  // `_id` ni olib tashlash
+                        label: "$_id",  // `label`ni `_id` dan olamiz
+                        values: 1  // yig'ilgan `values` qiymatlarini qaytarish
+                    }
+                }
+            ]);
+
+            const totalDocuments = await shopProductModel.countDocuments(query)
+            const { maxPrice, minPrice } = maxMinPrices[0];
+
+            return reply.send({
+                totalDocuments,
+                maxPrice,
+                minPrice,
+                attributes: attributes.length ? attributes.map(field => ({
+                    label: field.label[lang],
+                    items: field.values.map(val => val ? val[lang] : ''),
+                    limit: 5,
+                })) : []
+            })
+
+        } catch (error) {
+            console.log(error)
+            return reply.code(500).send(error.message)
+        }
+    }
+
 }
 
 module.exports = new Category()

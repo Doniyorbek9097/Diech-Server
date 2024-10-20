@@ -90,7 +90,7 @@ async function userRoutes(fastify, options) {
         }
     });
 
-    fastify.get("/user/:id", async (req, reply) => {
+    fastify.get("/user/:id", { preHandler: checkToken },  async (req, reply) => {
         try {
             const user = await userModel.findById(req.params.id)
                 .populate({

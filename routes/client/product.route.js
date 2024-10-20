@@ -247,7 +247,6 @@ async function productRoutes(fastify, options) {
   });
 
 
-
   fastify.post("/delete-review/:id", async (req, reply) => {
     try {
       const product = await productModel.findById(req.params.id)

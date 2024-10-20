@@ -92,7 +92,7 @@ const orderSchema = new Schema({
         lastname: String,
         username: String,
         phone_number: String
-    },
+    }, 
 
     products: [productSchema],
 

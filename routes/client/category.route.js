@@ -8,6 +8,7 @@ router.get("/parent-categories", categoryController.allParent);
 
 // Get by slug name 
 router.get("/category-slug/:slug", categoryController.oneBySlug)
+router.get("/category-products-filter/:slug", categoryController.filterData)
 // get home page 
 router.get("/categories-with-home", categoryController.withHome);
 
