@@ -213,51 +213,17 @@ class Category {
         try {
             const lang = req.headers["lang"] || 'uz';
             const { slug = "" } = req.params;
-            const search = req.query.search || "";
-            const prices = req.query?.prices ? req.query.prices.split(",") : [];
-            const attrs = req.query?.attrs ? req.query?.attrs.split(",") : [];
             let query = {};
-            let totalDocuments;
-            
-            let category = await categoryModel.findOne({ slug }).select("_id");
 
-            if (!category) return reply.send({ error: 'Category not found' });
-            query = { categories: { $in: [new mongoose.Types.ObjectId(category._id)] } }
-            
-            const [minPrice = 0, maxPrice = Number.MAX_VALUE] = prices.map(Number);
-            query.sale_price = { $gte: minPrice, $lte: maxPrice }
+            query = { categories: { $in: [new mongoose.Types.ObjectId(slug)] } }
 
-
-            if (search || attrs.length) {
-                // Atributlarni qidiruv qatoriga qo'shamiz
-                let searchQuery = search || '';
-
-                // Atributlarni qidiruv so'ziga qo'shamiz
-                if (attrs.length) {
-                    searchQuery += ' ' + attrs.join(' '); // Atributlarni bo'sh joy bilan qo'shish
-                }
-
-                const options = {
-                    page,
-                    hitsPerPage: limit
-                };
-
-                // Algolia qidiruvini bajaramiz
-                const { hits, nbPages, nbHits } = await productsIndex.search(searchQuery, options);
-                totalDocuments = nbHits;
-
-            } else {
-                // Agar search yoki attrs bo'lmasa, MongoDB orqali qidirish
-                const countProducts = await shopProductModel.countDocuments(query);
-                totalDocuments = countProducts;
-            }
 
             const maxMinPrices = await shopProductModel.aggregate([
                 {
                     $match: query
                 },
 
-                { $sort: { sale_price: -1 } },
+                // { $sort: { sale_price: -1 } },
                 {
                     $group: {
                         _id: null,
@@ -304,10 +270,7 @@ class Category {
                 }
             ]);
 
-            console.log(totalDocuments)
-            
             return reply.send({
-                totalDocuments,
                 maxPrice: maxMinPrices[0].maxPrice,
                 minPrice: maxMinPrices[0].minPrice,
                 attributes: attributes.length ? attributes.map(field => ({
@@ -316,6 +279,49 @@ class Category {
                     limit: 5,
                 })) : []
             })
+
+        } catch (error) {
+            console.log(error)
+            return reply.code(500).send(error.message)
+        }
+    }
+
+    async totalProductCounts(req, reply) {
+        try {
+            const lang = req.headers["lang"] || 'uz';
+            const { slug = "" } = req.params;
+            const search = req.query.search || "";
+            const prices = req.query?.prices ? req.query.prices.split(",") : [];
+            const attrs = req.query?.attrs ? req.query?.attrs.split(",") : [];
+            let query = {};
+            let totalDocuments;
+
+            query = { categories: { $in: [new mongoose.Types.ObjectId(slug)] } }
+
+            const [minPrice = 0, maxPrice = Number.MAX_VALUE] = prices.map(Number);
+            query.sale_price = { $gte: minPrice, $lte: maxPrice }
+
+
+            if (search || attrs.length) {
+                // Atributlarni qidiruv qatoriga qo'shamiz
+                let searchQuery = search || '';
+
+                // Atributlarni qidiruv so'ziga qo'shamiz
+                if (attrs.length) {
+                    searchQuery += ' ' + attrs.join(' '); // Atributlarni bo'sh joy bilan qo'shish
+                }
+
+                // Algolia qidiruvini bajaramiz
+                const { hits, nbPages, nbHits } = await productsIndex.search(searchQuery);
+                totalDocuments = nbHits;
+
+            } else {
+                // Agar search yoki attrs bo'lmasa, MongoDB orqali qidirish
+                const countProducts = await shopProductModel.countDocuments(query);
+                totalDocuments = countProducts;
+            }
+
+            return reply.send(totalDocuments)
 
         } catch (error) {
             console.log(error)
