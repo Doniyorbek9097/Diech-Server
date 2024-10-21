@@ -114,7 +114,7 @@ class Category {
             const prices = req.query?.prices ? req.query.prices.split(",") : [];
             const attrs = req.query?.attrs ? req.query?.attrs.split(",") : [];
             const sortQuery = req.query.sort || "";
-
+            
             let category = await categoryModel.findOne({ slug })
                 .populate("banners")
                 .populate({
@@ -153,23 +153,25 @@ class Category {
             query.sale_price = { $gte: minPrice, $lte: maxPrice }
 
             let totalPage;
+            if (attrs.length) {
+                query.attributes = {
+                    $elemMatch: {
+                        $or: [
+                            { 'value.uz': { $in: attrs } },
+                            { 'value.ru': { $in: attrs } }
+                        ]
+                    }
+                };
+            }
 
-            if (search || attrs.length) {
-                // Atributlarni qidiruv qatoriga qo'shamiz
-                let searchQuery = search || '';
-
-                // Atributlarni qidiruv so'ziga qo'shamiz
-                if (attrs.length) {
-                    searchQuery += ' ' + attrs.join(' '); // Atributlarni bo'sh joy bilan qo'shish
-                }
-
+            if (search) {
                 const options = {
                     page,
                     hitsPerPage: limit
                 };
 
                 // Algolia qidiruvini bajaramiz
-                const { hits, nbPages, nbHits } = await productsIndex.search(searchQuery, options);
+                const { hits, nbPages, nbHits } = await productsIndex.search(search, options);
 
                 // Mahsulotlar IDlarini yig'ib olish
                 const ids = hits.map(item => item.objectID);
@@ -183,13 +185,14 @@ class Category {
                 const countProducts = await shopProductModel.countDocuments(query);
                 totalPage = Math.ceil(countProducts / limit); // Sahifalar sonini hisoblash
             }
-
+            
+            
             const products = await shopProductModel.find(query)
                 .sort(sort)
                 .skip(page * limit)
                 .limit(limit)
                 .select('name orginal_price sale_price inStock slug images rating reviewsCount discount')
-
+            
             const result = {
                 totalPage,
                 page,
@@ -197,7 +200,7 @@ class Category {
                 category,
                 products,
             }
-
+            
             return reply.send(result);
 
         } catch (error) {
