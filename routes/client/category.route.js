@@ -8,8 +8,8 @@ router.get("/parent-categories", categoryController.allParent);
 
 // Get by slug name 
 router.get("/category-slug/:slug", categoryController.oneBySlug)
-router.get("/category-products-filter/:slug", categoryController.filterData)
-router.get("/category-product-countes/:slug", categoryController.totalProductCounts)
+router.get("/category-products-filter/:category_id", categoryController.filterData)
+router.get("/category-product-countes/:category_id", categoryController.totalProductCounts)
 
 // get home page 
 router.get("/categories-with-home", categoryController.withHome);

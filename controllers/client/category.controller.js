@@ -231,10 +231,10 @@ class Category {
     async filterData(req, reply) {
         try {
             const lang = req.headers["lang"] || 'uz';
-            const { slug = "" } = req.params;
+            const { category_id = "" } = req.params;
             let query = {};
 
-            query = { categories: { $in: [new mongoose.Types.ObjectId(slug)] } }
+            query = { categories: { $in: [new mongoose.Types.ObjectId(category_id)] } }
 
 
             const maxMinPrices = await shopProductModel.aggregate([
@@ -308,14 +308,14 @@ class Category {
     async totalProductCounts(req, reply) {
         try {
             const lang = req.headers["lang"] || 'uz';
-            const { slug = "" } = req.params;
+            const { category_id = "" } = req.params;
             const search = req.query.search || "";
             const prices = req.query?.prices ? req.query.prices.split(",") : [];
             const attrs = req.query?.attrs ? req.query?.attrs.split(",") : [];
             let query = {};
             let totalDocuments;
 
-            query = { categories: { $in: [new mongoose.Types.ObjectId(slug)] } }
+            query = { categories: { $in: [new mongoose.Types.ObjectId(category_id)] } }
 
             const [minPrice = 0, maxPrice = Number.MAX_VALUE] = prices.map(Number);
             query.sale_price = { $gte: minPrice, $lte: maxPrice }
