@@ -1,4 +1,5 @@
 const slugify = require("slugify")
+const fileService = require("../../services/file.service2")
 const fileModel = require("../../models/file.model")
 const bannerModel = require("../../models/banner.model")
 
@@ -60,7 +61,24 @@ class Banner {
 
     async deleteById(req, reply) {
         try {
-            const result = await bannerModel.findByIdAndDelete(req.params.id).lean()
+            const { id } = req.params;
+            const banner = await bannerModel.findById(id).lean();
+            console.log(banner?.image)
+            if (banner?.image) {
+                await fileService.remove(banner.image.uz);
+                await fileService.remove(banner.image.ru);
+                await fileModel.findOneAndDelete({ image_url: banner.image.uz });
+                await fileModel.findOneAndDelete({ image_url: banner.image.ru });
+            }
+
+            if (banner?.smallImage) {
+                await fileService.remove(banner.smallImage.uz);
+                await fileService.remove(banner.smallImage.ru);
+                await fileModel.findOneAndDelete({ image_url: banner.smallImage.uz });
+                await fileModel.findOneAndDelete({ image_url: banner.smallImage.ru });
+            }
+
+            const result = await bannerModel.findByIdAndDelete(id).lean()
             return reply.send({ data: result, message: "Success" });
 
         } catch (error) {
