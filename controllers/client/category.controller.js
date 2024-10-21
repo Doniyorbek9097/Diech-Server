@@ -202,7 +202,7 @@ class Category {
             }
             
             return reply.send(result);
-            console.log(products.length)
+    
         } catch (error) {
             if (error) {
                 console.log(error);
@@ -274,8 +274,8 @@ class Category {
             ]);
 
             return reply.send({
-                maxPrice: maxMinPrices[0].maxPrice,
-                minPrice: maxMinPrices[0].minPrice,
+                maxPrice: maxMinPrices[0]?.maxPrice || 0,
+                minPrice: maxMinPrices[0]?.minPrice || 0,
                 attributes: attributes.length ? attributes.map(field => ({
                     label: field.label[lang],
                     items: field.values.map(val => val ? val[lang] : ''),

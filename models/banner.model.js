@@ -8,11 +8,6 @@ const bannerSchema = new Schema({
         intl: true
     },
 
-    image_id: {
-        uz: String,
-        ru: String
-    },
-
     smallImage: {
         type: String,
         intl: true

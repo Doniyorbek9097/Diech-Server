@@ -6,18 +6,8 @@ class Banner {
     async create(req, reply) {
         const { image, slug } = req.body;
         try {
-            const result = await new bannerModel({
-                slug: slug,
-                image: {
-                    uz: image.uz.url,
-                    ru: image.ru.url
-                },
-                image: {
-                    uz: image.uz._id,
-                    ru: image.ru._id
-                },
-
-            }).save();
+            const result = await new bannerModel(req.body).save();
+            
             return reply.send({
                 data: result,
                 message: "Success"
