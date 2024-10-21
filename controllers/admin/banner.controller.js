@@ -11,22 +11,22 @@ class Banner {
             if (newBanner.image) {
                 await fileModel.updateOne(
                     { image_url: newBanner.image.uz },
-                    { isActive: true, owner_id: newProduct._id, owner_type: "banner" },
+                    { isActive: true, owner_id: newBanner._id, owner_type: "banner" },
                 );
                 await fileModel.updateOne(
                     { image_url: newBanner.image.ru },
-                    { isActive: true, owner_id: newProduct._id, owner_type: "banner" },
+                    { isActive: true, owner_id: newBanner._id, owner_type: "banner" },
                 );
             }
 
             if (newBanner.smallImage) {
                 await fileModel.updateOne(
                     { image_url: newBanner.smallImage.uz },
-                    { isActive: true, owner_id: newProduct._id, owner_type: "banner" },
+                    { isActive: true, owner_id: newBanner._id, owner_type: "banner" },
                 );
                 await fileModel.updateOne(
                     { image_url: newBanner.smallImage.ru },
-                    { isActive: true, owner_id: newProduct._id, owner_type: "banner" },
+                    { isActive: true, owner_id: newBanner._id, owner_type: "banner" },
                 );
             }
 
