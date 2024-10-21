@@ -202,7 +202,7 @@ class Category {
             }
             
             return reply.send(result);
-
+            console.log(products.length)
         } catch (error) {
             if (error) {
                 console.log(error);
@@ -304,18 +304,20 @@ class Category {
             const [minPrice = 0, maxPrice = Number.MAX_VALUE] = prices.map(Number);
             query.sale_price = { $gte: minPrice, $lte: maxPrice }
 
+            if (attrs.length) {
+                query.attributes = {
+                    $elemMatch: {
+                        $or: [
+                            { 'value.uz': { $in: attrs } },
+                            { 'value.ru': { $in: attrs } }
+                        ]
+                    }
+                };
+            }
 
-            if (search || attrs.length) {
-                // Atributlarni qidiruv qatoriga qo'shamiz
-                let searchQuery = search || '';
-
-                // Atributlarni qidiruv so'ziga qo'shamiz
-                if (attrs.length) {
-                    searchQuery += ' ' + attrs.join(' '); // Atributlarni bo'sh joy bilan qo'shish
-                }
-
+            if (search) {
                 // Algolia qidiruvini bajaramiz
-                const { hits, nbPages, nbHits } = await productsIndex.search(searchQuery);
+                const { hits, nbPages, nbHits } = await productsIndex.search(search);
                 totalDocuments = nbHits;
 
             } else {
