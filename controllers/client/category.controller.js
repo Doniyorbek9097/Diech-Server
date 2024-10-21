@@ -114,7 +114,7 @@ class Category {
             const prices = req.query?.prices ? req.query.prices.split(",") : [];
             const attrs = req.query?.attrs ? req.query?.attrs.split(",") : [];
             const sortQuery = req.query.sort || "";
-            
+
             let category = await categoryModel.findOne({ slug })
                 .populate("banners")
                 .populate({
@@ -153,6 +153,7 @@ class Category {
             query.sale_price = { $gte: minPrice, $lte: maxPrice }
 
             let totalPage;
+
             if (attrs.length) {
                 query.attributes = {
                     $elemMatch: {
@@ -165,34 +166,49 @@ class Category {
             }
 
             if (search) {
-                const options = {
-                    page,
-                    hitsPerPage: limit
+                const regex = new RegExp(search, 'i'); // 'i' flagi case-insensitive qidiruvni belgilaydi
+                query = {
+                    $or: [
+                        { 'attributes.value.uz': { $elemMatch: { $regex: regex } } },
+                        { 'attributes.value.ru': { $elemMatch: { $regex: regex } } },
+                        { 'name.uz': regex },
+                        { 'name.ru': regex },
+                        { 'barcode': regex }
+                    ]
                 };
-
-                // Algolia qidiruvini bajaramiz
-                const { hits, nbPages, nbHits } = await productsIndex.search(search, options);
-
-                // Mahsulotlar IDlarini yig'ib olish
-                const ids = hits.map(item => item.objectID);
-                query._id = { $in: ids };
-
-                // Mahsulotlar sonini nbHits orqali olish
-                totalPage = Math.ceil(nbHits / limit);
-
-            } else {
-                // Agar search yoki attrs bo'lmasa, MongoDB orqali qidirish
-                const countProducts = await shopProductModel.countDocuments(query);
-                totalPage = Math.ceil(countProducts / limit); // Sahifalar sonini hisoblash
             }
-            
-            
+
+            // if (search) {
+            //     const options = {
+            //         page,
+            //         hitsPerPage: limit
+            //     };
+
+            //     // Algolia qidiruvini bajaramiz
+            //     const { hits, nbPages, nbHits } = await productsIndex.search(search, options);
+
+            //     // Mahsulotlar IDlarini yig'ib olish
+            //     const ids = hits.map(item => item.objectID);
+            //     query._id = { $in: ids };
+
+            //     // Mahsulotlar sonini nbHits orqali olish
+            //     totalPage = Math.ceil(nbHits / limit);
+
+            // } else {
+            //     // Agar search yoki attrs bo'lmasa, MongoDB orqali qidirish
+            //     const countProducts = await shopProductModel.countDocuments(query);
+            //     totalPage = Math.ceil(countProducts / limit); // Sahifalar sonini hisoblash
+            // }
+
+            const countProducts = await shopProductModel.countDocuments(query);
+            totalPage = Math.ceil(countProducts / limit);
+
             const products = await shopProductModel.find(query)
                 .sort(sort)
                 .skip(page * limit)
                 .limit(limit)
                 .select('name orginal_price sale_price inStock slug images rating reviewsCount discount')
-            
+
             const result = {
                 totalPage,
                 page,
@@ -200,9 +216,9 @@ class Category {
                 category,
                 products,
             }
-            
+
             return reply.send(result);
-    
+
         } catch (error) {
             if (error) {
                 console.log(error);
@@ -315,16 +331,33 @@ class Category {
                 };
             }
 
-            if (search) {
-                // Algolia qidiruvini bajaramiz
-                const { hits, nbPages, nbHits } = await productsIndex.search(search);
-                totalDocuments = nbHits;
 
-            } else {
-                // Agar search yoki attrs bo'lmasa, MongoDB orqali qidirish
-                const countProducts = await shopProductModel.countDocuments(query);
-                totalDocuments = countProducts;
+            if (search) {
+                const regex = new RegExp(search, 'i'); // 'i' flagi case-insensitive qidiruvni belgilaydi
+                query = {
+                    $or: [
+                        { 'attributes.value.uz': { $elemMatch: { $regex: regex } } },
+                        { 'attributes.value.ru': { $elemMatch: { $regex: regex } } },
+                        { 'name.uz': regex },
+                        { 'name.ru': regex },
+                        { 'barcode': regex }
+                    ]
+                };
             }
+
+            // if (search) {
+            //     // Algolia qidiruvini bajaramiz
+            //     const { hits, nbPages, nbHits } = await productsIndex.search(search);
+            //     totalDocuments = nbHits;
+
+            // } else {
+            //     // Agar search yoki attrs bo'lmasa, MongoDB orqali qidirish
+            //     const countProducts = await shopProductModel.countDocuments(query);
+            //     totalDocuments = countProducts;
+            // }
+
+            const countProducts = await shopProductModel.countDocuments(query);
+            totalDocuments = countProducts;
 
             return reply.send(totalDocuments)
 
