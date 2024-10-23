@@ -1,6 +1,6 @@
 const reviewModel = require("../../models/review.model")
 const shopProductModel = require("../../models/shop.product.model");
-const fileService = require("../../services/file.service")
+const fileService = require("../../services/file.service2")
 
 
 async function reviewRoutes(fastify, options)  {

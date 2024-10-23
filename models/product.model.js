@@ -1,6 +1,6 @@
 const { Schema, Types } = require("mongoose");
 const { serverDB } = require("../config/db")
-const fileService = require("../services/file.service")
+const fileService = require("../services/file.service2")
 const shopProductModel = require("./shop.product.model")
 
 const attributesSchema = Schema({

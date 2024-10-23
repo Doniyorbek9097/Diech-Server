@@ -2,10 +2,10 @@ const fileModel = require("../models/file.model")
 const fileService = require("../services/file.service2")
 
 class File {
-    async imageUpload(req, reply) {
+    async imageUpload(req, reply, fileOptions = {}) {
         try {
             const part = await req.file();
-            const image_url = await fileService.photoUpload({ part })
+            const image_url = await fileService.photoUpload({ part, ...fileOptions })
             const newdata = await new fileModel({ image_url }).save()
             return reply.send(newdata.image_url)
 
@@ -15,7 +15,6 @@ class File {
 
         }
     }
-
 
     async imageRemove(req, reply) {
         try {

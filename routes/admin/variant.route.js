@@ -4,7 +4,7 @@ const path = require("path")
 const fs = require("fs")
 const { baseDir } = require("../../config/uploadFolder");
 const { Base64ToFile } = require("../../utils/base64ToFile")
-const fileService = require("../../services/file.service");
+const fileService = require("../../services/file.service2");
 
 const variantRoutes = async(fastify, options) => {
 try {

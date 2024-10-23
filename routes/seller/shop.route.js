@@ -1,5 +1,5 @@
 const shopModel = require("../../models/shop.model");
-const fileService = require('../../services/file.service');
+const fileService = require('../../services/file.service2');
 
 async function shopRoutes(fastify, options) {
 

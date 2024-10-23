@@ -2,7 +2,7 @@ const slugify = require("slugify");
 const shopModel = require("../../models/shop.model");
 const { generateToken } = require("../../utils/generateToken");
 const { checkToken } = require("../../middlewares/authMiddleware")
-const fileService = require("../../services/file.service")
+const fileService = require("../../services/file.service2")
 
 const shopRoutes = async (fastify, options) => {
   try {
