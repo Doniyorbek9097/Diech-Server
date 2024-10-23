@@ -5,9 +5,8 @@ const bannerModel = require("../../models/banner.model")
 
 class Banner {
     async create(req, reply) {
-        const { image, slug } = req.body;
         try {
-            const newBanner = await new bannerModel(req.body).save();
+            const newBanner = (await new bannerModel(req.body).save()).toObject();
 
             if (newBanner.image) {
                 await fileModel.updateOne(
@@ -63,7 +62,7 @@ class Banner {
         try {
             const { id } = req.params;
             const banner = await bannerModel.findById(id).lean();
-            console.log(banner?.image)
+            
             if (banner?.image) {
                 await fileService.remove(banner.image.uz);
                 await fileService.remove(banner.image.ru);

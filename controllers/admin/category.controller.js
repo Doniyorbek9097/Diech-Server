@@ -169,15 +169,20 @@ class Category {
 
     async updateById(req, reply) {
         const { body: category } = req;
-        const { id, fileName } = req.params;
+        const { id } = req.params;
         try {
-            const upadted = await categoryModel.findByIdAndUpdate(id, category);
+            const upadted = (await categoryModel.findByIdAndUpdate(id, category, {new: true})).toObject();
+            if(upadted.icon) {
+               await fileModel.updateOne({image_url: upadted.icon}, {isActive: true})
+            }
+
+            if(upadted.image) {
+                await fileModel.updateOne({image_url: upadted.image}, {isActive: true})
+             }
+
             return reply.status(200).send(upadted);
 
         } catch (error) {
-            category?.icon && await fileService.remove(category.icon)
-            category?.image && await fileService.remove(category.image)
-            
             return reply.status(500).send(error.message)
         }
     }
@@ -199,10 +204,18 @@ class Category {
     async deleteById(req, reply) {
         try {
 
-            let deleted = await categoryModel.findByIdAndDelete(req.params.id);
+            let deleted = await categoryModel.findByIdAndDelete(req.params.id).lean();
             if (!deleted) return reply.status(404).send("Category not found");
-            deleted?.image && await fileService.remove(deleted?.image)
-            deleted?.icon && await fileService.remove(deleted?.icon)
+
+            if (deleted?.icon) {
+                await fileService.remove(deleted?.icon);
+                await fileModel.findOneAndDelete({ image_url: deleted?.icon });
+            }
+
+            if (deleted?.image) {
+                await fileService.remove(deleted?.image);
+                await fileModel.findOneAndDelete({ image_url: deleted?.image });
+            }
 
             return reply.status(200).send(deleted);
 
