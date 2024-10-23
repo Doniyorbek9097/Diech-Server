@@ -6,7 +6,8 @@ const bannerRoutes = async (fastify, options) => {
     fastify.post("/banner-add", bannerController.create);
     fastify.get("/banner-all", bannerController.all);
     fastify.delete("/banner-delete/:id", bannerController.deleteById)
-    fastify.post("/banner-image-upload", (req, res) => fileController.imageUpload(req, res, { width: undefined }))
+    fastify.post("/banner-large-image-upload", (req, res) => fileController.imageUpload(req, res, { width: 1350 }))
+    fastify.post("/banner-min-image-upload", (req, res) => fileController.imageUpload(req, res, { width: 1152 }))
     
 }
 
