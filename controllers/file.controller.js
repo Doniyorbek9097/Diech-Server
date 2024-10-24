@@ -18,8 +18,9 @@ class File {
 
     async imageRemove(req, reply) {
         try {
-            const { image_url } = req.params;
-            const file = await fileModel.findOne({ image_url });
+            const { image_url } = req.query;
+            console.log(image_url)
+            const file = await fileModel.findOne({ image_url: decodeURIComponent(image_url) });
             await fileService.remove(file?.image_url)
             const deleted = await fileModel.findByIdAndDelete(file?._id);
             return reply.send(deleted)

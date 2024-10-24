@@ -26,8 +26,6 @@ const categoryRoutes = async (fastify, options) => {
     // delete Category by id
     fastify.delete("/category-delete/:id", { preHandler: checkToken }, categoryController.deleteById);
     fastify.post("/category-image-upload", { preHandler: checkToken }, categoryController.imageUpload);
-    fastify.delete("/category-image-remove/:image_url", { preHandler: checkToken }, categoryController.imageRemove);
-
 
   }
   catch (error) {
