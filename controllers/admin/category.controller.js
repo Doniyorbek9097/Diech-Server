@@ -241,20 +241,6 @@ class Category {
     }
 
 
-    async imageRemove(req, reply) {
-        try {
-            const { image_url } = req.params;
-            const file = await fileModel.findOne({ image_url });
-            await fileService.remove(file?.image_url)
-            const deleted = await fileModel.findByIdAndDelete(file?._id);
-            return reply.send(deleted)
-        } catch (error) {
-            console.log(error);
-            reply.code(500).send(error.message)
-
-        }
-    }
-
 }
 
 

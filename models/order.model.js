@@ -44,9 +44,15 @@ const productSchema = Schema({
 
 
 const orderSchema = new Schema({
+    
     user: {
         type: Schema.Types.ObjectId,
         ref: "User",
+    },
+
+    cart_id: {
+        type: Schema.Types.ObjectId,
+        ref: "Cart",
     },
 
     address: {

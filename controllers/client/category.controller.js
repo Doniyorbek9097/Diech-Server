@@ -78,7 +78,7 @@ class Category {
                         select: 'name orginal_price sale_price inStock slug images rating reviewsCount discount',
                         options: {
                             sort: { updatedAt: -1 },
-                            limit: 10
+                            limit: 14
                         }
                     },
                     {
