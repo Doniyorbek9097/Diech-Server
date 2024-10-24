@@ -23,17 +23,18 @@ bot.on("callback_query", async (ctx) => {
         const [event, testId, userId] = queryArray;
 
         if (event == "stat") {
-            const test = await testModel.findOne({ '_id': testId})
-            .sort({'answers.ball': -1})
-            .populate('answers.user');
+            const test = await testModel.findOne({ '_id': testId })
+                .populate('answers.user');
             
+            // Javoblarni ball bo'yicha yuqoridan pastga saralash
+            test.answers.sort((a, b) => b.ball - a.ball);
+        
             let txt = `<b>${test.code}</b> sonli test natijalari\n`;
             test.answers.forEach(({user, ball}, index) => {
-                txt += `${index+1}. ${user.firstname} ${user.lastname} - <b>${ball}</b> ball\n`; 
+                txt += `${index + 1}. ${user.firstname} ${user.lastname} - <b>${ball}</b> ball\n`; 
             });
-
-            await ctx.replyWithHTML(txt)
-            
+        
+            await ctx.replyWithHTML(txt);
         }
 
         if (event == "closed") {
